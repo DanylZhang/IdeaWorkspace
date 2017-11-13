@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mybatis.many2many.TeacherMapper">
+
+    <resultMap id="teacher_mapping" type="Teacher">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <collection property="students" ofType="Student" column="id" select="mybatis.many2many.StudentMapper.getByTeacher"/>
+    </resultMap>
+
+    <insert id="add" keyColumn="id" keyProperty="id" useGeneratedKeys="true" parameterType="Teacher">
+        INSERT INTO teacher (name) VALUES (#{name})
+    </insert>
+
+    <select id="get" parameterType="long" resultMap="teacher_mapping">
+        SELECT id,name FROM teacher WHERE id=#{id}
+    </select>
+    
+    <insert id="resovleRelation">
+        INSERT INTO tea_stu(tea_id,stu_id) VALUES (#{teaId},#{stuId})
+    </insert>
+</mapper>

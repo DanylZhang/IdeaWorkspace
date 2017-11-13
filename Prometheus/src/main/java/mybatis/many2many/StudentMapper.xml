@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mybatis.many2many.StudentMapper">
+
+    <resultMap id="student_mapping" type="Student">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+    </resultMap>
+
+    <insert id="add" keyColumn="id" keyProperty="id" useGeneratedKeys="true" parameterType="Student">
+        INSERT INTO student (name) VALUES (#{name})
+    </insert>
+
+    <select id="get" parameterType="long" resultMap="student_mapping">
+        SELECT id,name FROM student WHERE id=#{id}
+    </select>
+
+    <select id="getByTeacher" parameterType="long" resultMap="student_mapping">
+        SELECT student.id,student.name FROM tea_stu LEFT JOIN student ON tea_stu.stu_id=student.id WHERE tea_stu.tea_id=#{teaId}
+    </select>
+</mapper>
