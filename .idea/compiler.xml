@@ -6,11 +6,15 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="babasport-back" />
+        <module name="babasport-core" />
         <module name="Prometheus" />
         <module name="spring-boot-configuration" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
+      <module name="babasport-back" target="1.5" />
+      <module name="babasport-core" target="1.5" />
       <module name="Prometheus" target="1.8" />
       <module name="spring-boot-configuration" target="1.8" />
     </bytecodeTargetLevel>

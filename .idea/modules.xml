@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Prometheus/Prometheus.iml" filepath="$PROJECT_DIR$/Prometheus/Prometheus.iml" />
+      <module fileurl="file://$PROJECT_DIR$/babasport-back/babasport-back.iml" filepath="$PROJECT_DIR$/babasport-back/babasport-back.iml" />
+      <module fileurl="file://$PROJECT_DIR$/babasport-core/babasport-core.iml" filepath="$PROJECT_DIR$/babasport-core/babasport-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/spring-boot-configuration/spring-boot-configuration.iml" filepath="$PROJECT_DIR$/spring-boot-configuration/spring-boot-configuration.iml" />
     </modules>
   </component>
