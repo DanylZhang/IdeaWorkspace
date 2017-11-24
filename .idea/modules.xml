@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/PageMonitor/PageMonitor.iml" filepath="$PROJECT_DIR$/PageMonitor/PageMonitor.iml" />
       <module fileurl="file://$PROJECT_DIR$/Prometheus/Prometheus.iml" filepath="$PROJECT_DIR$/Prometheus/Prometheus.iml" />
       <module fileurl="file://$PROJECT_DIR$/babasport-back/babasport-back.iml" filepath="$PROJECT_DIR$/babasport-back/babasport-back.iml" />
       <module fileurl="file://$PROJECT_DIR$/babasport-core/babasport-core.iml" filepath="$PROJECT_DIR$/babasport-core/babasport-core.iml" />

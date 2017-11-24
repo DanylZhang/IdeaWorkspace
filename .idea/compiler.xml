@@ -14,10 +14,10 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8">
-      <module name="babasport-back" target="1.5" />
-      <module name="babasport-core" target="1.5" />
-      <module name="babasport-front" target="1.5" />
-      <module name="babasport-parent" target="1.5" />
+      <module name="babasport-back" target="1.8" />
+      <module name="babasport-core" target="1.8" />
+      <module name="babasport-front" target="1.8" />
+      <module name="babasport-parent" target="1.8" />
       <module name="Prometheus" target="1.8" />
       <module name="spring-boot-configuration" target="1.8" />
     </bytecodeTargetLevel>
