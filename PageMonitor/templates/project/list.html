@@ -46,6 +46,7 @@
         <th>通知邮箱</th>
         <th>频率</th>
         <th>最近一次监控时间</th>
+        <th>操作</th>
         </thead>
         <tbody>
         {% for project in projects %}
@@ -55,6 +56,11 @@
                 <td>{{ project.notify_emails }}</td>
                 <td>{{ project.get_duration_display }}</td>
                 <td>{{ project.last_curl_time }}</td>
+                <td>
+                    <button><a href="/update_project?project_id={{ project.project_id }}">修改</a></button>
+                    |
+                    <button><a href="/delete_project?project_id={{ project.project_id }}">删除</a></button>
+                </td>
             </tr>
         {% endfor %}
         </tbody>

@@ -42,7 +42,7 @@ def register(req):
             # 调用auth登录
             auth.login(req, user)
             # 重定向到首页
-            return redirect('/login')
+            return redirect('/')
     else:
         context = {'isLogin': False}
     # 将req 、页面 、以及context{}（要传入html文件中的内容包含在字典里）返回
@@ -109,7 +109,29 @@ def list_all(req):
 @login_required(login_url='/login')
 def add_project(req):
     username = req.user
-    if req.method == 'POST':
+    get_dict = req.GET
+    print req.method
+    print req.get_full_path()
+    print req.GET
+    print req.POST
+    print req.META
+    project_id = get_dict.get('project_id', 0)
+    if req.method == 'POST' and project_id > 0:
+        print 111
+        project = ProjectForm(req.POST, initial={'username': username})
+        if project.is_valid():
+            p = Project.objects.get(project_id=project_id, username=username)
+            p.url = project.cleaned_data['url'],
+            p.duration = project.cleaned_data['duration'],
+            p.notify_emails = project.cleaned_data['notify_emails'],
+            p.last_curl_time = '1970-01-01 00:00:00'
+            p.save()
+            return redirect('/list_all')
+        else:
+            project = ProjectForm(req.POST)
+            return render(req, 'project/add_project.html', {'project': project})
+    elif req.method == 'POST':
+        print 222
         project = ProjectForm(req.POST, initial={'username': username})
         if project.is_valid():
             p = Project(username=username, url=project.cleaned_data['url'],
@@ -120,6 +142,38 @@ def add_project(req):
         else:
             project = ProjectForm(req.POST)
             return render(req, 'project/add_project.html', {'project': project})
+    elif req.method == 'GET' and project_id > 0:
+        print 333
+        project = Project.objects.get(project_id=project_id, username=username)
+        project = ProjectForm(
+            initial={'url': project.url, 'notify_emails': project.notify_emails, 'duration': project.duration})
+        return render(req, 'project/add_project.html', {'project': project})
+    else:
+        print 444
+        project = ProjectForm(initial={'notify_emails': username})
+        return render(req, 'project/add_project.html', {'project': project})
+
+
+# delete project
+@login_required(login_url='/login')
+def delete_project(req):
+    username = req.user
+    project_id = req.GET['project_id']
+    if project_id > 0:
+        Project.objects.filter(project_id=project_id, username=username).delete()
+        return redirect('/list_all')
+
+
+# update project
+@login_required(login_url='/login')
+def update_project(req):
+    username = req.user
+    project_id = req.GET['project_id']
+    if req.method == 'GET' and project_id > 0:
+        project = Project.objects.get(project_id=project_id, username=username)
+        project = ProjectForm(
+            initial={'url': project.url, 'notify_emails': project.notify_emails, 'duration': project.duration})
+        return render(req, 'project/add_project.html', {'project': project})
     else:
         project = ProjectForm(initial={'notify_emails': username})
         return render(req, 'project/add_project.html', {'project': project})

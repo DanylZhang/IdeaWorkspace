@@ -84,6 +84,7 @@
             <artifactId>aspectjweaver</artifactId>
         </dependency>
 
+        <!--hibernate-validator-->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>

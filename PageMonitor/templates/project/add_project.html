@@ -13,7 +13,7 @@
     <title>Login</title>
 </head>
 <body>
-<h1>新建项目</h1>
+<h1>编辑项目</h1>
 <form action="{% url 'add_project' %}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
     {% csrf_token %}
     {{ project }}

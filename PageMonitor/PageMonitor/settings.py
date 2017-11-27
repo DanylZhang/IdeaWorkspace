@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.forms',
     'project',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
