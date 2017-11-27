@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Login</title>
+    <style>
+        table {
+            border-bottom: 1px solid rgb(211, 202, 221);
+        }
+
+        table thead, table tr {
+            border-top: 1px solid rgb(211, 202, 221);
+        }
+
+        table td, table th {
+            padding: 5px 10px;
+            font-size: 12px;
+            color: rgb(95, 74, 121);
+        }
+
+        table tr:nth-child(even) {
+            background: rgb(223, 216, 232)
+        }
+
+        table tr:nth-child(odd) {
+            background: #FFF
+        }
+    </style>
+</head>
+<body>
+<h1>项目列表</h1>
+<a href="/add_project">添加项目</a>
+<div class="row">
+    <table>
+        <thead>
+        <th>项目ID</th>
+        <th>URL</th>
+        <th>通知邮箱</th>
+        <th>频率</th>
+        <th>最近一次监控时间</th>
+        </thead>
+        <tbody>
+        {% for project in projects %}
+            <tr>
+                <td>{{ project.project_id }}</td>
+                <td>{{ project.url }}</td>
+                <td>{{ project.notify_emails }}</td>
+                <td>{{ project.get_duration_display }}</td>
+                <td>{{ project.last_curl_time }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
