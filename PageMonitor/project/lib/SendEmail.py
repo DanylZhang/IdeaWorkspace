@@ -22,15 +22,15 @@ def send_mail(to_email=[], html='', attachments=None):
     smtp_server_host = 'smtp.qq.com'
     smtp_server_ssl_port = 465
     my_email = '1475811550@qq.com'  # 发件人邮箱账号
-    my_password = 'code'  # 发件人邮箱密码或授权码
+    my_password = 'atobpyqddgokjibi'  # 发件人邮箱密码或授权码
     to_email = to_email
 
     # 构造一个MIMEMultipart对象代表邮件本身
     msg = MIMEMultipart()
     # Header对中文进行转码
-    msg['From'] = format_addr('App-Store-Review-Guidelines 差异监控 <%s>' % my_email).encode()
+    msg['From'] = format_addr('差异监控 <%s>' % my_email).encode()
     msg['To'] = ','.join(to_email)
-    msg['Subject'] = Header('App-Store-Review-Guidelines 差异监控', 'utf-8').encode()
+    msg['Subject'] = Header('差异监控', 'utf-8').encode()
     # 添加邮件正文
     msg.attach(MIMEText(html, 'html', 'utf-8'))
 

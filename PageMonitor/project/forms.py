@@ -34,7 +34,7 @@ class RegisterForm(forms.Form):
     password_again = fields.CharField(
         # render_value会对于PasswordInput，错误是否清空密码输入框内容，默认为清除，我改为不清除
         label=u'确认密码',
-        widget=widgets.PasswordInput(attrs={'class': "form-control", 'placeholder': '请再次输入密码!'}, render_value=True),
+        widget=widgets.PasswordInput(attrs={'class': "form-control", 'placeholder': '请确认密码'}, render_value=True),
         required=True,
         strip=True,
         error_messages={'required': '请再次输入密码!', }
@@ -91,6 +91,24 @@ class LoginForm(forms.Form):
 
 
 class ProjectForm(forms.Form):
-    url = forms.URLField(label='URL', max_length=512, min_length=1, widget=forms.URLInput)
-    notify_emails = forms.CharField(label=u'通知邮箱', max_length=1024)
-    duration = forms.ChoiceField(label=u'监控频率', widget=forms.Select, choices=duration_choice)
+    url = forms.URLField(
+        label='URL',
+        required=True,
+        max_length=512,
+        min_length=1,
+        widget=forms.URLInput(attrs={'class': "form-control", 'placeholder': '请输入URL'}))
+    notify_emails = forms.CharField(
+        label=u'通知邮箱',
+        required=True,
+        max_length=1024,
+        widget=forms.TextInput(
+            attrs={'class': "form-control", 'placeholder': '请输入通知邮箱(多个邮箱请用英文分号分隔)'}))
+    duration = forms.ChoiceField(
+        label=u'监控频率',
+        required=True,
+        choices=duration_choice,
+        widget=forms.Select(attrs={'class': "form-control", 'placeholder': '监控频率'}, choices=duration_choice))
+    enable = forms.BooleanField(
+        label=u'开启项目',
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': "form-control", 'placeholder': '开启项目'}))

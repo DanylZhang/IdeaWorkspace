@@ -121,5 +121,6 @@ STATICFILES_DIRS = (
 )
 
 CRONJOBS = [
-    ('*/1 * * * *', 'project.cron.monitor', '>> /root/page_monitor.log')
+    # must use BASE_DIR as absolutely path,sometimes the user can't access other path
+    ('*/1 * * * *', 'project.cron.monitor', '>> ' + os.path.join(BASE_DIR, "page_monitor.log"))
 ]

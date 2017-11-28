@@ -15,7 +15,7 @@
         <property name="yearIsDateType" value="false" />
       </driver-properties>
     </data-source>
-    <data-source source="LOCAL" name="db.sqlite3" uuid="1246d61c-55fb-4455-a457-df9444a98032">
+    <data-source source="LOCAL" name="db.sqlite3" uuid="d3b4b67d-c017-42b8-8410-75e8b2621766">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>

@@ -5,7 +5,7 @@
     <title>项目列表</title>
     <script src="/static/jquery.min.js" type="text/javascript"></script>
     <script src="/static/bootstrap.min.js" type="text/javascript"></script>
-{#    <link rel="stylesheet" href="/static/bootstrap.min.css"/>#}
+    {#    <link rel="stylesheet" href="/static/bootstrap.min.css"/>#}
     <link rel="stylesheet" href="/static/style.css"/>
     <link rel="shortcut icon" type="image/png" href="/static/favicon.ico"/>
     <style>
@@ -41,7 +41,8 @@
         <th>项目ID</th>
         <th>URL</th>
         <th>通知邮箱</th>
-        <th>频率</th>
+        <th>监控频率</th>
+        <th>项目状态</th>
         <th>最近一次监控时间</th>
         <th>操作</th>
         </thead>
@@ -52,9 +53,11 @@
                 <td>{{ project.url }}</td>
                 <td>{{ project.notify_emails }}</td>
                 <td>{{ project.get_duration_display }}</td>
+                <td>{{ project.get_enable_display }}</td>
                 <td>{{ project.last_monitor_time }}</td>
                 <td>
                     <button><a href="{% url 'edit_project' project.project_id %}">修改</a></button>
+                    |
                     <button><a href="{% url 'delete_project' project.project_id %}">删除</a></button>
                 </td>
             </tr>
