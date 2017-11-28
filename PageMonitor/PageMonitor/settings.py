@@ -24,7 +24,7 @@ SECRET_KEY = 'q5-oe9us9qaveza#6@)a_8w87a(y-c3uqpvt+5byu3!flgl$e$'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -115,3 +115,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, "static"),
+)
+
+CRONJOBS = [
+    ('*/1 * * * *', 'project.cron.monitor', '>> /root/page_monitor.log')
+]
