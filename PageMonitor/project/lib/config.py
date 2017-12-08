@@ -4,8 +4,7 @@ import pymysql
 
 default_config = {
     'host': '139.196.96.149',
-    'port': 3306,
-    # 'port': 13306,
+    'port': 13306,
     'user': 'dataway-rw',
     'password': 'QqHVMhmN*8',
     'db': 'jumei',

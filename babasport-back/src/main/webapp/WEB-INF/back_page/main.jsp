@@ -6,8 +6,8 @@
 <title>babasport-main</title>
 </head>
 <frameset cols="227,*" frameborder="0" border="0" framespacing="0">
-	<frame src="left.jsp" name="leftFrame" noresize="noresize" id="leftFrame" />
-	<frame src="right.jsp" name="rightFrame" id="rightFrame" />
+	<frame src="left.html" name="leftFrame" noresize="noresize" id="leftFrame" />
+	<frame src="right.html" name="rightFrame" id="rightFrame" />
 </frameset>
 <noframes><body></body></noframes>
 </html>
