@@ -2,11 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/PageMonitor/PageMonitor.iml" filepath="$PROJECT_DIR$/PageMonitor/PageMonitor.iml" />
       <module fileurl="file://$PROJECT_DIR$/babasport-back/babasport-back.iml" filepath="$PROJECT_DIR$/babasport-back/babasport-back.iml" />
       <module fileurl="file://$PROJECT_DIR$/babasport-core/babasport-core.iml" filepath="$PROJECT_DIR$/babasport-core/babasport-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/babasport-front/babasport-front.iml" filepath="$PROJECT_DIR$/babasport-front/babasport-front.iml" />
       <module fileurl="file://$PROJECT_DIR$/babasport-parent/babasport-parent.iml" filepath="$PROJECT_DIR$/babasport-parent/babasport-parent.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Prometheus/prometheus.iml" filepath="$PROJECT_DIR$/Prometheus/prometheus.iml" />
+      <module fileurl="file://$PROJECT_DIR$/prometheus/prometheus.iml" filepath="$PROJECT_DIR$/prometheus/prometheus.iml" />
       <module fileurl="file://$PROJECT_DIR$/spring-boot-configuration/spring-boot-configuration.iml" filepath="$PROJECT_DIR$/spring-boot-configuration/spring-boot-configuration.iml" />
     </modules>
   </component>
