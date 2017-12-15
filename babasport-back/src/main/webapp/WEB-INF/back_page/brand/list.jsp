@@ -16,11 +16,11 @@
     <div class="clear"></div>
 </div>
 <div class="body-box">
-    <form action="v_list.shtml" method="post" style="padding-top:5px;">
-        品牌名称: <input type="text" name="name"/>
-        <select>
-            <option value="1">是</option>
-            <option>不是</option>
+    <form action="/control/brand/list.html" method="post" style="padding-top:5px;">
+        品牌名称: <input type="text" name="name" value="${name}"/>
+        <select name="isDisplay">
+            <option value="1" <c:if test="${isDisplay==1}">selected="selected"</c:if>>是</option>
+            <option value="0" <c:if test="${isDisplay==0}">selected="selected"</c:if>>否</option>
         </select>
         <input type="submit" class="query" value="查询"/>
     </form>

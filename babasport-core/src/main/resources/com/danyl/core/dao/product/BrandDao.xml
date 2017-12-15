@@ -8,8 +8,16 @@
         <result column="is_display" property="isDisplay"/>
     </resultMap>
 
-    <select id="selectBrandList" resultMap="brand">
+    <select id="selectBrandList" parameterType="BrandQuery" resultMap="brand">
         SELECT id,name,description,img_url,sort,is_display
         FROM babasport.bbs_brand
+        <where>
+            <if test="name != null">
+                name like "%"#{name}"%"
+            </if>
+            <if test="isDisplay != null">
+                and is_display = #{isDisplay}
+            </if>
+        </where>
     </select>
 </mapper>

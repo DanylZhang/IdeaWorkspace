@@ -12,7 +12,7 @@
     </context:component-scan>
 
     <!--处理器映射器 、处理器适配器-->
-    <mvc:annotation-driven/>
+    <mvc:annotation-driven conversion-service="conversionService"/>
 
     <!--视图解析器jsp-->
     <bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
@@ -20,4 +20,11 @@
         <property name="suffix" value=".jsp"/>
     </bean>
 
+    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="converters">
+            <list>
+                <bean class="com.danyl.common.CustomTrimConvertion"/>
+            </list>
+        </property>
+    </bean>
 </beans>
