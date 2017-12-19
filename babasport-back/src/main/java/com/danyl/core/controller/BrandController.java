@@ -30,7 +30,7 @@ public class BrandController {
 
     // 商品身体
     @RequestMapping(value = "list.html")
-    public String list(String name, Integer isDisplay, Model model) {
+    public String list(Integer pageNo,String name, Integer isDisplay, Model model) {
         BrandQuery brandQuery = new BrandQuery();
         if (null != name) {
             brandQuery.setName(name);

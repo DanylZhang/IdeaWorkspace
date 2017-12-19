@@ -1,5 +1,6 @@
 package com.danyl.core.service.product;
 
+import com.danyl.common.Pagination;
 import com.danyl.core.bean.product.Brand;
 import com.danyl.core.bean.product.BrandQuery;
 import com.danyl.core.dao.product.BrandDao;
@@ -19,4 +20,6 @@ public class BrandServiceImpl implements BrandService {
     public List<Brand> selectBrandList(BrandQuery brandQuery){
         return brandDao.selectBrandList(brandQuery);
     }
+
+    //构建分页
 }
