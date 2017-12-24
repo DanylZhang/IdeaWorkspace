@@ -1,5 +1,6 @@
 package springmvc.controller;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +28,7 @@ public class FileController {
         try {
             InputStream inputStream = multipartFile.getInputStream();
             String uuid = UUID.randomUUID().toString();
-            String suffix = multipartFile.getOriginalFilename().split("\\.")[1];
+            String suffix = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
             String fileName = uuid + "." + suffix;
             fileOutputStream = new FileOutputStream(new File(path, fileName));
             IOUtils.copy(inputStream, fileOutputStream);

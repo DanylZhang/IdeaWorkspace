@@ -59,13 +59,38 @@ public class BrandQuery {
 
     @Override
     public String toString() {
-        return "Brand{" +
+        return "BrandQuery{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", imgUrl='" + imgUrl + '\'' +
                 ", sort=" + sort +
                 ", isDisplay=" + isDisplay +
+                ", pageNo=" + pageNo +
+                ", pageSize=" + pageSize +
                 '}';
+    }
+
+    //附加字段
+    private Integer pageNo = 1;
+    private Integer pageSize = 10;
+    //开始行
+    private Integer startRow;
+    public Integer getPageNo() {
+        return pageNo;
+    }
+
+    public void setPageNo(Integer pageNo) {
+        this.pageNo = pageNo;
+        this.startRow = (pageNo-1)*this.pageSize;
+    }
+
+    public Integer getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(Integer pageSize) {
+        this.pageSize = pageSize;
+        this.startRow=(this.pageNo-1)*pageSize;
     }
 }

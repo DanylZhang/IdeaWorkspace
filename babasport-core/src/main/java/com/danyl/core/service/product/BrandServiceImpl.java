@@ -21,5 +21,14 @@ public class BrandServiceImpl implements BrandService {
         return brandDao.selectBrandList(brandQuery);
     }
 
-    //构建分页
+    //构建分页对象
+    public Pagination selectPaginationByQuery(BrandQuery brandQuery){
+        Pagination pagination = new Pagination(
+                brandQuery.getPageNo(),
+                brandQuery.getPageSize(),
+                brandDao.countBrand(brandQuery));
+        //设置结果集
+        pagination.setList(brandDao.selectBrandList(brandQuery));
+        return pagination;
+    }
 }

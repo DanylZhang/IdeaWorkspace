@@ -8,8 +8,26 @@
         <result column="is_display" property="isDisplay"/>
     </resultMap>
 
+    <!--查询符合条件的品牌-->
     <select id="selectBrandList" parameterType="BrandQuery" resultMap="brand">
         SELECT id,name,description,img_url,sort,is_display
+        FROM babasport.bbs_brand
+        <where>
+            <if test="name != null">
+                name like "%"#{name}"%"
+            </if>
+            <if test="isDisplay != null">
+                and is_display = #{isDisplay}
+            </if>
+        </where>
+        <if test="startRow != null">
+            limit #{startRow},#{pageSize}
+        </if>
+    </select>
+
+    <!--查询符合条件的条数-->
+    <select id="countBrand" parameterType="BrandQuery" resultType="integer">
+        SELECT count(1)
         FROM babasport.bbs_brand
         <where>
             <if test="name != null">
