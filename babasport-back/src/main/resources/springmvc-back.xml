@@ -24,7 +24,7 @@
     <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
         <property name="converters">
             <list>
-                <bean class="com.danyl.common.CustomTrimConvertion"/>
+                <bean class="com.danyl.common.conversion.CustomTrimConversion"/>
             </list>
         </property>
     </bean>

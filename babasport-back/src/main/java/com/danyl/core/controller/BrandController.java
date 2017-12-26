@@ -1,6 +1,6 @@
 package com.danyl.core.controller;
 
-import com.danyl.common.Pagination;
+import com.danyl.common.pagination.Pagination;
 import com.danyl.core.bean.product.Brand;
 import com.danyl.core.bean.product.BrandQuery;
 import com.danyl.core.service.product.BrandService;
@@ -9,8 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.sql.ParameterMetaData;
-import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * 品牌管理
@@ -66,7 +65,12 @@ public class BrandController {
 
     //去添加页面
     @RequestMapping(value = "add.html")
-    public String add(){
+    public String add(Brand brand, HttpServletRequest request) {
+        if (request.getMethod().matches("get")) {
+            return "brand/add";
+        }
+
         return "brand/add";
+//        return "redirect:/control/brand/list.html";
     }
 }

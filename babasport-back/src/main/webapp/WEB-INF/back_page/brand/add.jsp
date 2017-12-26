@@ -13,7 +13,8 @@
                 dataType: "json",
                 success: function (data) {
                     //设置回调路径
-                    $("#allImgUrl").attr("src",data.path);
+                    $("#allImgUrl").attr("src",data.url);
+                    $("#path").attr("src",data.path);
                 }
             };
             $('#jvForm').ajaxSubmit(option);
@@ -29,7 +30,7 @@
     <div class="clear"></div>
 </div>
 <div class="body-box" style="float:right">
-    <form id="jvForm" action="o_save.shtml" method="post" enctype="multipart/form-data">
+    <form id="jvForm" action="/control/brand/add.html" method="post" enctype="multipart/form-data">
         <table cellspacing="1" cellpadding="2" width="100%" border="0" class="pn-ftable">
             <tbody>
             <tr>
@@ -54,6 +55,7 @@
                 <td width="20%" class="pn-flabel pn-flabel-h"></td>
                 <td width="80%" class="pn-fcontent">
                     <img width="100" height="100" id="allImgUrl"/>
+                    <input type="hidden" id="path" name="imgUrl"/>
                     <input type="file" onchange="uploadPic()" name="pic"/>
                 </td>
             </tr>
@@ -62,7 +64,7 @@
                     品牌描述:
                 </td>
                 <td width="80%" class="pn-fcontent">
-                    <input type="text" class="required" name="name" maxlength="80" size="60"/>
+                    <input type="text" class="required" name="description" maxlength="80" size="60"/>
                 </td>
             </tr>
             <tr>
@@ -70,7 +72,7 @@
                     排序:
                 </td>
                 <td width="80%" class="pn-fcontent">
-                    <input type="text" class="required" name="name" maxlength="80"/>
+                    <input type="text" class="required" name="sort" maxlength="80"/>
                 </td>
             </tr>
             <tr>

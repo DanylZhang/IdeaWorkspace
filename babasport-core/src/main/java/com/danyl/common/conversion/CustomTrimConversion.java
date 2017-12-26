@@ -1,8 +1,8 @@
-package com.danyl.common;
+package com.danyl.common.conversion;
 
 import org.springframework.core.convert.converter.Converter;
 
-public class CustomTrimConvertion implements Converter<String, String> {
+public class CustomTrimConversion implements Converter<String, String> {
     @Override
     public String convert(String s) {
         try {

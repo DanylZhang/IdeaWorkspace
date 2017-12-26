@@ -11,7 +11,7 @@
 <div class="box-positon">
     <div class="rpos">当前位置: 品牌管理 - 列表</div>
     <form class="ropt">
-        <input class="add" type="button" value="添加" onclick="window.location.href='add.html'"/>
+        <input class="add" type="button" value="添加" onclick="window.location.href='/control/brand/add.html'"/>
     </form>
     <div class="clear"></div>
 </div>

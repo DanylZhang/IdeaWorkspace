@@ -1,6 +1,6 @@
 package com.danyl.core.service.product;
 
-import com.danyl.common.Pagination;
+import com.danyl.common.pagination.Pagination;
 import com.danyl.core.bean.product.Brand;
 import com.danyl.core.bean.product.BrandQuery;
 import com.danyl.core.dao.product.BrandDao;

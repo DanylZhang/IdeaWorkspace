@@ -1,4 +1,4 @@
-package com.danyl.common;
+package com.danyl.common.pagination;
 
 import java.util.ArrayList;
 import java.util.List;

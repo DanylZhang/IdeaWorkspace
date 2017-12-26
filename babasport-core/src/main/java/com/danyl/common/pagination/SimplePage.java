@@ -1,4 +1,4 @@
-package com.danyl.common;
+package com.danyl.common.pagination;
 
 /**
  * 简单分页类
