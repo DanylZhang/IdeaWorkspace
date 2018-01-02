@@ -3,7 +3,6 @@ package com.danyl.core.controller;
 import com.danyl.common.fastdfs.FastDFSUtils;
 import com.danyl.core.web.Constants;
 import com.google.gson.JsonObject;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -13,12 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Random;
 
 @Controller
 @RequestMapping(value = "/upload")
@@ -27,9 +20,6 @@ public class UploadController {
     @ResponseBody
     @RequestMapping(value = "uploadPic.html", method = RequestMethod.POST)
     public void uploadPic(@RequestParam(required = false) MultipartFile pic, HttpServletRequest request, HttpServletResponse response) throws Exception {
-
-        System.out.println(pic.getOriginalFilename());
-
 //        //step 1: 图片名称生成策略
 //        DateFormat dateFormat = new SimpleDateFormat("YYYYMMddHHmmssSSS");
 //        String format = dateFormat.format(new Date());

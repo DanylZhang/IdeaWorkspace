@@ -7,6 +7,7 @@
       <module fileurl="file://$PROJECT_DIR$/babasport-core/babasport-core.iml" filepath="$PROJECT_DIR$/babasport-core/babasport-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/babasport-front/babasport-front.iml" filepath="$PROJECT_DIR$/babasport-front/babasport-front.iml" />
       <module fileurl="file://$PROJECT_DIR$/babasport-parent/babasport-parent.iml" filepath="$PROJECT_DIR$/babasport-parent/babasport-parent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mybatisgeneratorplus/mybatisgeneratorplus.iml" filepath="$PROJECT_DIR$/mybatisgeneratorplus/mybatisgeneratorplus.iml" />
       <module fileurl="file://$PROJECT_DIR$/prometheus/prometheus.iml" filepath="$PROJECT_DIR$/prometheus/prometheus.iml" />
       <module fileurl="file://$PROJECT_DIR$/spring-boot-configuration/spring-boot-configuration.iml" filepath="$PROJECT_DIR$/spring-boot-configuration/spring-boot-configuration.iml" />
     </modules>

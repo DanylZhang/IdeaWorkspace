@@ -1,21 +1,52 @@
 package com.danyl.core.bean.product;
 
+import com.danyl.core.web.Constants;
+
 import java.io.Serializable;
 
-public class Brand implements Serializable{
-    private static final Long serialVersionUID = 1L;
-    private Long id;
-    private String name;
-    private String description;
-    private String imgUrl;
-    private Integer sort;
-    private Integer isDisplay;
+public class Brand implements Serializable {
+    /**
+     * ID
+     */
+    private Integer id;
 
-    public Long getId() {
+    /**
+     * 名称
+     */
+    private String name;
+
+    /**
+     * 描述
+     */
+    private String description;
+
+    /**
+     * 图片Url
+     */
+    private String imgUrl;
+
+    /**
+     * 品牌网址
+     */
+    private String webSite;
+
+    /**
+     * 排序:最大最排前
+     */
+    private Integer sort;
+
+    /**
+     * 是否可见 1:可见 0:不可见
+     */
+    private Boolean isDisplay;
+
+    private static final long serialVersionUID = 1L;
+
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -24,7 +55,7 @@ public class Brand implements Serializable{
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.name = name == null ? null : name.trim();
     }
 
     public String getDescription() {
@@ -32,15 +63,27 @@ public class Brand implements Serializable{
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = description == null ? null : description.trim();
     }
 
     public String getImgUrl() {
         return imgUrl;
     }
 
+    public String getAllImgUrl() {
+        return Constants.IMG_WEB + this.imgUrl;
+    }
+
     public void setImgUrl(String imgUrl) {
-        this.imgUrl = imgUrl;
+        this.imgUrl = imgUrl == null ? null : imgUrl.trim();
+    }
+
+    public String getWebSite() {
+        return webSite;
+    }
+
+    public void setWebSite(String webSite) {
+        this.webSite = webSite == null ? null : webSite.trim();
     }
 
     public Integer getSort() {
@@ -51,23 +94,29 @@ public class Brand implements Serializable{
         this.sort = sort;
     }
 
-    public Integer getIsDisplay() {
+    public Boolean getIsDisplay() {
         return isDisplay;
     }
 
-    public void setIsDisplay(Integer isDisplay) {
+    public void setIsDisplay(Boolean isDisplay) {
         this.isDisplay = isDisplay;
     }
 
     @Override
     public String toString() {
-        return "Brand{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", imgUrl='" + imgUrl + '\'' +
-                ", sort=" + sort +
-                ", isDisplay=" + isDisplay +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName());
+        sb.append(" [");
+        sb.append("Hash = ").append(hashCode());
+        sb.append(", id=").append(id);
+        sb.append(", name=").append(name);
+        sb.append(", description=").append(description);
+        sb.append(", imgUrl=").append(imgUrl);
+        sb.append(", webSite=").append(webSite);
+        sb.append(", sort=").append(sort);
+        sb.append(", isDisplay=").append(isDisplay);
+        sb.append(", serialVersionUID=").append(serialVersionUID);
+        sb.append("]");
+        return sb.toString();
     }
 }

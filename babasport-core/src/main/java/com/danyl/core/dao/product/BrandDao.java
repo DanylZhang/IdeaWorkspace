@@ -2,13 +2,29 @@ package com.danyl.core.dao.product;
 
 import com.danyl.core.bean.product.Brand;
 import com.danyl.core.bean.product.BrandQuery;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface BrandDao {
-    //查询所有品牌
-    public List<Brand> selectBrandList(BrandQuery brandQuery);
+    long countByExample(BrandQuery example);
 
-    //查询总条数
-    public Integer countBrand(BrandQuery brandQuery);
+    int deleteByExample(BrandQuery example);
+
+    int deleteByPrimaryKey(Integer id);
+
+    int insert(Brand record);
+
+    int insertSelective(Brand record);
+
+    List<Brand> selectByExample(BrandQuery example);
+
+    Brand selectByPrimaryKey(Integer id);
+
+    int updateByExampleSelective(@Param("record") Brand record, @Param("example") BrandQuery example);
+
+    int updateByExample(@Param("record") Brand record, @Param("example") BrandQuery example);
+
+    int updateByPrimaryKeySelective(Brand record);
+
+    int updateByPrimaryKey(Brand record);
 }

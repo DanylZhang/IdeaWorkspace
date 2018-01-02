@@ -6,5 +6,5 @@ package com.danyl.core.web;
 public interface Constants {
 
     //文件系统IP
-    public static final String IMG_WEB = "http://127.0.0.1:1680/";
+    public static final String IMG_WEB = "http://192.168.1.16/";
 }

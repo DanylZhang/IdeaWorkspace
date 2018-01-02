@@ -18,12 +18,6 @@ public class FrameController {
         return "frame/product_left";
     }
 
-    // 商品列表页面
-    @RequestMapping(value = "product/list.html")
-    public String product_list() {
-        return "product/list";
-    }
-
     // 订单身体
     @RequestMapping(value = "frame/order_main.html")
     public String order_main() {

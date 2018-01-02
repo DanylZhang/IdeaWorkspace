@@ -13,8 +13,8 @@
                 dataType: "json",
                 success: function (data) {
                     //设置回调路径
-                    $("#allImgUrl").attr("src",data.url);
-                    $("#path").attr("src",data.path);
+                    $("#allImgUrl").attr("src", data.url);
+                    $("#path").val(data.path);
                 }
             };
             $('#jvForm').ajaxSubmit(option);
@@ -80,8 +80,8 @@
                     是否可用:
                 </td>
                 <td width="80%" class="pn-fcontent">
-                    <input type="radio" name="isDisplay" value="1" checked="checked"/>可用
-                    <input type="radio" name="isDisplay" value="0"/>不可用
+                    <input type="radio" name="isDisplay" value="true" checked="checked"/>可用
+                    <input type="radio" name="isDisplay" value="false"/>不可用
                 </td>
             </tr>
             </tbody>

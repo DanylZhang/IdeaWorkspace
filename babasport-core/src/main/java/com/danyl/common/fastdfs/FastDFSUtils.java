@@ -8,11 +8,10 @@ import org.springframework.web.multipart.MultipartFile;
 public class FastDFSUtils {
     public static String uploadPic(MultipartFile pic) throws Exception {
         ClientGlobal.initByProperties("fastdfs-client.properties");
-        System.out.println(ClientGlobal.configInfo());
+
         //初始化连接Tracker Server
         TrackerClient trackerClient = new TrackerClient();
         TrackerServer trackerServer = trackerClient.getConnection();
-        System.out.println(trackerServer.getSocket().isConnected());
 
         //初始化连接Storage Server
         StorageServer storageServer = trackerClient.getStoreStorage(trackerServer);
