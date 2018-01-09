@@ -98,7 +98,7 @@
 <a href="javascript:void(3);" ref="#tab_3" title="商品参数" class="nor">包装清单</a>
 </span></h2>
 <div class="body-box" style="float:right">
-    <form id="jvForm" action="add.do" method="post" enctype="multipart/form-data">
+    <form id="jvForm" action="/control/product/add.html" method="post" enctype="multipart/form-data">
         <table cellspacing="1" cellpadding="2" width="100%" border="0" class="pn-ftable">
             <tbody id="tab_1">
             <tr>
@@ -152,12 +152,9 @@
                     材质:
                 </td>
                 <td width="80%" class="pn-fcontent">
-                    <input type="checkbox" value="1" name="feature"/>环保人棉
-                    <input type="checkbox" value="1" name="feature"/>环保人棉
-                    <input type="checkbox" value="1" name="feature"/>环保人棉
-                    <input type="checkbox" value="1" name="feature"/>环保人棉
-                    <input type="checkbox" value="1" name="feature"/>环保人棉
-                    <input type="checkbox" value="1" name="feature"/>环保人棉
+                    <c:forEach items="${features}" var="feature">
+                        <input type="checkbox" value="${feature.id}" name="feature"/>${feature.name}
+                    </c:forEach>
                 </td>
             </tr>
             <tr>
@@ -190,9 +187,9 @@
                     状态:
                 </td>
                 <td width="80%" class="pn-fcontent">
-                    <input type="checkbox" name="isNew" value="1"/>新品
-                    <input type="checkbox" name="isCommend" value="1"/>推荐
-                    <input type="checkbox" name="isHot" value="1"/>热卖
+                    <input type="checkbox" name="isNew" value="true"/>新品
+                    <input type="checkbox" name="isCommend" value="true"/>推荐
+                    <input type="checkbox" name="isHot" value="true"/>热卖
                 </td>
             </tr>
             <tr>
@@ -208,7 +205,7 @@
                 <td width="20%" class="pn-flabel pn-flabel-h"></td>
                 <td width="80%" class="pn-fcontent">
                     <img width="100" height="100" id="allImgUrl"/>
-                    <input type="hidden" id="path" name="imgUrl"/>
+                    <input type="hidden" id="path" name="img.url"/>
                     <input type="file" onchange="uploadPic()" name="pic"/>
                 </td>
             </tr>

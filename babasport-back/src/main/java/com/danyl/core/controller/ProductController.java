@@ -4,11 +4,7 @@ import com.danyl.common.pagination.Pagination;
 import com.danyl.common.util.Utils;
 import com.danyl.core.bean.product.*;
 import com.danyl.core.bean.product.ProductQuery.Criteria;
-import com.danyl.core.dao.product.BrandDao;
-import com.danyl.core.service.product.BrandService;
-import com.danyl.core.service.product.ColorService;
-import com.danyl.core.service.product.ProductService;
-import com.danyl.core.service.product.TypeService;
+import com.danyl.core.service.product.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.print.MultiDoc;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -35,10 +30,11 @@ public class ProductController {
     @Autowired
     private BrandService brandService;
     @Autowired
+    private FeatureService featureService;
+    @Autowired
     private TypeService typeService;
     @Autowired
     private ColorService colorService;
-    private ColorQuery.Criteria criteria;
 
     // 商品列表页面
     @RequestMapping(value = "list.html")
@@ -50,6 +46,7 @@ public class ProductController {
 
         //创建商品查询对象
         ProductQuery productQuery = new ProductQuery();
+        productQuery.setOrderByClause("id desc");
         //分页
         productQuery.setPageNo(Pagination.cpn(pageNo));
         productQuery.setPageSize(3);
@@ -98,18 +95,28 @@ public class ProductController {
         List<Brand> brands = brandService.selectByExample(brandQuery);
         model.addAttribute("brands", brands);
 
+        FeatureQuery featureQuery = new FeatureQuery();
+        featureQuery.createCriteria().andIsDelEqualTo(true);
+        List<Feature> features = featureService.selectByExample(featureQuery);
+        model.addAttribute("features", features);
+
         ColorQuery colorQuery = new ColorQuery();
         colorQuery.createCriteria().andParentIdNotEqualTo(0);
         colorQuery.setFields("id,name");
         List<Color> colors = colorService.selectColorsByQuery(colorQuery);
         model.addAttribute("colors", colors);
 
+        Utils.var_dump(request.getParameterMap());
+
+        if (null != product.getName()) {
+            productService.insertProduct(product);
+        }
 
         if (request.getMethod().equals("GET")) {
             return "product/add";
         }
 
-        return "redirect:/control/brand/list.html";
+        return "redirect:/control/product/list.html";
     }
 
     //去修改页面

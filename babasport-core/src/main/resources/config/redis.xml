@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--dataSource-->
+    <bean id="jedis" class="redis.clients.jedis.Jedis" destroy-method="close">
+        <constructor-arg name="host" value="192.168.1.15"/>
+        <constructor-arg name="port" value="6379"/>
+    </bean>
+</beans>

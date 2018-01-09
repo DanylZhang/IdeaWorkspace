@@ -2,9 +2,8 @@ package com.danyl.core.dao.product;
 
 import com.danyl.core.bean.product.Product;
 import com.danyl.core.bean.product.ProductQuery;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface ProductDao {
     long countByExample(ProductQuery example);

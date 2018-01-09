@@ -139,5 +139,10 @@
             <artifactId>fastdfs-client-java</artifactId>
         </dependency>
 
+        <!--jedis-->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+        </dependency>
     </dependencies>
 </project>

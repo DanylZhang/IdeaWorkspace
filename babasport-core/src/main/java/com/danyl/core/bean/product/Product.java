@@ -1,5 +1,7 @@
 package com.danyl.core.bean.product;
 
+import com.danyl.core.web.Constants;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -88,6 +90,28 @@ public class Product implements Serializable {
      * 销量
      */
     private Integer sales;
+
+    /**
+     * 商品列表图片
+     */
+    private String imgUrl;
+
+    /**
+     * 商品图片
+     */
+    private Img img;
+
+    public Img getImg() {
+        return img;
+    }
+
+    public void setImg(Img img) {
+        this.img = img;
+    }
+
+    public String getAllImgUrl() {
+        return Constants.IMG_WEB + this.imgUrl;
+    }
 
     /**
      * 商品描述
@@ -252,6 +276,14 @@ public class Product implements Serializable {
         this.sales = sales;
     }
 
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -315,6 +347,7 @@ public class Product implements Serializable {
         sb.append(", brandId=").append(brandId);
         sb.append(", keywords=").append(keywords);
         sb.append(", sales=").append(sales);
+        sb.append(", imgUrl=").append(imgUrl);
         sb.append(", description=").append(description);
         sb.append(", packageList=").append(packageList);
         sb.append(", feature=").append(feature);
