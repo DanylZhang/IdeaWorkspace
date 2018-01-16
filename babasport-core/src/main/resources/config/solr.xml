@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--solr 单机版-->
+    <bean id="solrServer" class="org.apache.solr.client.solrj.impl.HttpSolrServer" destroy-method="shutdown">
+        <constructor-arg name="baseURL" value="http://192.168.1.16:8080/solr"/>
+    </bean>
+</beans>

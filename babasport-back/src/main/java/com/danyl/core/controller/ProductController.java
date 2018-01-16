@@ -49,10 +49,11 @@ public class ProductController {
         productQuery.setOrderByClause("id desc");
         //分页
         productQuery.setPageNo(Pagination.cpn(pageNo));
-        productQuery.setPageSize(3);
+        productQuery.setPageSize(5);
 
         StringBuilder params = new StringBuilder();
         Criteria productQueryCriteria = productQuery.createCriteria();
+        productQueryCriteria.andIsDelEqualTo(true);
         if (null != name) {
             productQueryCriteria.andNameLike("%" + name + "%");
             model.addAttribute("name", name);
@@ -106,8 +107,6 @@ public class ProductController {
         List<Color> colors = colorService.selectColorsByQuery(colorQuery);
         model.addAttribute("colors", colors);
 
-        Utils.var_dump(request.getParameterMap());
-
         if (null != product.getName()) {
             productService.insertProduct(product);
         }
@@ -133,8 +132,59 @@ public class ProductController {
 
     //删除
     @RequestMapping(value = "delete.html")
-    public String delete(Integer[] ids, String name, Integer isDisplay, Integer pageNo, Model model) {
+    public String delete(Integer[] ids, String name, Integer brandId, Integer pageNo, Boolean isShow, Model model) {
+        // step 1: delete product by ids
+        productService.deleteProductByIds(ids);
 
-        return "redirect:/control/brand/list.html";
+        BrandQuery brandQuery = new BrandQuery();
+        brandQuery.createCriteria().andIsDisplayEqualTo(true);
+        List<Brand> brands = brandService.selectByExample(brandQuery);
+        model.addAttribute("brands", brands);
+
+        //创建商品查询对象
+        ProductQuery productQuery = new ProductQuery();
+        productQuery.setOrderByClause("id desc");
+        //分页
+        productQuery.setPageNo(Pagination.cpn(pageNo));
+        productQuery.setPageSize(5);
+
+        StringBuilder params = new StringBuilder();
+        Criteria productQueryCriteria = productQuery.createCriteria();
+        productQueryCriteria.andIsDelEqualTo(true);
+        if (null != name) {
+            productQueryCriteria.andNameLike("%" + name + "%");
+            model.addAttribute("name", name);
+            params.append("name=").append(name);
+        }
+        if (null != brandId) {
+            productQueryCriteria.andBrandIdEqualTo(brandId);
+            model.addAttribute("brandId", brandId);
+            params.append("&brandId=").append(brandId);
+        }
+        if (null == isShow) {
+            productQueryCriteria.andIsShowEqualTo(false);
+            model.addAttribute("isShow", false);
+            params.append("&isShow=").append(false);
+        } else {
+            productQueryCriteria.andIsShowEqualTo(isShow);
+            model.addAttribute("isShow", isShow);
+            params.append("&isShow=").append(isShow);
+        }
+        Pagination pagination = productService.selectPaginationByQuery(productQuery);
+
+        //分页展示 <a href="../product/list.html?name=金&isDisplay=1&pageNo=2"/>
+        String url = "../product/list.html";
+        pagination.pageView(url, params.toString());
+
+        model.addAttribute("pagination", pagination);
+
+        return "redirect:/control/product/list.html";
+    }
+
+    //上架
+    @RequestMapping(value = "onSale.html")
+    public String onSale(Integer[] ids) {
+        productService.onSale(ids);
+        return "redirect:/control/product/list.html";
     }
 }

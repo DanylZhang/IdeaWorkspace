@@ -43,7 +43,7 @@ public class BrandController {
 
         BrandQuery.Criteria criteria = brandQuery.createCriteria();
         if (null != name) {
-            criteria.andNameEqualTo(name);
+            criteria.andNameLike("%" + name + "%");
             model.addAttribute("name", name);
             params.append("name=").append(name);
         }

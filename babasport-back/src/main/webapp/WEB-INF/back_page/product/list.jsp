@@ -20,12 +20,38 @@
                 return;
             }
             var f = getTableForm();
-            f.action = "o_delete.do";
+            f.action = "/control/product/delete.html";
             f.submit();
         }
 
         function changePageNo() {
             $("input[name='pageNo']").val(1);
+        }
+
+        function onSale() {
+            if (Pn.checkedCount('ids') <= 0) {
+                alert("请至少选择一个!");
+                return;
+            }
+            if (!confirm("确定上架吗?")) {
+                return;
+            }
+            var f = getTableForm();
+            f.action = "/control/product/onSale.html";
+            f.submit();
+        }
+
+        function offSale() {
+            if (Pn.checkedCount('ids') <= 0) {
+                alert("请至少选择一个!");
+                return;
+            }
+            if (!confirm("确定下架吗?")) {
+                return;
+            }
+            var f = getTableForm();
+            f.action = "/control/product/offSale.html";
+            f.submit();
         }
     </script>
 </head>
@@ -33,18 +59,20 @@
 <div class="box-positon">
     <div class="rpos">当前位置: 商品管理 - 列表</div>
     <form class="ropt">
-        <input class="add" type="button" value="添加" onclick="javascript:window.location.href='/control/product/add.html'"/>
+        <input class="add" type="button" value="添加"
+               onclick="javascript:window.location.href='/control/product/add.html'"/>
     </form>
     <div class="clear"></div>
 </div>
 <div class="body-box">
-    <form action="/control/product/list.html" method="post" style="padding-top:5px;">
+    <form id="tableForm" action="/control/product/list.html" method="post" style="padding-top:5px;">
         <input type="hidden" value="1" name="pageNo"/>
         名称: <input type="text" onkeyup="changePageNo()" value="${name}" name="name"/>
         <select onchange="changePageNo()" name="brandId">
             <option value="">请选择品牌</option>
             <c:forEach items="${brands}" var="brand">
-                <option value="${brand.id}" <c:if test="${brand.id==brandId}">selected="selected"</c:if>>${brand.name}</option>
+                <option value="${brand.id}"
+                        <c:if test="${brand.id==brandId}">selected="selected"</c:if>>${brand.name}</option>
             </c:forEach>
         </select>
         <select onchange="changePageNo()" name="isShow">
@@ -53,10 +81,7 @@
             <option value="false" <c:if test="${!isShow}">selected="selected"</c:if>>下架</option>
         </select>
         <input type="submit" class="query" value="查询"/>
-    </form>
-    <form method="post" id="tableForm">
-        <input type="hidden" value="" name="pageNo"/>
-        <input type="hidden" value="" name="queryName"/>
+
         <table cellspacing="1" cellpadding="0" width="100%" border="0" class="pn-ltable">
             <thead class="pn-lthead">
             <tr>
@@ -73,34 +98,35 @@
             </thead>
             <tbody class="pn-ltbody">
             <c:forEach items="${pagination.list}" var="product">
-            <tr bgcolor="#ffffff" onmouseover="this.bgColor='#eeeeee'" onmouseout="this.bgColor='#ffffff'">
-                <td><input type="checkbox" name="ids" value="${product.id}"/></td>
-                <td>${product.id}</td>
-                <td align="center">${product.name}</td>
-                <td align="center"><img width="50" height="50" src="${product.allImgUrl}"/></td>
-                <td align="center">
-                    <c:if test="${product.isNew}">是</c:if>
-                    <c:if test="${!product.isNew}">否</c:if>
-                </td>
-                <td align="center">
-                    <c:if test="${product.isHot}">是</c:if>
-                    <c:if test="${!product.isHot}">否</c:if>
-                </td>
-                <td align="center">
-                    <c:if test="${product.isCommend}">是</c:if>
-                    <c:if test="${!product.isCommend}">否</c:if>
-                </td>
-                <td align="center">
-                    <c:if test="${product.isShow}">上架</c:if>
-                    <c:if test="${!product.isShow}">下架</c:if>
-                </td>
-                <td align="center">
-                    <a href="#" class="pn-opt">查看</a> | <a href="#" class="pn-opt">修改</a> | <a href="#"
-                                                                                               onclick="if(!confirm('您确定删除吗？')) {return false;}"
-                                                                                               class="pn-opt">删除</a> |
-                    <a href="/control/sku/list.html" class="pn-opt">库存</a>
-                </td>
-            </tr>
+                <tr bgcolor="#ffffff" onmouseover="this.bgColor='#eeeeee'" onmouseout="this.bgColor='#ffffff'">
+                    <td><input type="checkbox" name="ids" value="${product.id}"/></td>
+                    <td>${product.id}</td>
+                    <td align="center">${product.name}</td>
+                    <td align="center"><img width="50" height="50" src="${product.allImgUrl}"/></td>
+                    <td align="center">
+                        <c:if test="${product.isNew}">是</c:if>
+                        <c:if test="${!product.isNew}">否</c:if>
+                    </td>
+                    <td align="center">
+                        <c:if test="${product.isHot}">是</c:if>
+                        <c:if test="${!product.isHot}">否</c:if>
+                    </td>
+                    <td align="center">
+                        <c:if test="${product.isCommend}">是</c:if>
+                        <c:if test="${!product.isCommend}">否</c:if>
+                    </td>
+                    <td align="center">
+                        <c:if test="${product.isShow}">上架</c:if>
+                        <c:if test="${!product.isShow}">下架</c:if>
+                    </td>
+                    <td align="center">
+                        <a href="#" class="pn-opt">查看</a> | <a href="#" class="pn-opt">修改</a> | <a href="#"
+                                                                                                   onclick="javascript:$('input[name=\'ids\'][value=\'${product.id}\']:checkbox').attr('checked','checked');optDelete();"
+                                                                                                   class="pn-opt">删除</a>
+                        |
+                        <a href="/control/sku/list.html?productId=${product.id}" class="pn-opt">库存</a>
+                    </td>
+                </tr>
             </c:forEach>
             </tbody>
         </table>
@@ -112,8 +138,8 @@
             </span>
         </div>
         <div style="margin-top:15px;"><input class="del-button" type="button" value="删除" onclick="optDelete();"/><input
-                class="add" type="button" value="上架" onclick="optDelete();"/><input class="del-button" type="button"
-                                                                                    value="下架" onclick="optDelete();"/>
+                class="add" type="button" value="上架" onclick="onSale();"/><input class="del-button" type="button"
+                                                                                 value="下架" onclick="offSale();"/>
         </div>
     </form>
 </div>

@@ -8,4 +8,8 @@ public interface ProductService{
     Pagination selectPaginationByQuery(ProductQuery productQuery);
 
     void insertProduct(Product product);
+
+    void deleteProductByIds(Integer[] ids);
+
+    void onSale(Integer[] ids);
 }

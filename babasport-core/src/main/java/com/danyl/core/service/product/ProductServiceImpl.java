@@ -5,11 +5,15 @@ import com.danyl.core.bean.product.*;
 import com.danyl.core.dao.product.ImgDao;
 import com.danyl.core.dao.product.ProductDao;
 import com.danyl.core.dao.product.SkuDao;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrInputDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import redis.clients.jedis.Jedis;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -23,6 +27,8 @@ public class ProductServiceImpl implements ProductService {
     private ImgDao imgDao;
     @Autowired
     private SkuDao skuDao;
+    @Autowired
+    private SolrServer solrServer;
 
     @Override
     public Pagination selectPaginationByQuery(ProductQuery productQuery) {
@@ -41,6 +47,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private Jedis jedis;
+
     @Override
     public void insertProduct(Product product) {
         Long pno = jedis.incr("pno");
@@ -89,6 +96,59 @@ public class ProductServiceImpl implements ProductService {
                 //保存
                 skuDao.insertSelective(sku);
             }
+        }
+    }
+
+    @Override
+    public void deleteProductByIds(Integer[] ids) {
+        for (Integer id : ids) {
+            Product product = new Product();
+            product.setId(id);
+            product.setIsDel(false);
+            productDao.updateByPrimaryKeySelective(product);
+        }
+    }
+
+    @Override
+    public void onSale(Integer[] ids) {
+        for (Integer id : ids) {
+            //step 1: 修改商品为上架状态
+            Product product = new Product();
+            product.setId(id);
+            product.setIsShow(true);
+            productDao.updateByPrimaryKeySelective(product);
+
+            //step 2: 保存到solr
+            SolrInputDocument doc = new SolrInputDocument();
+            Product p = productDao.selectByPrimaryKey(id);
+            //product_id
+            doc.setField("id", id);
+            //name
+            doc.setField("name_ik", p.getName());
+            //url
+            ImgQuery imgQuery = new ImgQuery();
+            imgQuery.createCriteria().andProductIdEqualTo(id);
+            List<Img> imgs = imgDao.selectByExample(imgQuery);
+            doc.setField("url", imgs.get(0).getUrl());
+            //brandId
+            doc.setField("brandId", p.getBrandId());
+            //price
+            SkuQuery skuQuery = new SkuQuery();
+            skuQuery.createCriteria().andProductIdEqualTo(id);
+            skuQuery.setFields("sku_price");
+            skuQuery.setOrderByClause("sku_price asc");
+            skuQuery.setPageNo(1);
+            skuQuery.setPageSize(1);
+            List<Sku> skus = skuDao.selectByExample(skuQuery);
+            doc.setField("price", skus.get(0).getSkuPrice());
+            try {
+                solrServer.add(doc);
+                solrServer.commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            //静态化 TODO
         }
     }
 }
