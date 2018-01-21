@@ -7,5 +7,7 @@ import java.util.List;
 public interface SkuService {
     List<Sku> selectSkuListByProductId(Integer productId);
 
+    List<Sku> selectSkuListByProductIdWithStock(Integer productId);
+
     void updateSkuById(Sku sku);
 }

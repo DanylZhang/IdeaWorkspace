@@ -12,4 +12,8 @@ public interface ProductService{
     void deleteProductByIds(Integer[] ids);
 
     void onSale(Integer[] ids);
+
+    Product selectProductById(Integer id);
+
+    void updateByProduct(Product product);
 }

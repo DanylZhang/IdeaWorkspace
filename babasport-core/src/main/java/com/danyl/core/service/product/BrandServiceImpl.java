@@ -8,14 +8,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.support.DaoSupport;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import redis.clients.jedis.Jedis;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
 public class BrandServiceImpl implements BrandService {
     @Autowired
     private BrandDao brandDao;
+    @Autowired
+    private Jedis jedis;
 
     @Transactional(readOnly = true)
     public List<Brand> selectByExample(BrandQuery brandQuery) {
@@ -47,6 +52,12 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public void updateBrandById(Brand brand) {
+        //保存至redis
+        Map<String, String> hash = new HashMap<>();
+        hash.put("id", brand.getId().toString());
+        hash.put("name", brand.getName());
+        jedis.hmset("brand:" + brand.getId(), hash);
+        //保存至mysql数据库
         brandDao.updateByPrimaryKey(brand);
     }
 

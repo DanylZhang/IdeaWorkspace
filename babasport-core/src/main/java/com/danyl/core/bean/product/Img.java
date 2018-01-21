@@ -1,5 +1,7 @@
 package com.danyl.core.bean.product;
 
+import com.danyl.core.web.Constants;
+
 import java.io.Serializable;
 
 public class Img implements Serializable {
@@ -43,6 +45,10 @@ public class Img implements Serializable {
 
     public String getUrl() {
         return url;
+    }
+
+    public String getAllUrl() {
+        return Constants.IMG_WEB+this.url;
     }
 
     public void setUrl(String url) {

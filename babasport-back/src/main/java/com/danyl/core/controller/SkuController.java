@@ -27,7 +27,7 @@ import java.util.List;
 @RequestMapping(value = "/control/sku")
 public class SkuController {
     @Autowired
-    private SkuServiceImpl skuService;
+    private SkuService skuService;
 
     // 库存列表页面
     @RequestMapping(value = "list.html")

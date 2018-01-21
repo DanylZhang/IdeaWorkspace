@@ -4,6 +4,13 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
     <!--Setting-->
+    <settings>
+        <setting name="lazyLoadingEnabled" value="false"/>
+        <setting name="aggressiveLazyLoading" value="false"/>
+        <!--localCacheScope设置为STATEMENT后Mybatis一级缓存失效-->
+        <setting name="localCacheScope" value="SESSION"/>
+    </settings>
+
     <typeAliases>
         <package name="com.danyl.core.bean"/>
     </typeAliases>

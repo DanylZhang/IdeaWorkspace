@@ -20,7 +20,6 @@ import java.util.List;
 @Service
 @Transactional
 public class ProductServiceImpl implements ProductService {
-
     @Autowired
     private ProductDao productDao;
     @Autowired
@@ -39,7 +38,9 @@ public class ProductServiceImpl implements ProductService {
             ImgQuery imgQuery = new ImgQuery();
             imgQuery.createCriteria().andProductIdEqualTo(product.getId()).andIsDefEqualTo(true);
             List<Img> imgs = imgDao.selectByExample(imgQuery);
-            product.setImg(imgs.get(0));
+            if (imgs.size()>0){
+                product.setImg(imgs.get(0));
+            }
         }
         pagination.setList(products);
         return pagination;
@@ -150,5 +151,32 @@ public class ProductServiceImpl implements ProductService {
 
             //静态化 TODO
         }
+    }
+
+    @Override
+    public Product selectProductById(Integer id) {
+        Product product = productDao.selectByPrimaryKey(id);
+        ImgQuery imgQuery = new ImgQuery();
+        imgQuery.createCriteria().andProductIdEqualTo(product.getId()).andIsDefEqualTo(true);
+        List<Img> imgs = imgDao.selectByExample(imgQuery);
+        if (imgs.size()>0){
+            product.setImg(imgs.get(0));
+        }
+        return product;
+    }
+
+    @Override
+    public void updateByProduct(Product product) {
+        //从img对象给img_url赋值
+        product.setImgUrl(product.getImg().getUrl());
+        //保存图片
+        Img img = product.getImg();
+        //设置商品ID
+        img.setProductId(product.getId());
+        //设置默认
+        img.setIsDef(true);
+        imgDao.insertSelective(img);
+        //更新商品
+        productDao.updateByPrimaryKeySelective(product);
     }
 }

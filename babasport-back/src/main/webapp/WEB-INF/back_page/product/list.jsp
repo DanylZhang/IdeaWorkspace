@@ -120,7 +120,7 @@
                         <c:if test="${!product.isShow}">下架</c:if>
                     </td>
                     <td align="center">
-                        <a href="#" class="pn-opt">查看</a> | <a href="#" class="pn-opt">修改</a> | <a href="#"
+                        <a href="#" class="pn-opt">查看</a> | <a href="/control/product/edit/${product.id}.html" class="pn-opt">修改</a> | <a href="#"
                                                                                                    onclick="javascript:$('input[name=\'ids\'][value=\'${product.id}\']:checkbox').attr('checked','checked');optDelete();"
                                                                                                    class="pn-opt">删除</a>
                         |

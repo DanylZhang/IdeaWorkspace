@@ -8,10 +8,9 @@ import com.danyl.core.service.product.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
+import javax.rmi.CORBA.Util;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
@@ -83,7 +82,7 @@ public class ProductController {
         return "product/list";
     }
 
-    //添加品牌
+    //添加商品
     @RequestMapping(value = "add.html")
     public String add(Product product, Model model, HttpServletRequest request) {
         TypeQuery typeQuery = new TypeQuery();
@@ -119,15 +118,40 @@ public class ProductController {
     }
 
     //去修改页面
-    @GetMapping(value = "edit.html")
-    public String getEdit(Long id, Model model) {
-        return "brand/edit";
+    @GetMapping(value = "edit/{id}.html")
+    public String getEdit(@PathVariable("id") Integer id, Model model) {
+        TypeQuery typeQuery = new TypeQuery();
+        typeQuery.createCriteria().andParentIdNotEqualTo(0);
+        List<Type> types = typeService.selectTypeListByQuery(typeQuery);
+        model.addAttribute("types", types);
+
+        BrandQuery brandQuery = new BrandQuery();
+        brandQuery.createCriteria().andIsDisplayEqualTo(true);
+        List<Brand> brands = brandService.selectByExample(brandQuery);
+        model.addAttribute("brands", brands);
+
+        FeatureQuery featureQuery = new FeatureQuery();
+        featureQuery.createCriteria().andIsDelEqualTo(true);
+        List<Feature> features = featureService.selectByExample(featureQuery);
+        model.addAttribute("features", features);
+
+        ColorQuery colorQuery = new ColorQuery();
+        colorQuery.createCriteria().andParentIdNotEqualTo(0);
+        colorQuery.setFields("id,name");
+        List<Color> colors = colorService.selectColorsByQuery(colorQuery);
+        model.addAttribute("colors", colors);
+
+        Product product = productService.selectProductById(id);
+        model.addAttribute("product", product);
+        return "product/edit";
     }
 
     //修改
-    @PostMapping(value = "edit.html")
-    public String postEdit(Brand brand, Model model) {
-        return "redirect:/control/brand/list.html";
+    @PostMapping(value = "edit/{id}.html")
+    public String postEdit(@PathVariable("id") Integer id, Product product) {
+        product.setId(id);
+        productService.updateByProduct(product);
+        return "redirect:/control/product/list.html";
     }
 
     //删除

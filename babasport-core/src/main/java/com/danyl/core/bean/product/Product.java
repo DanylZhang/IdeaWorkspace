@@ -114,6 +114,19 @@ public class Product implements Serializable {
     }
 
     /**
+     * 价格
+     */
+    private double price;
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    /**
      * 商品描述
      */
     private String description;

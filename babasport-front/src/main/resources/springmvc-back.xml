@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!--配置扫描-->
+    <context:component-scan base-package="com.danyl" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!--处理器映射器 、处理器适配器-->
+    <mvc:annotation-driven conversion-service="conversionService"/>
+
+    <!--web.xml中servlet-mapping的url-pattern设置为/拦截所有请求,在此给springmvc配置静态资源映射,并设置cache-->
+    <mvc:resources location="res/" mapping="res/**" cache-period="3600000"/>
+    <!--再设置一个默认的映射作为以上的补充-->
+    <mvc:default-servlet-handler/>
+
+    <!--视图解析器jsp-->
+    <bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/front_page/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!--Converter转换器-->
+    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="converters">
+            <list>
+                <bean class="com.danyl.common.conversion.CustomTrimConversion"/>
+            </list>
+        </property>
+    </bean>
+
+    <!--上传图片-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--默认单位B-->
+        <property name="maxUploadSize" value="10485760"/>
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+</beans>
