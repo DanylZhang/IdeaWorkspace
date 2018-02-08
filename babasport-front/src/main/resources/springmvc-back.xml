@@ -40,4 +40,13 @@
         <property name="maxUploadSize" value="10485760"/>
         <property name="defaultEncoding" value="UTF-8"/>
     </bean>
+
+    <!--Spring MVC拦截器，拦截用户登陆-->
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <!--拦截规则 拦截所有（web.xml 配置 /）-->
+            <mvc:mapping path="/**/*.html"/>
+            <bean class="com.danyl.core.web.springmvc.SpringmvcInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
 </beans>

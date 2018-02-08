@@ -5,6 +5,7 @@ import com.danyl.core.bean.product.*;
 import com.danyl.core.dao.product.ImgDao;
 import com.danyl.core.dao.product.ProductDao;
 import com.danyl.core.dao.product.SkuDao;
+import com.danyl.core.service.staticpage.StaticPageService;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
@@ -14,8 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
@@ -28,6 +28,10 @@ public class ProductServiceImpl implements ProductService {
     private SkuDao skuDao;
     @Autowired
     private SolrServer solrServer;
+    @Autowired
+    private StaticPageService staticPageService;
+    @Autowired
+    private SkuService skuService;
 
     @Override
     public Pagination selectPaginationByQuery(ProductQuery productQuery) {
@@ -38,7 +42,7 @@ public class ProductServiceImpl implements ProductService {
             ImgQuery imgQuery = new ImgQuery();
             imgQuery.createCriteria().andProductIdEqualTo(product.getId()).andIsDefEqualTo(true);
             List<Img> imgs = imgDao.selectByExample(imgQuery);
-            if (imgs.size()>0){
+            if (imgs.size() > 0) {
                 product.setImg(imgs.get(0));
             }
         }
@@ -150,6 +154,17 @@ public class ProductServiceImpl implements ProductService {
             }
 
             //静态化 TODO
+            Map<String, Object> root = new HashMap<>();
+            Product staticProduct = selectProductById(id);
+            root.put("product", staticProduct);
+            List<Sku> staticSkus = skuService.selectSkuListByProductIdWithStock(id);
+            root.put("skus", staticSkus);
+            Set<Color> colorSet = new HashSet<>();
+            for (Sku sku : staticSkus) {
+                colorSet.add(sku.getColor());
+            }
+            root.put("colorSet", colorSet);
+            staticPageService.index(root, id);
         }
     }
 
@@ -159,7 +174,7 @@ public class ProductServiceImpl implements ProductService {
         ImgQuery imgQuery = new ImgQuery();
         imgQuery.createCriteria().andProductIdEqualTo(product.getId()).andIsDefEqualTo(true);
         List<Img> imgs = imgDao.selectByExample(imgQuery);
-        if (imgs.size()>0){
+        if (imgs.size() > 0) {
             product.setImg(imgs.get(0));
         }
         return product;

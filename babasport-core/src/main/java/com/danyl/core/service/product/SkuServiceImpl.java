@@ -1,8 +1,9 @@
 package com.danyl.core.service.product;
 
-import com.danyl.core.bean.product.Sku;
-import com.danyl.core.bean.product.SkuQuery;
+import com.danyl.core.bean.product.*;
 import com.danyl.core.dao.product.ColorDao;
+import com.danyl.core.dao.product.ImgDao;
+import com.danyl.core.dao.product.ProductDao;
 import com.danyl.core.dao.product.SkuDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,10 @@ public class SkuServiceImpl implements SkuService {
     private SkuDao skuDao;
     @Autowired
     private ColorDao colorDao;
+    @Autowired
+    private ProductDao productDao;
+    @Autowired
+    private ImgDao imgDao;
 
     @Override
     public List<Sku> selectSkuListByProductId(Integer productId) {
@@ -51,5 +56,23 @@ public class SkuServiceImpl implements SkuService {
     @Override
     public void updateSkuById(Sku sku) {
         skuDao.updateByPrimaryKeySelective(sku);
+    }
+
+    @Override
+    public Sku selectSkuById(Integer id) {
+        Sku sku = skuDao.selectByPrimaryKey(id);
+        //查询颜色
+        Color color = colorDao.selectByPrimaryKey(sku.getColorId());
+        //查询商品
+        Product product = productDao.selectByPrimaryKey(sku.getProductId());
+        //查询图片
+        ImgQuery imgQuery = new ImgQuery();
+        imgQuery.createCriteria().andProductIdEqualTo(product.getId()).andIsDefEqualTo(true);
+        List<Img> imgs = imgDao.selectByExample(imgQuery);
+        product.setImg(imgs.get(0));
+
+        sku.setColor(color);
+        sku.setProduct(product);
+        return sku;
     }
 }

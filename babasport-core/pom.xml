@@ -150,5 +150,16 @@
             <groupId>org.apache.solr</groupId>
             <artifactId>solr-solrj</artifactId>
         </dependency>
+
+        <!--freemarker-->
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+        </dependency>
+        <!-- ui.freemarker -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+        </dependency>
     </dependencies>
 </project>

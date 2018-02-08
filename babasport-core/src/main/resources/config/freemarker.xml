@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--StaticPageService-->
+    <bean id="staticPageService" class="com.danyl.core.service.staticpage.StaticPageServiceImpl">
+        <property name="freeMarkerConfigurer">
+            <bean class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+                <!--设置模板路径-->
+                <property name="templateLoaderPath" value="/WEB-INF/ftl/"/>
+                <!--设置编码集-->
+                <property name="defaultEncoding" value="UTF-8"/>
+            </bean>
+        </property>
+    </bean>
+</beans>

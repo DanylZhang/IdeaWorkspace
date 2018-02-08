@@ -20,10 +20,14 @@
 		<li class="dev">
 			您好,欢迎来到新巴巴运动网！
 		</li>
-	<li class="dev"><a href="javascript:void(0)" onclick="login()"  title="登陆">[登陆]</a></li>
-	<li class="dev"><a href="javascript:void(0)" onclick="register()" title="免费注册">[免费注册]</a></li>
-	<li class="dev"><a href="javascript:void(0)" onclick="logout()" title="退出">[退出]</a></li>
-	<li class="dev"><a href="javascript:void(0)" onclick="myOrder()" title="我的订单">我的订单</a></li>
+		<c:if test="${!isLogin}">
+			<li class="dev"><a href="javascript:void(0)" onclick="login()" title="登陆">[登陆]</a></li>
+			<li class="dev"><a href="javascript:void(0)" onclick="register()" title="免费注册">[免费注册]</a></li>
+		</c:if>
+		<c:if test="${isLogin}">
+			<li class="dev"><a href="javascript:void(0)" onclick="logout()" title="退出">[退出]</a></li>
+			<li class="dev"><a href="javascript:void(0)" onclick="myOrder()" title="我的订单">我的订单</a></li>
+		</c:if>
 	<li class="dev"><a href="#" title="在线客服">在线客服</a></li>
 	<li class="dev after"><a href="#" title="English">English</a></li>
 	</ul>
@@ -46,9 +50,9 @@
 			<table cellspacing="0" class="tab tab5" summary="">
 			<tbody><tr>
 			<th>您的订单号</th>
-			<td><var class="blue"><b>20141201094934325</b></var></td>
+			<td><var class="blue"><b>${oid}</b></var></td>
 			<th>应付现金</th>
-			<td><var class="red"><b>￥689.01</b></var>&nbsp;元</td>
+			<td><var class="red"><b>￥${totalPrice}</b></var>&nbsp;元</td>
 			<th>支付方式</th>
 			<td>在线支付</td>
 			</tr>

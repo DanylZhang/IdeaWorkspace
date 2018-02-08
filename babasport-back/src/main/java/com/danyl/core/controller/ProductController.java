@@ -119,7 +119,7 @@ public class ProductController {
 
     //去修改页面
     @GetMapping(value = "edit/{id}.html")
-    public String getEdit(@PathVariable("id") Integer id, Model model) {
+    public String Edit(@PathVariable("id") Integer id, Model model) {
         TypeQuery typeQuery = new TypeQuery();
         typeQuery.createCriteria().andParentIdNotEqualTo(0);
         List<Type> types = typeService.selectTypeListByQuery(typeQuery);
@@ -148,7 +148,7 @@ public class ProductController {
 
     //修改
     @PostMapping(value = "edit/{id}.html")
-    public String postEdit(@PathVariable("id") Integer id, Product product) {
+    public String Edit(@PathVariable("id") Integer id, Product product) {
         product.setId(id);
         productService.updateByProduct(product);
         return "redirect:/control/product/list.html";

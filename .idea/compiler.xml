@@ -9,7 +9,7 @@
         <module name="babasport-back" />
         <module name="babasport-core" />
         <module name="babasport-front" />
-        <module name="mybatisgeneratorplus" />
+        <module name="mybatis-generator-plus" />
         <module name="prometheus" />
         <module name="spring-boot-configuration" />
       </profile>
@@ -19,7 +19,7 @@
       <module name="babasport-core" target="1.8" />
       <module name="babasport-front" target="1.8" />
       <module name="babasport-parent" target="1.8" />
-      <module name="mybatisgeneratorplus" target="1.8" />
+      <module name="mybatis-generator-plus" target="1.8" />
       <module name="prometheus" target="1.8" />
       <module name="spring-boot-configuration" target="1.8" />
     </bytecodeTargetLevel>

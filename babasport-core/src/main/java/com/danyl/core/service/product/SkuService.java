@@ -10,4 +10,6 @@ public interface SkuService {
     List<Sku> selectSkuListByProductIdWithStock(Integer productId);
 
     void updateSkuById(Sku sku);
+
+    Sku selectSkuById(Integer id);
 }

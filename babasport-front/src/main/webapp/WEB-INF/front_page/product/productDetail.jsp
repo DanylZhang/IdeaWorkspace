@@ -51,8 +51,11 @@
 
     //立即购买
     function buy() {
-        window.location.href = 'cart.jsp';
+        window.location.href = '/shopping/buyerCart.html?skuId='+skuId+'&amount='+$('#num').val();
     }
+
+    var skuUpperLimit;
+    var skuId;
 
     //点击颜色
     function colorToRed(target, colorId) {
@@ -68,6 +71,9 @@
                 $('#${sku.size}').attr('class', 'changToRed');
                 flag = 1;
                 $('#bPrice').html('￥${sku.skuPrice}');
+                skuUpperLimit = ${sku.skuUpperLimit};
+                skuId = ${sku.id};
+                $('#num').val(1);
             } else {
                 $('#${sku.size}').attr('class', 'changToWhite');
             }
@@ -85,9 +91,39 @@
         <c:forEach items="${skus}" var="sku">
         if ($('#colors a.changToRed').attr('title') == '${sku.color.name}' && size == '${sku.size}') {
             $('#bPrice').html('￥${sku.skuPrice}');
+            skuUpperLimit = ${sku.skuUpperLimit};
+            skuId=${sku.id};
+            $('#num').val(1);
         }
         </c:forEach>
     }
+
+    //加减号
+    $(document).ready(function () {
+        //减号
+        $('#sub').click(function () {
+            var num = $('#num').val();
+            if (num == skuUpperLimit) {
+                alert("你还买不买？");
+                return;
+            }
+            num--;
+            $('#num').val(num);
+        });
+        //加号
+        $('#add').click(function () {
+            var num = $('#num').val();
+            if (num == skuUpperLimit) {
+                alert("你能买的起吗？");
+                return;
+            }
+            num++;
+            $('#num').val(num);
+        });
+
+        //jQuery触发器
+        $('#colors a:first').trigger('click');
+    })
 </script>
 </head>
 <body>
@@ -102,10 +138,14 @@
             <li class="dev">
                 您好,欢迎来到新巴巴运动网！
             </li>
-            <li class="dev"><a href="javascript:void(0)" onclick="login()" title="登陆">[登陆]</a></li>
-            <li class="dev"><a href="javascript:void(0)" onclick="register()" title="免费注册">[免费注册]</a></li>
-            <li class="dev"><a href="javascript:void(0)" onclick="logout()" title="退出">[退出]</a></li>
-            <li class="dev"><a href="javascript:void(0)" onclick="myOrder()" title="我的订单">我的订单</a></li>
+            <c:if test="${!isLogin}">
+                <li class="dev"><a href="javascript:void(0)" onclick="login()" title="登陆">[登陆]</a></li>
+                <li class="dev"><a href="javascript:void(0)" onclick="register()" title="免费注册">[免费注册]</a></li>
+            </c:if>
+            <c:if test="${isLogin}">
+                <li class="dev"><a href="javascript:void(0)" onclick="logout()" title="退出">[退出]</a></li>
+                <li class="dev"><a href="javascript:void(0)" onclick="myOrder()" title="我的订单">我的订单</a></li>
+            </c:if>
             <li class="dev"><a href="#" title="在线客服">在线客服</a></li>
             <li class="dev after"><a href="#" title="English">English</a></li>
         </ul>

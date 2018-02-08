@@ -17,7 +17,9 @@
     <script type="text/javascript">
         //登陆
         function login() {
-            window.location.href = "../buyer/login.jsp";
+            // /buyer/* 需要登陆，要设置springmvc拦截器
+            // /shopping/login.html
+            window.location.href = "/shopping/login.html?returnUrl=" + encodeURIComponent(window.location.href);
         }
 
         var keyword = '${param.keyword}';
@@ -60,10 +62,14 @@
         </p>
         <ul class="r uls">
             <li class="dev">您好,欢迎来到新巴巴运动网！</li>
-            <li class="dev"><a href="javascript:void(0)" onclick="login()" title="登陆">[登陆]</a></li>
-            <li class="dev"><a href="javascript:void(0)" onclick="register()" title="免费注册">[免费注册]</a></li>
-            <li class="dev"><a href="javascript:void(0)" onclick="logout()" title="退出">[退出]</a></li>
-            <li class="dev"><a href="javascript:void(0)" onclick="myOrder()" title="我的订单">我的订单</a></li>
+            <c:if test="${!isLogin}">
+                <li class="dev"><a href="javascript:void(0)" onclick="login()" title="登陆">[登陆]</a></li>
+                <li class="dev"><a href="javascript:void(0)" onclick="register()" title="免费注册">[免费注册]</a></li>
+            </c:if>
+            <c:if test="${isLogin}">
+                <li class="dev"><a href="javascript:void(0)" onclick="logout()" title="退出">[退出]</a></li>
+                <li class="dev"><a href="javascript:void(0)" onclick="myOrder()" title="我的订单">我的订单</a></li>
+            </c:if>
             <li class="dev"><a href="#" title="在线客服">在线客服</a></li>
             <li class="dev after"><a href="#" title="English">English</a></li>
         </ul>
@@ -407,12 +413,15 @@
             <ul class="uls i_150x150 x4_150x150b">
                 <c:forEach items="${pagination.list}" var="product">
                     <li>
-                        <a href="/product/detail/${product.id}.html" title="瑜伽服" target="_blank" class="pic"><img
+                        <a href="javascript:void(0);" onclick="window.open('/product/detail/${product.id}.html')"
+                           title="瑜伽服" class="pic"><img
                                 src="${product.img.allUrl}"
                                 alt="瑜伽服"/></a>
                         <dl>
                             <!-- dt 10个文字+... -->
-                            <dt><a href="/product/${product.id}.html" title="${product.name}" target="_blank">${product.name}</a>
+                            <dt><a href="javascript:void(0);"
+                                   onclick="window.open('http://localhost:8080/html/product/${product.id}.html')"
+                                   title="${product.name}">${product.name}</a>
                             </dt>
                             <!-- dt 25个文字+... -->
                             <dd class="h40">${product.name}</dd>

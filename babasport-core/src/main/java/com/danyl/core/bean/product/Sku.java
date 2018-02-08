@@ -19,15 +19,22 @@ public class Sku implements Serializable {
      */
     private Integer colorId;
 
-    //附加对象
+    //附加对象 颜色
     private Color color;
-
     public Color getColor() {
         return color;
     }
-
     public void setColor(Color color) {
         this.color = color;
+    }
+
+    //附加对象 商品
+    private Product product;
+    public Product getProduct() {
+        return product;
+    }
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     /**

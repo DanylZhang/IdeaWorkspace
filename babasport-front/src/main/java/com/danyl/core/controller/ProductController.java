@@ -11,6 +11,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.util.Hash;
 import org.ehcache.core.spi.service.ServiceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.util.*;
 
@@ -27,7 +29,7 @@ public class ProductController {
     @Autowired
     private SolrServer solrServer;
     @Autowired
-    private Jedis jedis;
+    private JedisPool jedisPool;
 
     @Autowired
     private ProductService productService;
@@ -38,6 +40,7 @@ public class ProductController {
     public String list(Integer pageNo, String keyword, Integer brandId, String price, Model model) throws SolrServerException {
         //获取品牌列表
         List<Brand> brands = new ArrayList<>();
+        Jedis jedis = jedisPool.getResource();
         Set<String> keys = jedis.keys("brand:*");
         for (String key : keys) {
             List<String> hmget = jedis.hmget(key, "id", "name");
@@ -139,6 +142,9 @@ public class ProductController {
         String url = "/product/list.html";
         pagination.pageView(url, params.toString());
         model.addAttribute("pagination", pagination);
+
+        //最后不要忘了关闭jedis
+        jedis.close();
         return "product/product";
     }
 
@@ -148,12 +154,11 @@ public class ProductController {
         model.addAttribute("product", product);
         List<Sku> skus = skuService.selectSkuListByProductIdWithStock(id);
         model.addAttribute("skus", skus);
-        Set<Color> colorSet = new HashSet<>();
+        Set<Color> colorSet = new LinkedHashSet<>();
         for (Sku sku : skus) {
             colorSet.add(sku.getColor());
         }
-        Utils.var_dump(skus);
-        model.addAttribute("colorSet",colorSet );
+        model.addAttribute("colorSet", colorSet);
         return "product/productDetail";
     }
 }

@@ -1,19 +1,13 @@
 package com.danyl.core.controller;
 
-import com.danyl.common.pagination.Pagination;
-import com.danyl.common.util.Utils;
-import com.danyl.core.bean.product.*;
-import com.danyl.core.bean.product.ProductQuery.Criteria;
-import com.danyl.core.service.product.*;
+import com.danyl.core.bean.product.Sku;
+import com.danyl.core.service.product.SkuService;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;

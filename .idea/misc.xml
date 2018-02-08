@@ -5,14 +5,16 @@
     <file type="web" url="file://$PROJECT_DIR$/babasport-front" />
     <file type="web" url="file://$PROJECT_DIR$/prometheus" />
   </component>
+  <component name="JavaScriptSettings">
+    <option name="languageLevel" value="ES6" />
+  </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
-        <option value="$PROJECT_DIR$/Prometheus/pom.xml" />
+        <option value="$PROJECT_DIR$/prometheus/pom.xml" />
         <option value="$PROJECT_DIR$/babasport-parent/pom.xml" />
-        <option value="$PROJECT_DIR$/spring-boot-configuration/pom.xml" />
-        <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/mybatisgeneratorplus/pom.xml" />
+        <option value="$PROJECT_DIR$/spring-boot-configuration/pom.xml" />
       </list>
     </option>
   </component>
