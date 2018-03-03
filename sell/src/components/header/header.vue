@@ -223,8 +223,8 @@
       height: 100%
       overflow: auto
       background: rgba(7, 17, 27, 0.8)
-      transition: all 0.7s ease
       backdrop-filter: blur(10px)
+      transition: all 0.7s ease
       &.fade-transition
         opacity: 1
         background: rgba(7, 17, 27, 0.8)

@@ -32,6 +32,7 @@ module.exports = {
     // space-before-function-paren
     'space-before-function-paren': 0,
     // vue 2.2.0+ need v-bind:key
-    'vue/require-v-for-key': 'off'
+    'vue/require-v-for-key': 'off',
+    'vue/no-side-effects-in-computed-properties': 'off'
   }
 };

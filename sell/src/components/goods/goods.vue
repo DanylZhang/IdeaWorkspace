@@ -2,7 +2,8 @@
   <div class="goods">
     <div class="menu-wrapper" ref="menuWrapper">
       <ul>
-        <li v-for="(item,index) in goods" class="menu-item" :class="{'current':currentIndex===index}">
+        <li v-for="(item,index) in goods" class="menu-item" :class="{'current':currentIndex===index}"
+            @click="selectMenu(index)">
           <span class="text border-1px">
             <span v-show="item.type>0" class="icon" :class="classMap[item.type]"></span>{{item.name}}
           </span>
@@ -28,17 +29,24 @@
                   <span class="now">￥{{food.price}}</span><span class="old"
                                                                 v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                 </div>
+                <div class="cartcontrol-wrapper">
+                  <cartcontrol :food="food" @add="addFood"></cartcontrol>
+                </div>
               </div>
             </li>
           </ul>
         </li>
       </ul>
     </div>
+    <shopcart ref="shopcart" :select-foods="selectFoods" :delivery-price="seller.deliveryPrice"
+              :min-price="seller.minPrice"></shopcart>
   </div>
 </template>
 
 <script>
   import BScroll from 'better-scroll';
+  import shopcart from '../shopcart/shopcart';
+  import cartcontrol from '../cartcontrol/cartcontrol';
 
   const ERR_OK = 0;
   export default {
@@ -48,26 +56,16 @@
         type: Object
       }
     },
+    components: {
+      shopcart,
+      cartcontrol
+    },
     data() {
       return {
         goods: [],
         listHeight: [],
         scrollY: 0
       };
-    },
-    computed: {
-      currentIndex() {
-        console.log(this.listHeight);
-        for (let i = 0; i < this.listHeight.length - 1; i++) {
-          let height1 = this.listHeight[i];
-          let height2 = this.listHeight[i + 1];
-          if (this.scrollY > height1 && this.scrollY < height2) {
-            console.log(i);
-            return i;
-          }
-        }
-        return 0;
-      }
     },
     created() {
       this.classMap = ['decrease', 'discount', 'special', 'invoice', 'guarantee'];
@@ -82,10 +80,38 @@
         }
       });
     },
+    computed: {
+      currentIndex() {
+        for (let i = 0; i < this.listHeight.length - 1; i++) {
+          let height1 = this.listHeight[i];
+          let height2 = this.listHeight[i + 1];
+          if (this.scrollY >= height1 && this.scrollY < height2) {
+            return i;
+          }
+        }
+        return 0;
+      },
+      selectFoods() {
+        let foods = [];
+        this.goods.forEach((good) => {
+          good.foods.forEach((food) => {
+            if (food.count) {
+              foods.push(food);
+            }
+          });
+        });
+        return foods;
+      }
+    },
     methods: {
+      selectMenu(index) {
+        let foodList = this.$refs.foodWrapper.getElementsByClassName('food-list-hook');
+        let el = foodList[index];
+        this.foodsScroll.scrollToElement(el, 300);
+      },
       _initScroll() {
-        this.menuScroll = new BScroll(this.$refs.menuWrapper, {});
-        this.foodsScroll = new BScroll(this.$refs.foodWrapper, {probeType: 3});
+        this.menuScroll = new BScroll(this.$refs.menuWrapper, {click: true});
+        this.foodsScroll = new BScroll(this.$refs.foodWrapper, {click: true, probeType: 3});
         this.foodsScroll.on('scroll', (pos) => {
           this.scrollY = Math.abs(Math.round(pos.y));
         });
@@ -98,6 +124,15 @@
           height += foodList[i].clientHeight;
           this.listHeight.push(height);
         }
+      },
+      addFood(target) {
+        this._drop(target);
+      },
+      _drop(target) {
+        // 添加nextTick体验优化，异步执行下落动画
+        this.$nextTick(() => {
+          this.$refs.shopcart.drop(target);
+        });
       }
     }
   };
@@ -204,4 +239,8 @@
             .old
               text-decoration: line-through
               font-size: 10px
+          .cartcontrol-wrapper
+            position: absolute
+            right: 0
+            bottom: 12px
 </style>
