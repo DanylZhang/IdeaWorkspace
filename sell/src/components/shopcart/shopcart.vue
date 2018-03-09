@@ -187,6 +187,7 @@
           let inner = el.getElementsByClassName('inner-hook')[0];
           inner.style.WebkitTransform = 'translate3d(0,0,0)';
           inner.style.transform = 'translate3d(0,0,0)';
+          // 监听css事件transition end 过度完成事件,通知vue动画结束,以便执行afterDrop钩子函数
           el.addEventListener('transitionend', done);
         });
       },

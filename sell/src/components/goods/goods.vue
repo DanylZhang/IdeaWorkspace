@@ -40,7 +40,7 @@
     </div>
     <shopcart ref="shopcart" :select-foods="selectFoods" :delivery-price="seller.deliveryPrice"
               :min-price="seller.minPrice"></shopcart>
-    <food :food="selectedFood" ref="food"></food>
+    <food @add="addFood" :food="selectedFood" ref="food"></food>
   </div>
 </template>
 
@@ -51,6 +51,7 @@
   import food from '../food/food';
 
   const ERR_OK = 0;
+
   export default {
     name: 'goods',
     props: {
@@ -139,7 +140,6 @@
         });
       },
       selectFood(food, event) {
-        console.log(food);
         this.selectedFood = food;
         this.$refs.food.show();
       }
