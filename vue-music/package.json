@@ -1,8 +1,8 @@
 {
-  "name": "sell",
+  "name": "vue-music",
   "version": "1.0.0",
-  "description": "sell app",
-  "author": "danyl 1475811550@qq.com",
+  "description": "音乐播放器",
+  "author": "DanylZhang <1475811550@qq.com>",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
@@ -13,8 +13,11 @@
   "dependencies": {
     "vue": "^2.5.2",
     "vue-router": "^3.0.1",
-    "axios": "^0.17.1",
-    "better-scroll": "^1.8.4"
+    "fastclick": "^1.0.6",
+    "jsonp": "^0.2.1",
+    "better-scroll": "^1.8.4",
+    "axios": "^0.18.0",
+    "vue-lazyload": "^1.2.2"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
