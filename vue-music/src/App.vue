@@ -9,8 +9,8 @@
 </template>
 
 <script>
-  import MHeader from 'components/m-header/m-header';
-  import Tab from 'components/tab/tab';
+  import MHeader from 'components/m-header/m-header'
+  import Tab from 'components/tab/tab'
 
   export default {
     name: 'App',
@@ -18,7 +18,7 @@
       Tab,
       MHeader
     }
-  };
+  }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">

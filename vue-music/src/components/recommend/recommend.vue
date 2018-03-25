@@ -34,11 +34,11 @@
 </template>
 
 <script>
-  import Slider from '../../base/slider/slider';
-  import Scroll from '../../base/scroll/scroll';
-  import Loading from '../../base/loading/loading';
-  import {getRecommend, getDiscList} from '../../api/recommend';
-  import {ERR_OK} from '../../api/config';
+  import Slider from '../../base/slider/slider'
+  import Scroll from '../../base/scroll/scroll'
+  import Loading from '../../base/loading/loading'
+  import {getRecommend, getDiscList} from '../../api/recommend'
+  import {ERR_OK} from '../../api/config'
 
   export default {
     name: 'recommend',
@@ -51,35 +51,35 @@
       return {
         recommends: [],
         discList: []
-      };
+      }
     },
     created() {
-      this._getRecommend();
-      this._getDiscList();
+      this._getRecommend()
+      this._getDiscList()
     },
     methods: {
       _getRecommend() {
         getRecommend().then((res) => {
           if (res.code === ERR_OK) {
-            this.recommends = res.data.slider;
+            this.recommends = res.data.slider
           }
-        });
+        })
       },
       _getDiscList() {
         getDiscList().then((res) => {
           if (res.code === ERR_OK) {
-            this.discList = res.recomPlaylist.data.v_hot;
+            this.discList = res.recomPlaylist.data.v_hot
           }
-        });
+        })
       },
       loadImage() {
         if (!this.checkLoaded) {
-          this.$refs.scroll.refresh();
-          this.checkLoaded = true;
+          this.$refs.scroll.refresh()
+          this.checkLoaded = true
         }
       }
     }
-  };
+  }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">

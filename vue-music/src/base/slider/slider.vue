@@ -10,8 +10,8 @@
 </template>
 
 <script type="text/ecmascript-6">
-  import BScroll from 'better-scroll';
-  import {addClass} from '../../common/js/dom';
+  import BScroll from 'better-scroll'
+  import {addClass} from '../../common/js/dom'
 
   export default {
     props: {
@@ -48,39 +48,39 @@
       return {
         dots: [],
         currentPageIndex: 0
-      };
+      }
     },
     mounted() {
       setTimeout(() => {
-        this._setSliderWidth();
-        this._initDots();
-        this._initSlider();
+        this._setSliderWidth()
+        this._initDots()
+        this._initSlider()
         if (this.autoPlay) {
-          this._play();
+          this._play()
         }
-      }, 20);
+      }, 20)
 
       window.addEventListener('resize', () => {
         if (!this.slider) {
-          return;
+          return
         }
-        this._setSliderWidth(true);
-        this.slider.refresh();
-      });
+        this._setSliderWidth(true)
+        this.slider.refresh()
+      })
     },
     methods: {
       _setSliderWidth(isResize) {
-        this.children = this.$refs.sliderGroup.children;
+        this.children = this.$refs.sliderGroup.children
 
-        let width = 0;
-        let sliderWidth = this.$refs.slider.clientWidth;
+        let width = 0
+        let sliderWidth = this.$refs.slider.clientWidth
         for (let i = 0; i < this.children.length; i++) {
-          let child = this.children[i];
-          addClass(child, 'slider-item');
+          let child = this.children[i]
+          addClass(child, 'slider-item')
 
-          child.style.width = sliderWidth + 'px';
+          child.style.width = sliderWidth + 'px'
           // 总宽度
-          width += sliderWidth;
+          width += sliderWidth
         }
 
         // 轮播,参考swiper至少需要克隆首尾的2个dom(3->1,2,3->1)
@@ -89,12 +89,12 @@
         // 已知wrapper容器clientWidth固定的情况下
         // 需要人工指定content(父容器的第一个子元素)的style.width样式属性值供BScroll获取
         if (this.loop && !isResize) {
-          width += 2 * sliderWidth;
+          width += 2 * sliderWidth
         }
-        this.$refs.sliderGroup.style.width = width + 'px';
+        this.$refs.sliderGroup.style.width = width + 'px'
       },
       _initDots() {
-        this.dots = new Array(this.children.length);
+        this.dots = new Array(this.children.length)
       },
       _initSlider() {
         this.slider = new BScroll(this.$refs.slider, {
@@ -108,29 +108,29 @@
           },
           bounce: false,
           click: this.click
-        });
+        })
 
         this.slider.on('scrollEnd', () => {
-          let pageIndex = this.slider.getCurrentPage().pageX;
-          this.currentPageIndex = pageIndex;
+          let pageIndex = this.slider.getCurrentPage().pageX
+          this.currentPageIndex = pageIndex
 
           if (this.autoPlay) {
-            clearTimeout(this.timer);
-            this._play();
+            clearTimeout(this.timer)
+            this._play()
           }
-        });
+        })
       },
       _play() {
-        let pageIndex = this.currentPageIndex + 1;
+        let pageIndex = this.currentPageIndex + 1
         this.timer = setTimeout(() => {
-          this.slider.goToPage(pageIndex, 0, this.speed);
-        }, this.interval);
+          this.slider.goToPage(pageIndex, 0, this.speed)
+        }, this.interval)
       }
     },
     destroyed() {
-      clearTimeout(this.timer);
+      clearTimeout(this.timer)
     }
-  };
+  }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">

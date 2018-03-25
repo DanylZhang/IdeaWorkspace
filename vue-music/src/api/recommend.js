@@ -1,20 +1,20 @@
-import jsonp from '../common/js/jsonp';
-import {commonParams, options} from './config';
+import jsonp from '../common/js/jsonp'
+import {commonParams, options} from './config'
 
 export function getRecommend() {
-  const url = 'https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg';
+  const url = 'https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg'
 
   const data = Object.assign({}, commonParams, {
     platform: 'h5',
     uin: 0,
     needNewCode: 1
-  });
+  })
 
-  return jsonp(url, data, options);
+  return jsonp(url, data, options)
 }
 
 export function getDiscList() {
-  const url = 'https://u.y.qq.com/cgi-bin/musicu.fcg';
+  const url = 'https://u.y.qq.com/cgi-bin/musicu.fcg'
 
   const data = Object.assign({}, commonParams, {
     loginUin: 0,
@@ -54,12 +54,12 @@ export function getDiscList() {
       'toplist': {'module': 'music.web_toplist_svr', 'method': 'get_toplist_index', 'param': {}},
       'focus': {'module': 'QQMusic.MusichallServer', 'method': 'GetFocus', 'param': {}}
     }
-  });
+  })
 
   const options = {
     param: 'callback',
     prefix: 'recom'
-  };
+  }
 
-  return jsonp(url, data, options);
+  return jsonp(url, data, options)
 }
