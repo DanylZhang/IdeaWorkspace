@@ -97,6 +97,9 @@
         let anchorIndex = parseInt(this.touch.anchorIndex) + delta
         this._scrollTo(anchorIndex)
       },
+      refresh() {
+        this.$refs.listView.refresh()
+      },
       scroll(pos) {
         // scrollY 起始为0，下滑变小，上滑变大
         this.scrollY = pos.y
