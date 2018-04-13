@@ -51,12 +51,10 @@
       },
       _normalizeSongs(list) {
         let ret = []
-        list.forEach((item) => {
+        list.forEach(async (item) => {
           const musicData = item.data
           if (musicData.songid && musicData.albumid) {
-            createSong(musicData).then((res) => {
-              ret.push(res)
-            })
+            ret.push(await createSong(musicData))
           }
         })
         return ret

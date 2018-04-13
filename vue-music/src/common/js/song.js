@@ -33,12 +33,8 @@ export default class Song {
 }
 
 export async function createSong(musicData) {
-  let vkey = ''
-  await getVKey(musicData.songmid).then((res) => {
-    if (res.code === ERR_OK) {
-      vkey = res.data.items[0].vkey
-    }
-  })
+  let res = await getVKey(musicData.songmid)
+  let vkey = res.data.items[0].vkey
   return new Song({
     id: musicData.songid,
     mid: musicData.songmid,
