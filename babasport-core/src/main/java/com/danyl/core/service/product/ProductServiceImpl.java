@@ -153,7 +153,7 @@ public class ProductServiceImpl implements ProductService {
                 e.printStackTrace();
             }
 
-            //静态化 TODO
+            //静态化
             Map<String, Object> root = new HashMap<>();
             Product staticProduct = selectProductById(id);
             root.put("product", staticProduct);

@@ -1,5 +1,6 @@
 package com.danyl.springbootsell.service;
 
+import com.danyl.springbootsell.dto.CartDTO;
 import com.danyl.springbootsell.entity.ProductInfo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,13 +13,16 @@ public interface ProductService {
 
     /**
      * 查询所有在架商品列表
-     * */
+     */
     List<ProductInfo> findUpAll();
 
     Page<ProductInfo> findAll(Pageable pageable);
 
     ProductInfo save(ProductInfo productInfo);
 
-    // TODO 加库存
-    // TODO 减库存
+    // 加库存
+    void increaseStock(List<CartDTO> cartDTOList);
+
+    // 减库存
+    void decreaseStock(List<CartDTO> cartDTOList);
 }
