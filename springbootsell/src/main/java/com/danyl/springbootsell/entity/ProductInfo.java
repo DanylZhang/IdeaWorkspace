@@ -1,13 +1,20 @@
 package com.danyl.springbootsell.entity;
 
+import com.danyl.springbootsell.enums.ProductStatusEnum;
+import com.danyl.springbootsell.utils.EnumUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.exception.DataException;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Entity
 @Data
+@DynamicUpdate
 public class ProductInfo {
     @Id
     private String productId;
@@ -40,10 +47,19 @@ public class ProductInfo {
     /**
      * 状态 0正常 1下架
      */
-    private Integer productStatus;
+    private Integer productStatus = ProductStatusEnum.DOWN.getCode();
 
     /**
      * 类目编号
      */
     private Integer categoryType;
+
+    private Date createTime;
+
+    private Date updateTime;
+
+    @JsonIgnore
+    public ProductStatusEnum getProductStatusEnum() {
+        return EnumUtil.getByCode(productStatus, ProductStatusEnum.class);
+    }
 }

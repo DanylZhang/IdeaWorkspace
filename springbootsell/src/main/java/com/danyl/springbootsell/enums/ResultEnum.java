@@ -5,6 +5,8 @@ import lombok.Getter;
 @Getter
 public enum ResultEnum {
 
+    SUCCESS(0, "成功"),
+
     PARAM_ERROR(1, "参数不正确"),
 
     PRODUCT_NOT_EXIST(10, "商品不存在"),
@@ -19,11 +21,17 @@ public enum ResultEnum {
 
     CART_EMPTY(18, "购物车为空"),
 
-    ORDER_OWNER_ERROR(19,"该订单不属于当前用户"),
+    ORDER_OWNER_ERROR(19, "该订单不属于当前用户"),
 
-    WX_MP_ERROR(20,"微信公众账号错误"),
+    WX_MP_ERROR(20, "微信公众账号错误"),
 
-    WXPAY_NOTIFY_MONEY_VERIFY_ERROR(21,"微信支付异步通知金额校验不通过");
+    WXPAY_NOTIFY_MONEY_VERIFY_ERROR(21, "微信支付异步通知金额校验不通过"),
+
+    ORDER_CANCEL_SUCCESS(22, "订单取消成功"),
+    ORDER_FINISH_SUCCESS(23, "卖家订单完结成功"),
+
+    PRODUCT_ON_SALE_SUCCESS(24, "成功上架商品"),
+    PRODUCT_OFF_SALE_SUCCESS(25, "成功下架商品");
 
 
     private Integer code;

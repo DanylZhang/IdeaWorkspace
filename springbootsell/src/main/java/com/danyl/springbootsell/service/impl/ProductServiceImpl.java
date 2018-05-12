@@ -7,15 +7,20 @@ import com.danyl.springbootsell.enums.ResultEnum;
 import com.danyl.springbootsell.exception.SellException;
 import com.danyl.springbootsell.repository.ProductInfoRepository;
 import com.danyl.springbootsell.service.ProductService;
+import com.danyl.springbootsell.utils.JsonUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sun.rmi.runtime.Log;
 
+import java.net.ResponseCache;
 import java.util.List;
 
 @Service
+@Slf4j
 public class ProductServiceImpl implements ProductService {
 
     @Autowired
@@ -74,5 +79,38 @@ public class ProductServiceImpl implements ProductService {
             productInfo.setProductStock(result);
             repository.save(productInfo);
         }
+    }
+
+    @Override
+    @Transactional
+    public ProductInfo onSale(String productId) {
+        ProductInfo productInfo = repository.findById(productId).orElse(null);
+        log.error(JsonUtil.toJson(productInfo));
+        if (productInfo == null) {
+            throw new SellException(ResultEnum.PRODUCT_NOT_EXIST);
+        }
+        if (productInfo.getProductStatusEnum() == ProductStatusEnum.UP) {
+            return productInfo;
+        } else {
+            productInfo.setProductStatus(ProductStatusEnum.UP.getCode());
+            repository.save(productInfo);
+        }
+        return productInfo;
+    }
+
+    @Override
+    @Transactional
+    public ProductInfo offSale(String productId) {
+        ProductInfo productInfo = repository.findById(productId).orElse(null);
+        if (productInfo == null) {
+            throw new SellException(ResultEnum.PRODUCT_NOT_EXIST);
+        }
+        if (productInfo.getProductStatusEnum() == ProductStatusEnum.DOWN) {
+            return productInfo;
+        } else {
+            productInfo.setProductStatus(ProductStatusEnum.DOWN.getCode());
+            repository.save(productInfo);
+        }
+        return productInfo;
     }
 }

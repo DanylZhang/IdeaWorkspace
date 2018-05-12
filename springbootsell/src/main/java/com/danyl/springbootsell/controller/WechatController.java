@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.net.URLEncoder;
 
 @Controller
-@RequestMapping("/wechat")
+@RequestMapping("/sell/wechat")
 @Slf4j
 public class WechatController {
 
@@ -27,7 +27,7 @@ public class WechatController {
     public String authorize(@RequestParam("returnUrl") String returnUrl) {
         //1. 配置
         //2. 调用方法
-        String url = "http://danyl.s3.natapp.cc/wechat/userInfo";
+        String url = "http://danyl.natappvip.cc/sell/wechat/userInfo";
         String redirectUrl = wxMpService.oauth2buildAuthorizationUrl(url, WxConsts.OAuth2Scope.SNSAPI_BASE, URLEncoder.encode(returnUrl));
         return "redirect:" + redirectUrl;
     }

@@ -1,11 +1,18 @@
 package com.danyl.springbootsell.dto;
 
 import com.danyl.springbootsell.entity.OrderDetail;
+import com.danyl.springbootsell.enums.OrderStatusEnum;
+import com.danyl.springbootsell.enums.PayStatusEnum;
+import com.danyl.springbootsell.utils.EnumUtil;
+import com.danyl.springbootsell.utils.JsonUtil;
 import com.danyl.springbootsell.utils.serializer.Date2LongSerializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.EnumUtils;
+import sun.rmi.runtime.Log;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -69,4 +76,14 @@ public class OrderDTO {
     private Date updateTime;
 
     List<OrderDetail> orderDetailList;
+
+    @JsonIgnore
+    public OrderStatusEnum getOrderStatusEnum() {
+        return EnumUtil.getByCode(orderStatus, OrderStatusEnum.class);
+    }
+
+    @JsonIgnore
+    public PayStatusEnum getPayStatusEnum() {
+        return EnumUtil.getByCode(payStatus, PayStatusEnum.class);
+    }
 }

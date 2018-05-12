@@ -21,20 +21,20 @@ public class BuyerServiceImpl implements BuyerService {
 
     @Override
     public OrderDTO findOrderOne(String openid, String orderId) {
-        return checkOrderOwner(openid,orderId);
+        return checkOrderOwner(openid, orderId);
     }
 
     @Override
     public OrderDTO cancelOrder(String openid, String orderId) {
         OrderDTO orderDTO = checkOrderOwner(openid, orderId);
-        if (orderDTO    ==null){
-            log.error("【取消订单】查不到此订单，orderId={}",orderId);
+        if (orderDTO == null) {
+            log.error("【取消订单】查不到此订单，orderId={}", orderId);
             throw new SellException(ResultEnum.ORDER_NOT_EXIST);
         }
         return orderService.cancel(orderDTO);
     }
 
-    private OrderDTO checkOrderOwner(String openid, String orderId){
+    private OrderDTO checkOrderOwner(String openid, String orderId) {
         OrderDTO orderDTO = orderService.findOne(orderId);
 
         if (orderDTO == null) {

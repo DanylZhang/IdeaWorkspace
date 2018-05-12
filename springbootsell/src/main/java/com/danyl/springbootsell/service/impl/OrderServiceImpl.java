@@ -13,6 +13,7 @@ import com.danyl.springbootsell.exception.SellException;
 import com.danyl.springbootsell.repository.OrderDetailRepository;
 import com.danyl.springbootsell.repository.OrderMasterRepository;
 import com.danyl.springbootsell.service.OrderService;
+import com.danyl.springbootsell.service.PayService;
 import com.danyl.springbootsell.service.ProductService;
 import com.danyl.springbootsell.utils.KeyUtil;
 import com.sun.org.apache.bcel.internal.generic.NEW;
@@ -49,6 +50,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderMasterRepository orderMasterRepository;
+
+    @Autowired
+    private PayService payService;
 
     @Override
     @Transactional
@@ -116,6 +120,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public Page<OrderDTO> findList(Pageable pageable) {
+        Page<OrderMaster> orderMasterPage= orderMasterRepository.findAll(pageable);
+
+        List<OrderDTO> orderDTOList = OrderMaster2OrderDTOConverter.convert(orderMasterPage.getContent());
+        return new PageImpl<>(orderDTOList, pageable, orderMasterPage.getTotalElements());    }
+
+    @Override
     @Transactional
     public OrderDTO cancel(OrderDTO orderDTO) {
         OrderMaster orderMaster = new OrderMaster();
@@ -142,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 如果已支付，需要退款
         if (orderDTO.getPayStatus().equals(PayStatusEnum.SUCCESS.getCode())) {
-            //TODO
+            payService.refund(orderDTO);
         }
         return orderDTO;
     }
