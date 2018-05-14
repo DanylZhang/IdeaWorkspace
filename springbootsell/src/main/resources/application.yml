@@ -8,6 +8,9 @@ spring:
     show-sql: true
   jackson:
     default-property-inclusion: non_null
+  redis:
+    host: 127.0.0.1
+    port: 6379
 #server:
 #  servlet:
 #    context-path: /sell
@@ -24,6 +27,10 @@ spring:
 wechat:
   mpAppId: wx4e9217ae75fdeb45
   mpAppSecret: 82c220262b6b80947dab6fa969e41fe5
+
+  openAppId: wx4e9217ae75fdeb45
+  openAppSecret: 82c220262b6b80947dab6fa969e41fe5
+
   mchId: 1409146202
   mchKey: c976503d34ca432c601361f969fd8d85
   keyPath: /var/weixin_cert/h5.p12

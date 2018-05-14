@@ -1,6 +1,8 @@
 package com.danyl.springbootsell.repository;
 
 import com.danyl.springbootsell.entity.ProductCategory;
+import com.danyl.springbootsell.entity.SellerInfo;
+import com.danyl.springbootsell.utils.KeyUtil;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,8 +16,12 @@ import java.util.List;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class ProductCategoryRepositoryTest {
+
     @Autowired
     private ProductCategoryRepository repository;
+
+    @Autowired
+    private SellerInfoRepository sellerInfoRepository;
 
     @Test
     public void findOneTest() {
@@ -27,5 +33,16 @@ public class ProductCategoryRepositoryTest {
         List<Integer> list = Arrays.asList(2, 3, 4);
         List<ProductCategory> result = repository.findByCategoryTypeIn(list);
         Assert.assertNotEquals(0, result.size());
+    }
+
+    @Test
+    public void addSellerInfo() {
+        SellerInfo sellerInfo = new SellerInfo();
+        sellerInfo.setId(KeyUtil.genUniqueKey());
+        sellerInfo.setOpenid("ofKqt0er_ElO0UQqIZ3LXuKVJJxU");
+        sellerInfo.setUsername("danyl");
+        sellerInfo.setPassword("123");
+        SellerInfo save = sellerInfoRepository.save(sellerInfo);
+        Assert.assertNotNull("保存成功", save);
     }
 }
