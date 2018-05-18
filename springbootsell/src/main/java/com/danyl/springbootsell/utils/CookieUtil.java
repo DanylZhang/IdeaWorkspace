@@ -3,6 +3,8 @@ package com.danyl.springbootsell.utils;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CookieUtil {
 
@@ -32,13 +34,21 @@ public class CookieUtil {
      */
     public static Cookie get(HttpServletRequest request,
                              String name) {
+        Map<String, Cookie> cookieMap = readCookieMap(request);
+        return cookieMap.getOrDefault(name, null);
+    }
+
+    /**
+     * 将cookie封装成 map 方便获取
+     */
+    private static Map<String, Cookie> readCookieMap(HttpServletRequest request) {
+        Map<String, Cookie> cookieMap = new HashMap<>();
         Cookie[] cookies = request.getCookies();
-        for (Cookie cookie : cookies) {
-            String name1 = cookie.getName();
-            if (name1.equalsIgnoreCase(name)) {
-                return cookie;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                cookieMap.put(cookie.getName(), cookie);
             }
         }
-        return null;
+        return cookieMap;
     }
 }

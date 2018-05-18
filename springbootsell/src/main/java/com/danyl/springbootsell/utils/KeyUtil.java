@@ -1,17 +1,24 @@
 package com.danyl.springbootsell.utils;
 
-import java.util.Random;
+import org.apache.commons.lang3.RandomUtils;
+
+import java.util.UUID;
 
 public class KeyUtil {
 
     /**
-     * 生成唯一的主键
+     * 生成唯一的整数主键
      * 格式： 毫秒数+随机数
      */
     public static synchronized String genUniqueKey() {
-        Random random = new Random();
-        Integer number = random.nextInt(900000) + 100000;
+        int i = RandomUtils.nextInt(100000, 999999);
+        return System.currentTimeMillis() + String.valueOf(i);
+    }
 
-        return System.currentTimeMillis() + String.valueOf(number);
+    /**
+     * 生成唯一的 UUID without "-"
+     */
+    public static synchronized String genUUID() {
+        return UUID.randomUUID().toString().replaceAll("-", "");
     }
 }

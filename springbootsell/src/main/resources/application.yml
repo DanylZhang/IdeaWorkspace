@@ -25,13 +25,21 @@ spring:
 
 
 wechat:
-  mpAppId: wx4e9217ae75fdeb45
-  mpAppSecret: 82c220262b6b80947dab6fa969e41fe5
+  mpAppId: wxf6a8aca3b0dcf091
+  mpAppSecret: 5ddc699ab4b8f0987239dbf85e316445
 
-  openAppId: wx4e9217ae75fdeb45
-  openAppSecret: 82c220262b6b80947dab6fa969e41fe5
+  openAppId: wxf6a8aca3b0dcf091
+  openAppSecret: 5ddc699ab4b8f0987239dbf85e316445
 
   mchId: 1409146202
   mchKey: c976503d34ca432c601361f969fd8d85
   keyPath: /var/weixin_cert/h5.p12
   notifyUrl: http://danyl.natappvip.cc/sell/pay/notify
+
+  templateId:
+    identifyingCodeNotify: AISPsHA939vWnLgGdhhM18sTGtQWT4OC4nrcLGoFtmQ
+
+project-url:
+  wechatMpAuthorize: http://danyl.natappvip.cc
+  wechatOpenAuthorize: http://danyl.natappvip.cc
+  sell: http://danyl.natappvip.cc

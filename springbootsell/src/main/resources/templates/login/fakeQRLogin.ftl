@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>微信登录</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://res.wx.qq.com/connect/zh_CN/htmledition/style/impowerApp3696b4.css">
+    <link href="https://res.wx.qq.com/connect/zh_CN/htmledition/images/favicon3696b4.ico" rel="Shortcut Icon">
+    <script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/jquery.min3696b4.js"></script>
+</head>
+<body>
+<div class="main impowerBox">
+    <div class="loginPanel normalPanel">
+        <div class="title">微信登录</div>
+        <div class="waiting panelContent">
+            <div class="wrp_code"><img class="qrcode lightBorder" src="/sell/seller/fakeQRLogin/getQRCode/${qrUUID}"/>
+            </div>
+            <div class="info">
+                <div class="status status_browser js_status" id="wx_default_tip">
+                    <p>请使用微信扫描二维码登录</p>
+                    <p>“齐鲁阳光文具商家后台管理系统”</p>
+                </div>
+                <div class="status status_succ js_status" style="display:none" id="wx_after_scan">
+                    <i class="status_icon icon38_msg succ"></i>
+                    <div class="status_txt">
+                        <h4>扫描成功</h4>
+                        <p>请在微信中点击确认即可登录</p>
+                    </div>
+                </div>
+                <div class="status status_fail js_status" style="display:none" id="wx_after_cancel">
+                    <i class="status_icon icon38_msg warn"></i>
+                    <div class="status_txt">
+                        <h4>您已取消此次登录</h4>
+                        <p>您可再次扫描登录，或关闭窗口</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function AQ_SECAPI_ESCAPE(a, b) {
+        for (var c = new Array, d = 0; d < a.length; d++) if ("&" == a.charAt(d)) {
+            var e = [3, 4, 5, 9], f = 0;
+            for (var g in e) {
+                var h = e[g];
+                if (d + h <= a.length) {
+                    var i = a.substr(d, h).toLowerCase();
+                    if (b[i]) {
+                        c.push(b[i]), d = d + h - 1, f = 1;
+                        break
+                    }
+                }
+            }
+            0 == f && c.push(a.charAt(d))
+        } else c.push(a.charAt(d));
+        return c.join("")
+    }
+
+    function AQ_SECAPI_CheckXss() {
+        for (var a = new Object, b = "'\"<>`script:daex/hml;bs64,", c = 0; c < b.length; c++) {
+            for (var d = b.charAt(c), e = d.charCodeAt(), f = e, g = e.toString(16), h = 0; h < 7 - e.toString().length; h++) f = "0" + f;
+            a["&#" + e + ";"] = d, a["&#" + f] = d, a["&#x" + g] = d
+        }
+        a["&lt"] = "<", a["&gt"] = ">", a["&quot"] = '"';
+        var i = location.href, j = document.referrer;
+        i = decodeURIComponent(AQ_SECAPI_ESCAPE(i, a)), j = decodeURIComponent(AQ_SECAPI_ESCAPE(j, a));
+        var k = new RegExp("['\"<>`]|script:|data:text/html;base64,");
+        if (k.test(i) || k.test(j)) {
+            var l = "1.3", m = "http://zyjc.sec.qq.com/dom", n = new Image;
+            n.src = m + "?v=" + l + "&u=" + encodeURIComponent(i) + "&r=" + encodeURIComponent(j);
+            i = i.replace(/['\"<>`]|script:/gi, "");
+            i = i.replace(/data:text\/html;base64,/gi, "data:text/plain;base64,");
+            // ???
+            // location.href = i;
+        }
+    }
+
+    AQ_SECAPI_CheckXss();
+</script>
+<script>
+    !function () {
+        function a(d) {
+            jQuery.ajax({
+                type: "GET",
+                url: "https://long.open.weixin.qq.com/connect/l/qrconnect?uuid=${qrUUID}" + (d ? "&last=" + d : ""),
+                dataType: "script",
+                cache: !1,
+                timeout: 6e4,
+                success: function (d, e, f) {
+                    var g = window.wx_errcode;
+                    switch (g) {
+                        case 405:
+                            break;
+                            var h = "http://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login";
+                            h = h.replace(/&amp;/g, "&"), h += (h.indexOf("?") > -1 ? "&" : "?") + "code=" + wx_code + "&state=";
+                            var i = b("self_redirect");
+                            if (c) if ("true" !== i && "false" !== i) try {
+                                document.domain = "qq.com";
+                                var j = window.top.location.host.toLowerCase();
+                                j && (window.location = h)
+                            } catch (k) {
+                                window.top.location = h
+                            } else if ("true" === i) try {
+                                window.location = h
+                            } catch (k) {
+                                window.top.location = h
+                            } else window.top.location = h; else window.location = h;
+                            break;
+                        case 404:
+                            jQuery(".js_status").hide(), jQuery("#wx_after_scan").show(), setTimeout(a, 100, g);
+                            break;
+                        case 403:
+                            jQuery(".js_status").hide(), jQuery("#wx_after_cancel").show(), setTimeout(a, 2e3, g);
+                            break;
+                        case 402:
+                        case 500:
+                            break;
+                            window.location.reload();
+                            break;
+                        case 408:
+                            setTimeout(a, 2e3)
+                    }
+                },
+                error: function (b, c, d) {
+                    var e = window.wx_errcode;
+                    408 == e ? setTimeout(a, 5e3) : setTimeout(a, 5e3, e)
+                }
+            })
+        }
+
+        function b(a, b) {
+            b || (b = window.location.href), a = a.replace(/[\[\]]/g, "\\$&");
+            var c = new RegExp("[?&]" + a + "(=([^&#]*)|&|#|$)"), d = c.exec(b);
+            return d ? d[2] ? decodeURIComponent(d[2].replace(/\+/g, " ")) : "" : null
+        }
+
+        var c = window.top != window;
+        if (c) {
+            var d = "";
+            "white" != d && (document.body.style.color = "#373737")
+        } else {
+            document.getElementsByClassName || (document.getElementsByClassName = function (a) {
+                for (var b = [], c = new RegExp("(^| )" + a + "( |$)"), d = document.getElementsByTagName("*"), e = 0, f = d.length; f > e; e++) c.test(d[e].className) && b.push(d[e]);
+                return b
+            }), document.body.style.backgroundColor = "#333333", document.body.style.padding = "50px";
+            for (var e = document.getElementsByClassName("status"), f = 0, g = e.length; g > f; ++f) {
+                var h = e[f];
+                h.className = h.className + " normal"
+            }
+        }
+        var i = "";
+        if (i) {
+            var j = document.createElement("link");
+            j.rel = "stylesheet", j.href = i.replace(new RegExp("javascript:", "gi"), ""), document.getElementsByTagName("head")[0].appendChild(j)
+        }
+        setTimeout(a, 100)
+    }();
+</script>
+</body>
+</html>
