@@ -3,39 +3,41 @@
 <head>
     <title>微信登录</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://res.wx.qq.com/connect/zh_CN/htmledition/style/impowerApp3696b4.css">
-    <link href="https://res.wx.qq.com/connect/zh_CN/htmledition/images/favicon3696b4.ico" rel="Shortcut Icon">
-    <script src="https://res.wx.qq.com/connect/zh_CN/htmledition/js/jquery.min3696b4.js"></script>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <link rel="stylesheet" href="http://jqweui.com/dist/lib/weui.min.css">
+    <link rel="stylesheet" href="http://jqweui.com/dist/css/jquery-weui.css">
+
+    <script src="http://jqweui.com/dist/lib/jquery-2.1.4.js"></script>
+    <script src="http://jqweui.com/dist/js/jquery-weui.js"></script>
+    <script src="http://jqweui.com/dist/js/city-picker.js"></script>
 </head>
-<body>
-<div class="main impowerBox">
-    <div class="loginPanel normalPanel">
-        <div class="title">微信登录</div>
-        <div class="waiting panelContent">
-            <div class="info">
-                <div class="status status_browser js_status" id="wx_default_tip">
-                    <p>确认登录</p>
-                    <p>“齐鲁阳光文具商家后台管理系统”</p>
-                </div>
-            </div>
-        </div>
-        <div class="waiting panelContent">
-            <div class="info">
-                <div class="status status_browser js_status" id="wx_cancel_tip">
-                    <p>取消登录</p>
-                    <p>“齐鲁阳光文具商家后台管理系统”</p>
-                </div>
-            </div>
+
+<body ontouchstart>
+<div class="weui-msg">
+    <div class="weui-msg__icon-area"><i class="weui-icon-success weui-icon_msg"></i></div>
+    <div class="weui-msg__text-area">
+        <h2 class="weui-msg__title">扫码成功</h2>
+        <p class="weui-msg__desc">即将登录齐鲁阳光文具后台管理系统，请确认是本人操作</p>
+    </div>
+    <div class="weui-msg__opr-area">
+        <p class="weui-btn-area">
+            <a href="http://danyl.natappvip.cc/sell/seller/fakeQRLogin/ack/${qrUUID}?openid=${openid}"
+               class="weui-btn weui-btn_primary">确认登录</a>
+            <a href="ttp://danyl.natappvip.cc/sell/seller/fakeQRLogin/cancel/${qrUUID}?openid=${openid}"
+               class="weui-btn weui-btn_default">取消登录</a>
+        </p>
+    </div>
+    <div class="weui-msg__extra-area">
+        <div class="weui-footer">
+            <p class="weui-footer__links">
+                <a href="javascript:void(0);" class="weui-footer__link">联系我们</a>
+            </p>
+            <p class="weui-footer__text">Copyright © 2008-2016 danyl.natappvip.cc</p>
         </div>
     </div>
 </div>
-<script>
-    $('#wx_default_tip').click(function (event) {
-        window.location.href = "http://danyl.natappvip.cc/sell/seller/fakeQRLogin/ack";
-    });
-    $('#wx_cancel_tip').click(function (event) {
-        window.location.href = "http://danyl.natappvip.cc/sell/seller/fakeQRLogin/cancel";
-    });
-</script>
+
 </body>
 </html>

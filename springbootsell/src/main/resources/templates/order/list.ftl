@@ -80,10 +80,43 @@
     </div>
 </div>
 
+<script src="http://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+<#--弹窗提醒-->
+<div class="modal fade" id="myModel" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="myModalLabel">
+                    提示
+                </h4>
+            </div>
+            <div class="modal-body">
+                登录成功，即将跳转...
+            </div>
+            <div class="modal-footer">
+                <button onclick="" type="button" class="btn btn-primary">立即跳转</button>
+                <button onclick="javascript:document.getElementById('notice').pause()" type="button"
+                        class="btn btn-default" data-dismiss="modal">确定
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<#--播放音乐-->
+<audio id="notice" src="/mp3/song.mp3" loop="loop"></audio>
+
+<script src="http://apps.bdimg.com/libs/jquery.cookie/1.4.1/jquery.cookie.min.js"></script>
 <script>
     var websocket = null;
     if ('WebSocket' in window) {
-        websocket = new WebSocket('ws://danyl.natappvip.cc/webSocket');
+        console.log(document.cookie);
+        var token = $.cookie('token');
+        console.log(token);
+        websocket = new WebSocket('ws://danyl.natappvip.cc/webSocket/'+token);
     } else {
         alert('该浏览器不支持websocket!');
     }

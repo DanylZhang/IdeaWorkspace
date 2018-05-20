@@ -18,7 +18,7 @@ public class KeyUtil {
     /**
      * 生成唯一的 UUID without "-"
      */
-    public static synchronized String genUUID() {
+    public static synchronized String genUUIDWithoutDelimiter() {
         return UUID.randomUUID().toString().replaceAll("-", "");
     }
 }
