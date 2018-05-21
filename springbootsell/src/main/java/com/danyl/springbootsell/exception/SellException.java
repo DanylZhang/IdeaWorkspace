@@ -1,7 +1,9 @@
 package com.danyl.springbootsell.exception;
 
 import com.danyl.springbootsell.enums.ResultEnum;
+import lombok.Getter;
 
+@Getter
 public class SellException extends RuntimeException {
     private Integer code;
 

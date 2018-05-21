@@ -1,5 +1,6 @@
 package com.danyl.springbootsell.service.impl;
 
+import com.danyl.springbootsell.constant.CookieConstant;
 import com.danyl.springbootsell.converter.OrderMaster2OrderDTOConverter;
 import com.danyl.springbootsell.dto.CartDTO;
 import com.danyl.springbootsell.dto.OrderDTO;
@@ -15,27 +16,25 @@ import com.danyl.springbootsell.repository.OrderMasterRepository;
 import com.danyl.springbootsell.service.OrderService;
 import com.danyl.springbootsell.service.PayService;
 import com.danyl.springbootsell.service.ProductService;
+import com.danyl.springbootsell.service.WebSocket;
 import com.danyl.springbootsell.utils.KeyUtil;
-import com.sun.org.apache.bcel.internal.generic.NEW;
+import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.RedisSystemException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,6 +52,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private PayService payService;
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private WebSocket webSocket;
 
     @Override
     @Transactional
@@ -78,18 +83,26 @@ public class OrderServiceImpl implements OrderService {
             orderDetailRepository.save(orderDetail);
         }
         //3. 写入订单数据（orderMaster,orderDetail)
+        orderDTO.setOrderId(orderId);
+        orderDTO.setOrderAmount(orderAmount);
+        orderDTO.setOrderStatus(OrderStatusEnum.NEW.getCode());
+        orderDTO.setPayStatus(PayStatusEnum.WAIT.getCode());
         OrderMaster orderMaster = new OrderMaster();
         BeanUtils.copyProperties(orderDTO, orderMaster);
-        orderMaster.setOrderId(orderId);
-        orderMaster.setOrderAmount(orderAmount);
-        orderMaster.setOrderStatus(OrderStatusEnum.NEW.getCode());
-        orderMaster.setPayStatus(PayStatusEnum.WAIT.getCode());
         orderMasterRepository.save(orderMaster);
         //4. 扣库存
         List<CartDTO> cartDTOList = orderDTO.getOrderDetailList().stream()
                 .map(e -> new CartDTO(e.getProductId(), e.getProductQuantity()))
                 .collect(Collectors.toList());
         productService.decreaseStock(cartDTOList);
+
+        //5. 向商家后台发送webSocket消息
+        Set<String> keys = redisTemplate.keys(CookieConstant.TOKEN + "_*");
+        for (String key : keys) {
+            String token = key.substring(6);
+            webSocket.sendMessageToUser(token, "您有新的订单:" + orderDTO.getOrderId() + ",订单金额:" + orderDTO.getOrderAmount());
+        }
+
         return orderDTO;
     }
 
@@ -121,10 +134,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<OrderDTO> findList(Pageable pageable) {
-        Page<OrderMaster> orderMasterPage= orderMasterRepository.findAll(pageable);
+        Page<OrderMaster> orderMasterPage = orderMasterRepository.findAll(pageable);
 
         List<OrderDTO> orderDTOList = OrderMaster2OrderDTOConverter.convert(orderMasterPage.getContent());
-        return new PageImpl<>(orderDTOList, pageable, orderMasterPage.getTotalElements());    }
+        return new PageImpl<>(orderDTOList, pageable, orderMasterPage.getTotalElements());
+    }
 
     @Override
     @Transactional

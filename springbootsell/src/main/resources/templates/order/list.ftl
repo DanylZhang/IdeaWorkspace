@@ -84,22 +84,22 @@
 <script src="http://apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 
 <#--弹窗提醒-->
-<div class="modal fade" id="myModel" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="myModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 <h4 class="modal-title" id="myModalLabel">
-                    提示
+                    新订单提醒
                 </h4>
             </div>
             <div class="modal-body">
-                登录成功，即将跳转...
+                您有新的订单...
             </div>
             <div class="modal-footer">
-                <button onclick="" type="button" class="btn btn-primary">立即跳转</button>
+                <button onclick="location.reload()" type="button" class="btn btn-primary">查看新的订单</button>
                 <button onclick="javascript:document.getElementById('notice').pause()" type="button"
-                        class="btn btn-default" data-dismiss="modal">确定
+                        class="btn btn-default" data-dismiss="modal">关闭
                 </button>
             </div>
         </div>
@@ -116,7 +116,7 @@
         console.log(document.cookie);
         var token = $.cookie('token');
         console.log(token);
-        websocket = new WebSocket('ws://danyl.natappvip.cc/webSocket/'+token);
+        websocket = new WebSocket('ws://danyl.natappvip.cc/webSocket/' + token);
     } else {
         alert('该浏览器不支持websocket!');
     }
@@ -132,6 +132,8 @@
     websocket.onmessage = function (event) {
         console.log('收到消息：' + event.data);
         //弹窗提醒，播放音乐
+        $('#myModal').modal('show');
+        document.getElementById('notice').play();
     };
 
     websocket.onerror = function (event) {
