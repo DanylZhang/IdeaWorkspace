@@ -8,8 +8,10 @@ import com.danyl.springbootsell.entity.ProductInfo;
 import com.danyl.springbootsell.service.CategoryService;
 import com.danyl.springbootsell.service.ProductService;
 import com.danyl.springbootsell.utils.ResultVOUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/sell/buyer/product")
+@Slf4j
 public class BuyerProductController {
 
     @Autowired
@@ -29,6 +32,7 @@ public class BuyerProductController {
     private CategoryService categoryService;
 
     @GetMapping("/list")
+    @Cacheable(cacheNames = "product", key = "123", unless = "#result.code != 0")
     public ResultVO list() {
         //1. 查询所有的上架商品
         List<ProductInfo> productInfos = productService.findUpAll();

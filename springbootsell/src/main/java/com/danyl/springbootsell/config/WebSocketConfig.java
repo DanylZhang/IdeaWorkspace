@@ -8,7 +8,7 @@ import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 @Component
 public class WebSocketConfig {
 
-    @Profile("dev")
+    @Profile("prod")
     @Bean
     public ServerEndpointExporter serverEndpointExporter() {
         return new ServerEndpointExporter();

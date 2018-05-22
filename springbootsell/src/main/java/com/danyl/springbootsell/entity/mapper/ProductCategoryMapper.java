@@ -1,10 +1,8 @@
 package com.danyl.springbootsell.entity.mapper;
 
 import com.danyl.springbootsell.entity.ProductCategory;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Result;
-import org.apache.ibatis.annotations.Results;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Map;
@@ -31,5 +29,17 @@ public interface ProductCategoryMapper {
             @Result(column = "category_name", property = "categoryName"),
             @Result(column = "category_type", property = "categoryType")
     })
-    List<ProductCategory> findByCategoryType(String categoryName);
+    List<ProductCategory> findByCategoryName(String categoryName);
+
+    @Update("update product_category set category_name = #{categoryName} where category_type = #{categoryType}")
+    int updateByCategoryType(@Param("categoryName") String categoryName,
+                             @Param("categoryType") Integer categoryType);
+
+    @Update("update product_category set category_name = #{categoryName} where category_type = #{categoryType}")
+    int updateByObject(ProductCategory productCategory);
+
+    @Delete("delete from product_category where category_type = #{categoryType}")
+    int deleteByCategoryType(Integer categoryType);
+
+    ProductCategory selectByCategoryType(Integer categoryType);
 }

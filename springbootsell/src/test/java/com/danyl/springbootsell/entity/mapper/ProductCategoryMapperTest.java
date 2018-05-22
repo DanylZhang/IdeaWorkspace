@@ -11,9 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.junit4.SpringRunner;
+import sun.reflect.generics.tree.TypeSignature;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static org.junit.Assert.*;
 
@@ -44,9 +49,44 @@ public class ProductCategoryMapperTest {
     }
 
     @Test
-    public void findByCategoryType(){
+    public void findByCategoryType() {
         ProductCategory result = mapper.findByCategoryType(1);
-        System.out.println(result);
+        log.info("{}", result);
         Assert.assertNotNull(result);
+    }
+
+    @Test
+    public void findByCategoryName() {
+        List<ProductCategory> productCategories = mapper.findByCategoryName("特色菜");
+        log.info("{}", productCategories);
+        Assert.assertEquals(2, productCategories.size());
+    }
+
+    @Test
+    public void updateByCategoryType() {
+        int result = mapper.updateByCategoryType("特色菜1", 4);
+        Assert.assertEquals(2, result);
+    }
+
+    @Test
+    public void updateByObject() {
+        ProductCategory productCategory = new ProductCategory();
+        productCategory.setCategoryName("特色菜");
+        productCategory.setCategoryType(4);
+        int result = mapper.updateByObject(productCategory);
+        Assert.assertEquals(1, result);
+    }
+
+    @Test
+    public void deleteByCategoryType() {
+        int result = mapper.deleteByCategoryType(4);
+        Assert.assertEquals(1, result);
+    }
+
+    @Test
+    public void selectByCategoryType() {
+        ProductCategory productCategory = mapper.selectByCategoryType(1);
+        System.out.println(productCategory);
+        Assert.assertNotNull(productCategory);
     }
 }

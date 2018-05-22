@@ -10,6 +10,9 @@ import com.danyl.springbootsell.service.ProductService;
 import com.danyl.springbootsell.utils.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,11 +24,13 @@ import java.util.List;
 
 @Service
 @Slf4j
+@CacheConfig(cacheNames = "product")
 public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ProductInfoRepository repository;
 
+    @Cacheable(key = "#productId")
     @Override
     public ProductInfo findOne(String productId) {
         return repository.findById(productId).orElse(null);
@@ -41,6 +46,7 @@ public class ProductServiceImpl implements ProductService {
         return repository.findAll(pageable);
     }
 
+    @CachePut(key = "#productInfo.productId")
     @Override
     public ProductInfo save(ProductInfo productInfo) {
         return repository.save(productInfo);

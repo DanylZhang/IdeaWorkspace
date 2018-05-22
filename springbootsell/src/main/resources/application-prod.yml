@@ -1,0 +1,51 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: 123456
+    url: jdbc:mysql://127.0.0.1:7306/sell?characterEncoding=utf-8&useSSL=false
+#  jpa:
+#    show-sql: true
+  jackson:
+    default-property-inclusion: non_null
+  redis:
+    host: 127.0.0.1
+    port: 6379
+#server:
+#  servlet:
+#    context-path: /sell
+
+#logging:
+#  pattern:
+#    console: "%d - %msg%n"
+##  path: C:\Users\DELL\Documents\
+#  file: C:\Users\DELL\Documents\sell.log
+#  level:
+#    com.danyl.LoggerTest: debug
+
+
+wechat:
+  mpAppId: wxf6a8aca3b0dcf091
+  mpAppSecret: 5ddc699ab4b8f0987239dbf85e316445
+
+  openAppId: wxf6a8aca3b0dcf091
+  openAppSecret: 5ddc699ab4b8f0987239dbf85e316445
+
+  mchId: 1409146202
+  mchKey: c976503d34ca432c601361f969fd8d85
+  keyPath: /var/weixin_cert/h5.p12
+  notifyUrl: http://danyl.natappvip.cc/sell/pay/notify
+
+  templateId:
+    identifyingCodeNotify: AISPsHA939vWnLgGdhhM18sTGtQWT4OC4nrcLGoFtmQ
+
+project-url:
+  wechatMpAuthorize: http://danyl.natappvip.cc
+  wechatOpenAuthorize: http://danyl.natappvip.cc
+  sell: http://danyl.natappvip.cc
+
+logging:
+  level:
+    com.danyl.springbootsell.entity.mapper: trace
+mybatis:
+  mapper-locations: classpath:mapper/*.xml

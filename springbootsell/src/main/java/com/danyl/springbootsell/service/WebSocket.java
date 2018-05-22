@@ -8,8 +8,11 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -22,7 +25,7 @@ public class WebSocket {
     private Session session;
 
     // 存储每个用户的多个终端连接
-    private static ConcurrentHashMap<String, Set<WebSocket>> webSocketMap = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, CopyOnWriteArraySet<WebSocket>> webSocketMap = new ConcurrentHashMap<>();
 
     // 记录当前连接数
     private static AtomicInteger onlineCount = new AtomicInteger(0);
@@ -39,7 +42,7 @@ public class WebSocket {
             webSocketMap.get(this.uid).add(this);
         } else {
             log.info("【websocket消息】用户:{} 首次连接", this.uid);
-            Set<WebSocket> webSocketSet = new HashSet<>();
+            CopyOnWriteArraySet<WebSocket> webSocketSet = new CopyOnWriteArraySet<>();
             webSocketSet.add(this);
             webSocketMap.put(this.uid, webSocketSet);
         }
@@ -51,12 +54,21 @@ public class WebSocket {
     public void onClose() {
         //总连接数减1
         onlineCount.decrementAndGet();
-        if (webSocketMap.get(this.uid).size() == 0) {
+        CopyOnWriteArraySet<WebSocket> userWebSocketSet = webSocketMap.get(this.uid);
+        if (userWebSocketSet == null) {
+            log.error("【websocket消息】用户:{} 未在线", this.uid);
+            return;
+        } else if (userWebSocketSet.size() == 0) {
+            log.error("【websocket消息】用户:{} 无活动连接", this.uid);
+            webSocketMap.remove(this.uid);
+            return;
+        } else if (userWebSocketSet.size() == 1) {
+            userWebSocketSet.remove(this);
             webSocketMap.remove(this.uid);
         } else {
-            webSocketMap.get(this.uid).remove(this);
+            userWebSocketSet.remove(this);
         }
-        log.info("【websocket消息】用户:{} 连接断开，终端数:{}，系统总连接数{}", this.uid, webSocketMap.get(this.uid).size(),onlineCount.get());
+        log.info("【websocket消息】用户:{} 连接断开，连接数:{}，系统总连接数{}", this.uid, Optional.ofNullable(userWebSocketSet).orElse(new CopyOnWriteArraySet<WebSocket>()).size(), onlineCount.get());
     }
 
     @OnMessage

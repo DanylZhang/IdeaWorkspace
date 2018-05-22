@@ -9,13 +9,17 @@ import org.hibernate.exception.DataException;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
 @Entity
 @Data
 @DynamicUpdate
-public class ProductInfo {
+public class ProductInfo implements Serializable {
+
+    private static final long serialVersionUID = -811440581158725379L;
+
     @Id
     private String productId;
 
