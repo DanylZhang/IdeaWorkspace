@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -9,17 +10,12 @@
         <module name="babasport-back" />
         <module name="babasport-core" />
         <module name="babasport-front" />
-        <module name="mybatis-generator-plus" />
-        <module name="prometheus" />
-        <module name="spring-boot-configuration" />
+        <module name="learn-java" />
+        <module name="mybatisgeneratorplus" />
+        <module name="springbootsell" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="babasport-back" target="1.8" />
-      <module name="babasport-core" target="1.8" />
-      <module name="babasport-front" target="1.8" />
-      <module name="babasport-parent" target="1.8" />
-      <module name="mybatis-generator-plus" target="1.8" />
       <module name="prometheus" target="1.8" />
       <module name="spring-boot-configuration" target="1.8" />
     </bytecodeTargetLevel>

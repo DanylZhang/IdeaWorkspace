@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/babasport-back" />
     <file type="web" url="file://$PROJECT_DIR$/babasport-front" />
     <file type="web" url="file://$PROJECT_DIR$/prometheus" />
   </component>
-  <component name="JavaScriptSettings">
-    <option name="languageLevel" value="ES6" />
-  </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
+        <option value="$PROJECT_DIR$/learn-java/pom.xml" />
         <option value="$PROJECT_DIR$/prometheus/pom.xml" />
+        <option value="$PROJECT_DIR$/springbootsell/pom.xml" />
         <option value="$PROJECT_DIR$/babasport-parent/pom.xml" />
         <option value="$PROJECT_DIR$/mybatisgeneratorplus/pom.xml" />
         <option value="$PROJECT_DIR$/spring-boot-configuration/pom.xml" />
