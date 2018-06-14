@@ -1,6 +1,6 @@
 package com.danyl.concurrency.example.immutable;
 
-import com.danyl.learnjava.mukeconcurrency.annotations.ThreadSafe;
+import com.danyl.concurrency.annotations.ThreadSafe;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

@@ -1,7 +1,7 @@
 package com.danyl.concurrency.example.singleton;
 
-import com.danyl.learnjava.mukeconcurrency.annotations.Recommend;
-import com.danyl.learnjava.mukeconcurrency.annotations.ThreadSafe;
+import com.danyl.concurrency.annotations.Recommend;
+import com.danyl.concurrency.annotations.ThreadSafe;
 
 /**
  * 枚举模式：最安全

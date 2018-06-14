@@ -1,6 +1,6 @@
 package com.danyl.concurrency;
 
-import com.danyl.learnjava.mukeconcurrency.example.threadLocal.RequestHolder;
+import com.danyl.concurrency.example.threadLocal.RequestHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 

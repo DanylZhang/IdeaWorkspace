@@ -4,6 +4,7 @@
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/babasport-back" />
     <file type="web" url="file://$PROJECT_DIR$/babasport-front" />
+    <file type="web" url="file://$PROJECT_DIR$/spring-security-demo" />
   </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
@@ -14,6 +15,7 @@
         <option value="$PROJECT_DIR$/mybatis-generator-plus/pom.xml" />
         <option value="$PROJECT_DIR$/lscj-sz-concurrency/pom.xml" />
         <option value="$PROJECT_DIR$/concurrency/pom.xml" />
+        <option value="$PROJECT_DIR$/spring-security-demo/pom.xml" />
       </list>
     </option>
   </component>

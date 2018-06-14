@@ -1,6 +1,6 @@
 package com.danyl.concurrency.example.singleton;
 
-import com.danyl.learnjava.mukeconcurrency.annotations.NotThreadSafe;
+import com.danyl.concurrency.annotations.NotThreadSafe;
 
 /**
  * 懒汉模式

@@ -11,11 +11,14 @@
         <module name="babasport-core" />
         <module name="babasport-front" />
         <module name="concurrency" />
-        <module name="learn-java" />
         <module name="lscj-sz-concurrency" />
         <module name="mybatis-generator-plus" />
+        <module name="spring-security-demo" />
         <module name="springbootsell" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="learn-java" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
