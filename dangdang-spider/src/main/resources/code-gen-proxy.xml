@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd">
+
+    <!-- Configure the database connection here -->
+    <jdbc>
+        <driver>org.sqlite.JDBC</driver>
+        <url>jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\dangdang-spider.sqlite3</url>
+        <user></user>
+        <password></password>
+    </jdbc>
+
+    <generator>
+        <database>
+            <name>org.jooq.util.sqlite.SQLiteDatabase</name>
+            <!--include和exclude用于控制为数据库中哪些表生成代码-->
+            <includes>proxy</includes>
+            <excludes>sqlite_master</excludes>
+
+            <!--数据库名称，不填默认生成所有-->
+            <inputSchema></inputSchema>
+
+            <!--不要Unsigned Integer-->
+            <unsignedTypes>false</unsignedTypes>
+
+            <forcedTypes>
+                <forcedType>
+                    <name>INTEGER</name>
+                    <types>TINYINT</types>
+                </forcedType>
+            </forcedTypes>
+        </database>
+
+        <generate>
+            <fluentSetters>true</fluentSetters>
+            <instanceFields>true</instanceFields>
+
+            <!--生成pojo和dao-->
+            <pojos>true</pojos>
+            <pojosToString>true</pojosToString>
+            <pojosEqualsAndHashCode>true</pojosEqualsAndHashCode>
+            <daos>true</daos>
+
+            <!--不在生成的代码中添加spring注释，比如@Repository-->
+            <springAnnotations>false</springAnnotations>
+
+            <!--把数据库时间类型映射到java 8时间类型-->
+            <javaTimeTypes>true</javaTimeTypes>
+            <interfaces>false</interfaces>
+        </generate>
+
+        <target>
+            <!--生成代码文件的包名及放置目录-->
+            <packageName>com.danyl.dangdangspider.jooq.gen.proxy</packageName>
+            <directory>src/main/java</directory>
+        </target>
+    </generator>
+</configuration>
