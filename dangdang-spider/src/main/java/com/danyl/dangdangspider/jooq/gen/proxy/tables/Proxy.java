@@ -9,6 +9,7 @@ import com.danyl.dangdangspider.jooq.gen.proxy.Indexes;
 import com.danyl.dangdangspider.jooq.gen.proxy.Keys;
 import com.danyl.dangdangspider.jooq.gen.proxy.tables.records.ProxyRecord;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Proxy extends TableImpl<ProxyRecord> {
 
-    private static final long serialVersionUID = -1068391547;
+    private static final long serialVersionUID = 1584767493;
 
     /**
      * The reference instance of <code>proxy</code>
@@ -64,9 +65,9 @@ public class Proxy extends TableImpl<ProxyRecord> {
     public final TableField<ProxyRecord, Integer> PORT = createField("port", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.INTEGER)), this, "");
 
     /**
-     * The column <code>proxy.is_valid</code>.
+     * The column <code>proxy.speed</code>.
      */
-    public final TableField<ProxyRecord, Boolean> IS_VALID = createField("is_valid", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
+    public final TableField<ProxyRecord, Integer> SPEED = createField("speed", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("60000", org.jooq.impl.SQLDataType.INTEGER)), this, "");
 
     /**
      * The column <code>proxy.type</code>.
@@ -74,9 +75,19 @@ public class Proxy extends TableImpl<ProxyRecord> {
     public final TableField<ProxyRecord, String> TYPE = createField("type", org.jooq.impl.SQLDataType.VARCHAR(15).defaultValue(org.jooq.impl.DSL.field("'http'", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
+     * The column <code>proxy.is_valid</code>.
+     */
+    public final TableField<ProxyRecord, Boolean> IS_VALID = createField("is_valid", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
+
+    /**
      * The column <code>proxy.comment</code>.
      */
     public final TableField<ProxyRecord, String> COMMENT = createField("comment", org.jooq.impl.SQLDataType.VARCHAR(45).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>proxy.create_time</code>.
+     */
+    public final TableField<ProxyRecord, LocalDateTime> CREATE_TIME = createField("create_time", org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("datetime('now','localtime')", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "");
 
     /**
      * Create a <code>proxy</code> table reference

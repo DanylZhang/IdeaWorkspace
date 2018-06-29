@@ -5,10 +5,13 @@ package com.danyl.dangdangspider.jooq.gen.proxy;
 
 
 import com.danyl.dangdangspider.jooq.gen.proxy.tables.Proxy;
+import com.danyl.dangdangspider.jooq.gen.proxy.tables.ValidationUrl;
 import com.danyl.dangdangspider.jooq.gen.proxy.tables.records.ProxyRecord;
+import com.danyl.dangdangspider.jooq.gen.proxy.tables.records.ValidationUrlRecord;
 
 import javax.annotation.Generated;
 
+import org.jooq.Identity;
 import org.jooq.UniqueKey;
 import org.jooq.impl.Internal;
 
@@ -31,12 +34,14 @@ public class Keys {
     // IDENTITY definitions
     // -------------------------------------------------------------------------
 
+    public static final Identity<ValidationUrlRecord, Integer> IDENTITY_VALIDATION_URL = Identities0.IDENTITY_VALIDATION_URL;
 
     // -------------------------------------------------------------------------
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<ProxyRecord> PK_PROXY = UniqueKeys0.PK_PROXY;
+    public static final UniqueKey<ValidationUrlRecord> PK_VALIDATION_URL = UniqueKeys0.PK_VALIDATION_URL;
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions
@@ -47,7 +52,12 @@ public class Keys {
     // [#1459] distribute members to avoid static initialisers > 64kb
     // -------------------------------------------------------------------------
 
+    private static class Identities0 {
+        public static Identity<ValidationUrlRecord, Integer> IDENTITY_VALIDATION_URL = Internal.createIdentity(ValidationUrl.VALIDATION_URL, ValidationUrl.VALIDATION_URL.ID);
+    }
+
     private static class UniqueKeys0 {
-        public static final UniqueKey<ProxyRecord> PK_PROXY = Internal.createUniqueKey(Proxy.PROXY, "pk_proxy", Proxy.PROXY.IP);
+        public static final UniqueKey<ProxyRecord> PK_PROXY = Internal.createUniqueKey(Proxy.PROXY, "pk_proxy", Proxy.PROXY.IP, Proxy.PROXY.PORT);
+        public static final UniqueKey<ValidationUrlRecord> PK_VALIDATION_URL = Internal.createUniqueKey(ValidationUrl.VALIDATION_URL, "pk_validation_url", ValidationUrl.VALIDATION_URL.ID);
     }
 }

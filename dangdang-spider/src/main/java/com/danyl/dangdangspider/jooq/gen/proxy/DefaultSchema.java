@@ -5,6 +5,7 @@ package com.danyl.dangdangspider.jooq.gen.proxy;
 
 
 import com.danyl.dangdangspider.jooq.gen.proxy.tables.Proxy;
+import com.danyl.dangdangspider.jooq.gen.proxy.tables.ValidationUrl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = 664037197;
+    private static final long serialVersionUID = -1568617722;
 
     /**
      * The reference instance of <code></code>
@@ -41,6 +42,11 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>proxy</code>.
      */
     public final Proxy PROXY = com.danyl.dangdangspider.jooq.gen.proxy.tables.Proxy.PROXY;
+
+    /**
+     * The table <code>validation_url</code>.
+     */
+    public final ValidationUrl VALIDATION_URL = com.danyl.dangdangspider.jooq.gen.proxy.tables.ValidationUrl.VALIDATION_URL;
 
     /**
      * No further instances allowed
@@ -67,6 +73,7 @@ public class DefaultSchema extends SchemaImpl {
 
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
-            Proxy.PROXY);
+            Proxy.PROXY,
+            ValidationUrl.VALIDATION_URL);
     }
 }

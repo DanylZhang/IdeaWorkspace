@@ -4,7 +4,7 @@
     <!-- Configure the database connection here -->
     <jdbc>
         <driver>org.sqlite.JDBC</driver>
-        <url>jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\dangdang-spider.sqlite3</url>
+        <url>jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\dangdang-spider\src\main\resources\dangdang-spider.sqlite3</url>
         <user></user>
         <password></password>
     </jdbc>
@@ -13,7 +13,7 @@
         <database>
             <name>org.jooq.util.sqlite.SQLiteDatabase</name>
             <!--include和exclude用于控制为数据库中哪些表生成代码-->
-            <includes>proxy</includes>
+            <includes>proxy|validation_url</includes>
             <excludes>sqlite_master</excludes>
 
             <!--数据库名称，不填默认生成所有-->

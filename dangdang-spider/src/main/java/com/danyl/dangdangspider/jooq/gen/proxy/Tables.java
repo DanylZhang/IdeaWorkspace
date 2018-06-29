@@ -5,6 +5,7 @@ package com.danyl.dangdangspider.jooq.gen.proxy;
 
 
 import com.danyl.dangdangspider.jooq.gen.proxy.tables.Proxy;
+import com.danyl.dangdangspider.jooq.gen.proxy.tables.ValidationUrl;
 
 import javax.annotation.Generated;
 
@@ -26,4 +27,9 @@ public class Tables {
      * The table <code>proxy</code>.
      */
     public static final Proxy PROXY = com.danyl.dangdangspider.jooq.gen.proxy.tables.Proxy.PROXY;
+
+    /**
+     * The table <code>validation_url</code>.
+     */
+    public static final ValidationUrl VALIDATION_URL = com.danyl.dangdangspider.jooq.gen.proxy.tables.ValidationUrl.VALIDATION_URL;
 }

@@ -1,477 +1,255 @@
 package com.danyl.dangdangspider;
 
-import com.danyl.dangdangspider.jooq.gen.dangdang.tables.pojos.ItemCategory;
-import com.danyl.dangdangspider.jooq.gen.dangdang.tables.records.ItemCategoryRecord;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.danyl.dangdangspider.jooq.gen.proxy.tables.records.ProxyRecord;
+import com.danyl.dangdangspider.service.ProxyService;
+import com.danyl.dangdangspider.tasks.DangDangCategoryTask;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
-import org.apache.commons.lang3.RandomUtils;
-import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
+import org.jooq.Result;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
-import static com.danyl.dangdangspider.jooq.gen.dangdang.Tables.ITEM_CATEGORY;
+import static com.danyl.dangdangspider.constants.TimeConstants.HOURS;
+import static com.danyl.dangdangspider.constants.TimeConstants.MINUTES;
+import static com.danyl.dangdangspider.jooq.gen.proxy.tables.Proxy.PROXY;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @EnableScheduling
 @EnableAsync
 @Component
 public class ScheduledTasks {
-    public static final int SECONDS = 1000;
-    public static final int DAYS = 1000 * 60 * 60 * 24;
-    public static final int limit = 5; // Integer.MAX_VALUE
-
-    @Autowired
-    @Qualifier("DSLContextDangDang")
-    private DSLContext dd;
 
     @Autowired
     @Qualifier("DSLContextProxy")
     private DSLContext proxy;
 
-    @Scheduled(fixedDelay = 3 * DAYS)
-    public void fixedRateJob() {
-        log.info("category do spider time {}", new Date());
+    @Autowired
+    private DangDangCategoryTask dangDangCategoryTask;
 
-        cid();
+    @Scheduled(fixedDelay = HOURS)
+    public void crawlCid() {
+        log.info("crawl cid start {}", new Date());
+
+        // 解放测试数量限制
+        dangDangCategoryTask.setLimit(Integer.MAX_VALUE);
+        dangDangCategoryTask.cid();
     }
 
-    public void cid() {
-        lv1Cid();
-        lv2Cid();
-        lv3Cid();
-        lv4Cid();
-        lv5Cid();
+    @Scheduled(fixedDelay = HOURS * 3)
+    public void crawlProxy() {
+        log.info("crawl proxy start {}", new Date());
+
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        executorService.execute(this::get66ip);
+        executorService.execute(this::getip3366);
+        executorService.execute(this::getkuaidaili);
+        executorService.execute(this::getxicidaili);
     }
 
-    public void lv1Cid() {
-        String url = "http://category.dangdang.com/?ref=www-0-C";
-        Document document = null;
-        try {
-            document = Jsoup.connect(url).get();
-        } catch (IOException e) {
-            e.printStackTrace();
+    // 默认校验代理
+    @Scheduled(fixedDelay = MINUTES * 30)
+    public void defaultCheckProxy() {
+        log.info("check proxy start {}", new Date());
+
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(500, 1000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy validate,drop it!"));
+        Result<ProxyRecord> proxyRecords = proxy.selectFrom(PROXY).fetch();
+        List<ProxyRecord> collect = proxyRecords.parallelStream()
+                .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
+                    Pair<Boolean, Integer> validateResult = defaultCheckProxy(proxyRecord.getIp(), proxyRecord.getPort());
+                    if (validateResult.getLeft()) {
+                        proxyRecord.setIsValid(true);
+                        proxyRecord.setSpeed(validateResult.getRight());
+                        try {
+                            // 对有效代理更新地域信息
+                            String ipJson = Jsoup.connect("http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp())
+                                    .proxy(proxyRecord.getIp(), proxyRecord.getPort())
+                                    .get().text();
+                            JSONObject jsonObject = new JSONObject(ipJson);
+                            JSONObject data = jsonObject.getJSONObject("data");
+                            String country = data.getString("country");
+                            String region = data.getString("region");
+                            String city = data.getString("city");
+                            String isp = data.getString("isp");
+                            String comment = country.concat(region.equals("XX") ? "" : region)
+                                    .concat(city.equals("XX") ? "" : city)
+                                    .concat(isp.equals("XX") ? "" : isp);
+                            proxyRecord.setComment(comment);
+                        } catch (Exception e) {
+                            log.error("get proxy comment error, ip: {}, msg:{}", proxyRecord.getIp(), e.getMessage());
+                        }
+                    } else {
+                        proxyRecord.setIsValid(false);
+                    }
+                    return proxyRecord;
+                }, customExecutor))
+                .collect(Collectors.toList())
+                .parallelStream()
+                .map(CompletableFuture::join)
+                .collect(toList());
+        proxy.batchUpdate(collect).execute();
+        proxy.batchDelete(collect.parallelStream().filter(proxyRecord -> !proxyRecord.getIsValid()).collect(Collectors.toList())).execute();
+    }
+
+    // 校验当当网可用的代理
+    @Scheduled(fixedDelay = MINUTES * 30)
+    public void ddCheckProxy() {
+        log.info("check proxy start {}", new Date());
+
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(500, 1000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy validate,drop it!"));
+        Result<ProxyRecord> proxyRecords = proxy.selectFrom(PROXY).fetch();
+        List<ProxyRecord> collect = proxyRecords.parallelStream()
+                .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
+                    String url = "http://category.dangdang.com/cid4002389.html";
+                    final Proxy proxy1 = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyRecord.getIp(), proxyRecord.getPort()));
+                    Pair<Boolean, Integer> validateResult = doCheckProxy(proxy1, url, "帆布鞋");
+                    if (validateResult.getLeft()) {
+                        proxyRecord.setIsValid(true);
+                        proxyRecord.setSpeed(validateResult.getRight());
+                    } else {
+                        proxyRecord.setIsValid(false);
+                    }
+                    return proxyRecord;
+                }, customExecutor))
+                .collect(Collectors.toList())
+                .parallelStream()
+                .map(CompletableFuture::join)
+                .collect(toList());
+        proxy.batchUpdate(collect).execute();
+        proxy.batchDelete(collect.parallelStream().filter(proxyRecord -> !proxyRecord.getIsValid()).collect(Collectors.toList())).execute();
+    }
+
+    // 小六代理
+    public void get66ip() {
+        for (int i = 0; i < 100; i++) {
+            // 1. 一次100个 https代理
+            String url = "http://www.66ip.cn/nmtq.php?getnum=100&isp=0&anonymoustype=4&start=&ports=&export=&ipaddress=&area=0&proxytype=1&api=66ip";
+            String html = ProxyService.getJsoup(url).text();
+            Matcher matcher = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)").matcher(html);
+            while (matcher.find()) {
+                String ip = matcher.group(1);
+                int port = Integer.parseInt(matcher.group(2));
+                String type = "https";
+                proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE)
+                        .values(ip, port, false, type)
+                        .onDuplicateKeyIgnore()
+                        .execute();
+            }
+
+            // 2. 一次100个 http代理
+            url = "http://www.66ip.cn/nmtq.php?getnum=100&isp=0&anonymoustype=4&start=&ports=&export=&ipaddress=&area=0&proxytype=0&api=66ip";
+            html = ProxyService.getJsoup(url).text();
+            matcher = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)").matcher(html);
+            while (matcher.find()) {
+                String ip = matcher.group(1);
+                int port = Integer.parseInt(matcher.group(2));
+                String type = "http";
+                proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE)
+                        .values(ip, port, false, type)
+                        .onDuplicateKeyIgnore()
+                        .execute();
+            }
         }
-
-        // 符合这个模式的都会被挑选出来 http://category.dangdang.com/cid4003471.html
-        Pattern pattern = Pattern.compile("https?://category\\.dangdang\\.com/cid\\d+\\.html");
-        document.select("a")
-                .eachAttr("abs:href")
-                .stream()
-                .filter(href -> {
-                    href = href.trim();
-                    return pattern.matcher(href).matches();
-                })
-                .distinct()
-                .limit(limit)
-                .map((href) -> {
-                    Document document1 = null;
-                    String lv1link = "";
-                    try {
-                        System.out.println(href);
-                        document1 = Jsoup.connect(href).get();
-                        lv1link = document1.select("#breadcrumb > div > a.a.diff").first().attr("abs:href");
-                        checkSleep();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return lv1link;
-                })
-                .distinct()
-                .forEach((lv1link) -> {
-                    System.out.println(lv1link);
-
-                    ItemCategory itemCategory = new ItemCategory();
-
-                    Document document2 = null;
-                    try {
-                        document2 = Jsoup.connect(lv1link).get();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Element a = document2.select("#breadcrumb > div > a.a.diff").first();
-
-                    // lv1cid
-                    String href = a.attr("abs:href");
-                    Pattern cidPattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
-                    Matcher matcher = cidPattern.matcher(href);
-                    if (matcher.find()) {
-                        int lv1cid = Integer.parseInt(matcher.group(1));
-                        itemCategory.setCid(lv1cid);
-                        itemCategory.setParentCid(0);
-                        itemCategory.setTopParentCid(lv1cid);
-                        itemCategory.setLv1cid(lv1cid);
-                    }
-
-                    // lv1name
-                    String name = a.text();
-                    itemCategory.setName(name);
-                    itemCategory.setFullName(name);
-                    itemCategory.setLv1name(name);
-
-                    // item_count
-                    Integer itemCount = Integer.parseInt(document2.select("#breadcrumb > div > span.sp.total > em").first().text());
-                    itemCategory.setItemCount(itemCount);
-
-                    // is_parent
-                    int isParent = document2.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? 1 : 0;
-                    itemCategory.setIsParent(isParent);
-
-                    // level
-                    itemCategory.setLevel(1);
-
-                    ItemCategoryRecord itemCategoryRecord = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.CID.eq(itemCategory.getCid())).fetchOne();
-                    if (itemCategoryRecord != null) {
-                        dd.executeUpdate(dd.newRecord(ITEM_CATEGORY, itemCategory));
-                    } else {
-                        dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
-                    }
-                });
     }
 
-    public void lv2Cid() {
-        final List<ItemCategory> lv1Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(1)).fetch().into(ItemCategory.class);
-        lv1Categories.stream()
-                .limit(limit)
-                .flatMap(lv1Category -> {
-                    Integer lv1CategoryCid = lv1Category.getCid();
-                    String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv1CategoryCid.toString());
-                    Document document = null;
-                    try {
-                        document = Jsoup.connect(url).get();
-                        Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
-                        if (hasChild) {
-                            return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv2link -> new MutablePair<String, ItemCategory>(lv2link, lv1Category));
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return Stream.empty();
-                })
-                .distinct()
-                .limit(limit)
-                .forEach((lv2link_lv1Category) -> {
-                    String lv2link = lv2link_lv1Category.getLeft();
-                    ItemCategory lv1Category = lv2link_lv1Category.getRight();
-                    System.out.println(lv2link);
+    // 云代理
+    public void getip3366() {
+        for (int i = 1; i <= 4; i++) {
+            for (int j = 1; j <= 10; j++) {
+                String url = "http://www.ip3366.net/?stype=" + i + "&page=" + j;
+                Document document = ProxyService.getJsoup(url);
+                document.select("#list > table > tbody > tr")
+                        .parallelStream()
+                        .skip(1)
+                        .forEach(element -> {
+                            String ip = element.select("td:nth-child(1)").text().trim();
+                            int port = Integer.parseInt(element.select("td:nth-child(2)").text());
+                            String type = element.select("td:nth-child(4)").text().toLowerCase();
+                            String comment = element.select("td:nth-child(6)").text();
 
-                    ItemCategory itemCategory = new ItemCategory();
-
-                    Document document2 = null;
-                    try {
-                        document2 = Jsoup.connect(lv2link).get();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Element a = document2.select("#breadcrumb > div > div > a").first();
-
-                    // lv2cid
-                    String href = a.attr("abs:href");
-                    Pattern cidPattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
-                    Matcher matcher = cidPattern.matcher(href);
-                    if (matcher.find()) {
-                        int lv2cid = Integer.parseInt(matcher.group(1));
-                        itemCategory.setCid(lv2cid);
-                        itemCategory.setParentCid(lv1Category.getCid());
-                        itemCategory.setTopParentCid(lv1Category.getTopParentCid());
-                        itemCategory.setLv1cid(lv1Category.getLv1cid());
-                        itemCategory.setLv2cid(lv2cid);
-                    }
-
-                    // lv2name
-                    String name = a.text();
-                    itemCategory.setName(name);
-                    itemCategory.setLv1name(lv1Category.getLv1name());
-                    itemCategory.setLv2name(name);
-                    itemCategory.setFullName(lv1Category.getFullName() + ">" + name);
-
-                    // item_count
-                    Integer itemCount = Integer.parseInt(document2.select("#breadcrumb > div > span.sp.total > em").first().text());
-                    itemCategory.setItemCount(itemCount);
-
-                    // is_parent
-                    int isParent = document2.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? 1 : 0;
-                    itemCategory.setIsParent(isParent);
-
-                    // level
-                    itemCategory.setLevel(2);
-
-                    ItemCategoryRecord itemCategoryRecord = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.CID.eq(itemCategory.getCid())).fetchOne();
-                    if (itemCategoryRecord != null) {
-                        dd.executeUpdate(dd.newRecord(ITEM_CATEGORY, itemCategory));
-                    } else {
-                        dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
-                    }
-                });
+                            proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
+                                    .values(ip, port, false, type, comment)
+                                    .onDuplicateKeyIgnore()
+                                    .execute();
+                        });
+            }
+        }
     }
 
-    public void lv3Cid() {
-        final List<ItemCategory> lv2Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(2)).fetch().into(ItemCategory.class);
-        lv2Categories.stream()
-                .limit(limit)
-                .flatMap(lv2Category -> {
-                    Integer lv2CategoryCid = lv2Category.getCid();
-                    String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv2CategoryCid.toString());
-                    Document document = null;
-                    try {
-                        document = Jsoup.connect(url).get();
-                        Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
-                        if (hasChild) {
-                            return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv3link -> new MutablePair<String, ItemCategory>(lv3link, lv2Category));
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return Stream.empty();
-                })
-                .distinct()
-                .limit(limit)
-                .forEach((lv3link_lv2Category) -> {
-                    String lv3link = lv3link_lv2Category.getLeft();
-                    ItemCategory lv2Category = lv3link_lv2Category.getRight();
-                    System.out.println(lv3link);
-
-                    ItemCategory itemCategory = new ItemCategory();
-
-                    Document document2 = null;
-                    try {
-                        document2 = Jsoup.connect(lv3link).get();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    Element a = document2.select("#breadcrumb > div > div:nth-child(7) > a").first();
-                    // lv3cid
-                    String href = a.attr("abs:href");
-                    Pattern cidPattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
-                    Matcher matcher = cidPattern.matcher(href);
-                    if (matcher.find()) {
-                        int lv3cid = Integer.parseInt(matcher.group(1));
-                        itemCategory.setCid(lv3cid);
-                        itemCategory.setParentCid(lv2Category.getCid());
-                        itemCategory.setTopParentCid(lv2Category.getTopParentCid());
-                        itemCategory.setLv1cid(lv2Category.getLv1cid());
-                        itemCategory.setLv2cid(lv2Category.getLv2cid());
-                        itemCategory.setLv3cid(lv3cid);
-                    }
-
-                    // lv3name
-                    String name = a.text();
-                    itemCategory.setName(name);
-                    itemCategory.setLv1name(lv2Category.getLv1name());
-                    itemCategory.setLv2name(lv2Category.getLv2name());
-                    itemCategory.setLv3name(name);
-                    itemCategory.setFullName(lv2Category.getFullName() + ">" + name);
-
-                    // item_count
-                    Integer itemCount = Integer.parseInt(document2.select("#breadcrumb > div > span.sp.total > em").first().text());
-                    itemCategory.setItemCount(itemCount);
-
-                    // is_parent
-                    int isParent = document2.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? 1 : 0;
-                    itemCategory.setIsParent(isParent);
-
-                    // level
-                    itemCategory.setLevel(3);
-
-                    ItemCategoryRecord itemCategoryRecord = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.CID.eq(itemCategory.getCid())).fetchOne();
-                    if (itemCategoryRecord != null) {
-                        dd.executeUpdate(dd.newRecord(ITEM_CATEGORY, itemCategory));
-                    } else {
-                        dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
-                    }
-                });
+    // 快代理
+    public void getkuaidaili() {
+        for (int i = 1; i < 25; i++) {
+            String url = "https://www.kuaidaili.com/free/inha/" + i + "/";
+            Document document = ProxyService.getJsoup(url);
+            document.select("#list > table > tbody > tr")
+                    .parallelStream()
+                    .forEach(element -> {
+                        String ip = element.select("td:nth-child(1)").text();
+                        int port = Integer.parseInt(element.select("td:nth-child(2)").text());
+                        String type = element.select("td:nth-child(4)").text().toLowerCase();
+                        String comment = element.select("td:nth-child(5)").text();
+                        proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
+                                .values(ip, port, false, type, comment)
+                                .onDuplicateKeyIgnore()
+                                .execute();
+                    });
+        }
     }
 
-    public void lv4Cid() {
-        final List<ItemCategory> lv3Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(3)).fetch().into(ItemCategory.class);
-        lv3Categories.stream()
-                .limit(limit)
-                .flatMap(lv3Category -> {
-                    Integer lv3CategoryCid = lv3Category.getCid();
-                    String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv3CategoryCid.toString());
-                    Document document = null;
-                    try {
-                        document = Jsoup.connect(url).get();
-                        Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
-                        if (hasChild) {
-                            return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv4link -> new MutablePair<String, ItemCategory>(lv4link, lv3Category));
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return Stream.empty();
-                })
-                .distinct()
-                .limit(limit)
-                .forEach((lv4link_lv3Category) -> {
-                    String lv4link = lv4link_lv3Category.getLeft();
-                    ItemCategory lv3Category = lv4link_lv3Category.getRight();
-                    System.out.println(lv4link);
-
-                    ItemCategory itemCategory = new ItemCategory();
-
-                    Document document2 = null;
-                    try {
-                        document2 = Jsoup.connect(lv4link).get();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    Element a = document2.select("#breadcrumb > div > div:nth-child(9) > a").first();
-                    // lv4cid
-                    String href = a.attr("abs:href");
-                    Pattern cidPattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
-                    Matcher matcher = cidPattern.matcher(href);
-                    if (matcher.find()) {
-                        int lv4cid = Integer.parseInt(matcher.group(1));
-                        itemCategory.setCid(lv4cid);
-                        itemCategory.setParentCid(lv3Category.getCid());
-                        itemCategory.setTopParentCid(lv3Category.getTopParentCid());
-                        itemCategory.setLv1cid(lv3Category.getLv1cid());
-                        itemCategory.setLv2cid(lv3Category.getLv2cid());
-                        itemCategory.setLv3cid(lv3Category.getLv3cid());
-                        itemCategory.setLv4cid(lv4cid);
-                    }
-
-                    // lv4name
-                    String name = a.text();
-                    itemCategory.setName(name);
-                    itemCategory.setLv1name(lv3Category.getLv1name());
-                    itemCategory.setLv2name(lv3Category.getLv2name());
-                    itemCategory.setLv3name(lv3Category.getLv3name());
-                    itemCategory.setLv4name(name);
-                    itemCategory.setFullName(lv3Category.getFullName() + ">" + name);
-
-                    // item_count
-                    Integer itemCount = Integer.parseInt(document2.select("#breadcrumb > div > span.sp.total > em").first().text());
-                    itemCategory.setItemCount(itemCount);
-
-                    // is_parent
-                    int isParent = document2.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? 1 : 0;
-                    itemCategory.setIsParent(isParent);
-
-                    // level
-                    itemCategory.setLevel(4);
-
-                    ItemCategoryRecord itemCategoryRecord = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.CID.eq(itemCategory.getCid())).fetchOne();
-                    if (itemCategoryRecord != null) {
-                        dd.executeUpdate(dd.newRecord(ITEM_CATEGORY, itemCategory));
-                    } else {
-                        dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
-                    }
-                });
+    // 西刺代理
+    public void getxicidaili() {
+        for (int i = 1; i <= 300; i++) {
+            String url = "http://www.xicidaili.com/nn/" + i;
+            Document document = ProxyService.getJsoup(url);
+            document.select("#ip_list > tbody > tr")
+                    .parallelStream()
+                    .skip(1)
+                    .forEach(element -> {
+                        String ip = element.select("td:nth-child(2)").text();
+                        int port = Integer.parseInt(element.select("td:nth-child(3)").text());
+                        String type = element.select("td:nth-child(6)").text().toLowerCase();
+                        String comment = element.select("td:nth-child(4)").text();
+                        proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
+                                .values(ip, port, false, type, comment)
+                                .onDuplicateKeyIgnore()
+                                .execute();
+                    });
+        }
     }
 
-    public void lv5Cid() {
-        final List<ItemCategory> lv4Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(4)).fetch().into(ItemCategory.class);
-        lv4Categories.stream()
-                .limit(limit)
-                .flatMap(lv4Category -> {
-                    Integer lv4CategoryCid = lv4Category.getCid();
-                    String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv4CategoryCid.toString());
-                    Document document = null;
-                    try {
-                        document = Jsoup.connect(url).get();
-                        Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
-                        if (hasChild) {
-                            return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv5link -> new MutablePair<String, ItemCategory>(lv5link, lv4Category));
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return Stream.empty();
-                })
-                .distinct()
-                .limit(limit)
-                .forEach((lv5link_lv4Category) -> {
-                    String lv5link = lv5link_lv4Category.getLeft();
-                    ItemCategory lv4Category = lv5link_lv4Category.getRight();
-                    System.out.println(lv5link);
-
-                    ItemCategory itemCategory = new ItemCategory();
-
-                    Document document2 = null;
-                    try {
-                        document2 = Jsoup.connect(lv5link).get();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    Element a = document2.select("#breadcrumb > div > div:nth-child(11) > a").first();
-                    // lv5cid
-                    String href = a.attr("abs:href");
-                    Pattern cidPattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
-                    Matcher matcher = cidPattern.matcher(href);
-                    if (matcher.find()) {
-                        int lv5cid = Integer.parseInt(matcher.group(1));
-                        itemCategory.setCid(lv5cid);
-                        itemCategory.setParentCid(lv4Category.getCid());
-                        itemCategory.setTopParentCid(lv4Category.getTopParentCid());
-                        itemCategory.setLv1cid(lv4Category.getLv1cid());
-                        itemCategory.setLv2cid(lv4Category.getLv2cid());
-                        itemCategory.setLv3cid(lv4Category.getLv3cid());
-                        itemCategory.setLv4cid(lv4Category.getLv4cid());
-                        itemCategory.setLv5cid(lv5cid);
-                    }
-
-                    // lv5name
-                    String name = a.text();
-                    itemCategory.setName(name);
-                    itemCategory.setLv1name(lv4Category.getLv1name());
-                    itemCategory.setLv2name(lv4Category.getLv2name());
-                    itemCategory.setLv3name(lv4Category.getLv3name());
-                    itemCategory.setLv4name(lv4Category.getLv4name());
-                    itemCategory.setLv5name(name);
-                    itemCategory.setFullName(lv4Category.getFullName() + ">" + name);
-
-                    // item_count
-                    Integer itemCount = Integer.parseInt(document2.select("#breadcrumb > div > span.sp.total > em").first().text());
-                    itemCategory.setItemCount(itemCount);
-
-                    // is_parent
-                    int isParent = document2.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? 1 : 0;
-                    itemCategory.setIsParent(isParent);
-
-                    // level
-                    itemCategory.setLevel(5);
-
-                    ItemCategoryRecord itemCategoryRecord = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.CID.eq(itemCategory.getCid())).fetchOne();
-                    if (itemCategoryRecord != null) {
-                        dd.executeUpdate(dd.newRecord(ITEM_CATEGORY, itemCategory));
-                    } else {
-                        dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
-                    }
-                });
-    }
-
-    public void testProxy(String proxy) {
+    /**
+     * @param proxy 要检查的代理
+     * @param url   通过此url测试连通性
+     * @param regex 校验正则表达式
+     */
+    private static Pair<Boolean, Integer> doCheckProxy(Proxy proxy, String url, String regex) {
         HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
 
-        Matcher matcher = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)").matcher(proxy);
-        matcher.find();
-        String ip = matcher.group(1);
-        String port = matcher.group(2);
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ip, Integer.parseInt(port))))
+                .connectTimeout(MINUTES, TimeUnit.MILLISECONDS)
+                .readTimeout(MINUTES, TimeUnit.MILLISECONDS)
+                .writeTimeout(MINUTES, TimeUnit.MILLISECONDS)
+                .proxy(proxy)
                 .cookieJar(new CookieJar() {
                     @Override
                     public void saveFromResponse(HttpUrl httpUrl, List<Cookie> list) {
@@ -484,41 +262,36 @@ public class ScheduledTasks {
                         return cookies != null ? cookies : new ArrayList<Cookie>();
                     }
                 })
-                .connectTimeout(60, TimeUnit.SECONDS)
                 .build();
-        String url = "https://ip.awk.sh/api.php?type=json";
         Request request = new Request.Builder().url(url)
                 .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
                 .build();
         Call call = okHttpClient.newCall(request);
         try {
+            long start = System.currentTimeMillis();
             Response response = call.execute();
+            long end = System.currentTimeMillis();
+            int costTime = (int) (end - start);
+            if (costTime > MINUTES) {
+                return Pair.of(false, costTime);
+            }
+
             String res = response.body().string();
-            System.out.println(res);
-            Map<String, String> map = new Gson().fromJson(res, new TypeToken<Map<String, String>>() {
-            }.getType());
-            System.out.println(map.get("ip"));
-            System.out.println(map.get("addr"));
-            System.out.println(port);
-        } catch (IOException e) {
-            //e.printStackTrace();
+            if (Pattern.compile(regex).matcher(res).find()) {
+                return Pair.of(true, costTime);
+            } else {
+                log.error("validate proxy response failed, proxy: {}, response: {}", proxy.toString(), res);
+            }
+        } catch (Exception e) {
+            log.error("validate proxy failed: {}", e.getMessage());
         }
+        return Pair.of(false, Integer.MAX_VALUE);
     }
 
-    private static int count = 0;
-
-    static boolean checkSleep() {
-        count++;
-        if (count % 10 == 0) {
-            try {
-                int sleep = RandomUtils.nextInt(15, 25);
-                log.info("count:{}, sleep:{}", count, sleep);
-                Thread.sleep(sleep * 1000);
-                return true;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
+    public static Pair<Boolean, Integer> defaultCheckProxy(String ip, int port) {
+        String url = "http://ip.taobao.com/service/getIpInfo.php?ip=" + ip;
+        InetSocketAddress inetSocketAddress = new InetSocketAddress(ip, port);
+        Proxy proxy = new Proxy(Proxy.Type.HTTP, inetSocketAddress);
+        return doCheckProxy(proxy, url, ip);
     }
 }

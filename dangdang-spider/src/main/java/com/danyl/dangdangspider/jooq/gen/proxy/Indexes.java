@@ -37,6 +37,6 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     private static class Indexes0 {
-        public static Index SQLITE_AUTOINDEX_PROXY_1 = Internal.createIndex("sqlite_autoindex_proxy_1", Proxy.PROXY, new OrderField[] { Proxy.PROXY.IP }, true);
+        public static Index SQLITE_AUTOINDEX_PROXY_1 = Internal.createIndex("sqlite_autoindex_proxy_1", Proxy.PROXY, new OrderField[] { Proxy.PROXY.IP, Proxy.PROXY.PORT }, true);
     }
 }

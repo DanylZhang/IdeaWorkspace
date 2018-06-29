@@ -1,6 +1,5 @@
 package com.danyl.springbootsell.controller;
 
-import com.danyl.springbootsell.dto.OrderDTO;
 import com.danyl.springbootsell.entity.ProductCategory;
 import com.danyl.springbootsell.entity.ProductInfo;
 import com.danyl.springbootsell.enums.ResultEnum;
@@ -13,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
@@ -27,7 +25,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
