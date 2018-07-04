@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\dangdang-spider\src\main\resources\dangdang-spider.sqlite3
+    username:
+    password:
+    schema: classpath:schema.sql
+    data: classpath:data.sql
+  mvc:
+    view:
+      prefix: /pages/
+      suffix: .jsp
+server:
+  port: 8080
+
+logging:
+  level:
+    org.jooq.tools.LoggerListener: debug

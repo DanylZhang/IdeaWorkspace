@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.danyl.dangdangspider.constants.TimeConstants.DAYS;
 import static com.danyl.dangdangspider.constants.TimeConstants.HOURS;
 import static com.danyl.dangdangspider.constants.TimeConstants.MINUTES;
 import static com.danyl.dangdangspider.jooq.gen.proxy.tables.Proxy.PROXY;
@@ -47,7 +48,7 @@ public class ScheduledTasks {
     @Autowired
     private DangDangCategoryTask dangDangCategoryTask;
 
-    @Scheduled(fixedDelay = HOURS)
+    @Scheduled(fixedDelay = DAYS)
     public void crawlCid() {
         log.info("crawl cid start {}", new Date());
 
@@ -68,7 +69,7 @@ public class ScheduledTasks {
     }
 
     // 默认校验代理
-    @Scheduled(fixedDelay = MINUTES * 30)
+    @Scheduled(fixedDelay = HOURS)
     public void defaultCheckProxy() {
         log.info("check proxy start {}", new Date());
 
@@ -112,7 +113,7 @@ public class ScheduledTasks {
     }
 
     // 校验当当网可用的代理
-    @Scheduled(fixedDelay = MINUTES * 30)
+    @Scheduled(fixedDelay = HOURS)
     public void ddCheckProxy() {
         log.info("check proxy start {}", new Date());
 
@@ -144,7 +145,7 @@ public class ScheduledTasks {
         for (int i = 0; i < 100; i++) {
             // 1. 一次100个 https代理
             String url = "http://www.66ip.cn/nmtq.php?getnum=100&isp=0&anonymoustype=4&start=&ports=&export=&ipaddress=&area=0&proxytype=1&api=66ip";
-            String html = ProxyService.getJsoup(url).text();
+            String html = ProxyService.getJsoup(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)").text();
             Matcher matcher = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)").matcher(html);
             while (matcher.find()) {
                 String ip = matcher.group(1);
@@ -158,7 +159,7 @@ public class ScheduledTasks {
 
             // 2. 一次100个 http代理
             url = "http://www.66ip.cn/nmtq.php?getnum=100&isp=0&anonymoustype=4&start=&ports=&export=&ipaddress=&area=0&proxytype=0&api=66ip";
-            html = ProxyService.getJsoup(url).text();
+            html = ProxyService.getJsoup(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)").text();
             matcher = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)").matcher(html);
             while (matcher.find()) {
                 String ip = matcher.group(1);
@@ -177,7 +178,7 @@ public class ScheduledTasks {
         for (int i = 1; i <= 4; i++) {
             for (int j = 1; j <= 10; j++) {
                 String url = "http://www.ip3366.net/?stype=" + i + "&page=" + j;
-                Document document = ProxyService.getJsoup(url);
+                Document document = ProxyService.getJsoup(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
                 document.select("#list > table > tbody > tr")
                         .parallelStream()
                         .skip(1)
@@ -200,7 +201,7 @@ public class ScheduledTasks {
     public void getkuaidaili() {
         for (int i = 1; i < 25; i++) {
             String url = "https://www.kuaidaili.com/free/inha/" + i + "/";
-            Document document = ProxyService.getJsoup(url);
+            Document document = ProxyService.getJsoup(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
             document.select("#list > table > tbody > tr")
                     .parallelStream()
                     .forEach(element -> {
@@ -220,7 +221,7 @@ public class ScheduledTasks {
     public void getxicidaili() {
         for (int i = 1; i <= 300; i++) {
             String url = "http://www.xicidaili.com/nn/" + i;
-            Document document = ProxyService.getJsoup(url);
+            Document document = ProxyService.getJsoup(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
             document.select("#ip_list > tbody > tr")
                     .parallelStream()
                     .skip(1)

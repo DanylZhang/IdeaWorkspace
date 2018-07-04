@@ -7,14 +7,12 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.jooq.DSLContext;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,9 +48,10 @@ public class DangDangCategoryTask {
 
     private void lv1Cid() {
         String url = this.startUrl;
-        Document document = ProxyService.getJsoup(url);
+        Document document = ProxyService.getJsoup(url, "全部商品分类");
 
         if (document == null) {
+            log.error("lv1Cid document is null!");
             return;
         }
 
@@ -68,8 +67,9 @@ public class DangDangCategoryTask {
                 .distinct()
                 .limit(limit)
                 .map((href) -> {
-                    Document document1 = ProxyService.getJsoup(href);
+                    Document document1 = ProxyService.getJsoup(href, "全部商品分类");
                     if (document1 == null) {
+                        log.error("lv1Cid foreach document is null!");
                         return "";
                     }
                     return document1.select("#breadcrumb > div > a.a.diff").first().attr("abs:href");
@@ -80,7 +80,7 @@ public class DangDangCategoryTask {
 
                     ItemCategory itemCategory = new ItemCategory();
 
-                    Document document2 = ProxyService.getJsoup(lv1link);
+                    Document document2 = ProxyService.getJsoup(lv1link, "全部商品分类");
 
                     Element a = document2.select("#breadcrumb > div > a.a.diff").first();
 
@@ -145,7 +145,7 @@ public class DangDangCategoryTask {
 
                     ItemCategory itemCategory = new ItemCategory();
 
-                    Document document2 = ProxyService.getJsoup(lv2link);
+                    Document document2 = ProxyService.getJsoup(lv2link, "全部商品分类");
 
                     Element a = document2.select("#breadcrumb > div > div > a").first();
 
@@ -212,7 +212,7 @@ public class DangDangCategoryTask {
 
                     ItemCategory itemCategory = new ItemCategory();
 
-                    Document document2 = ProxyService.getJsoup(lv3link);
+                    Document document2 = ProxyService.getJsoup(lv3link, "全部商品分类");
                     Element a = document2.select("#breadcrumb > div > div:nth-child(7) > a").first();
                     // lv3cid
                     String href = a.attr("abs:href");
@@ -279,7 +279,7 @@ public class DangDangCategoryTask {
 
                     ItemCategory itemCategory = new ItemCategory();
 
-                    Document document2 = ProxyService.getJsoup(lv4link);
+                    Document document2 = ProxyService.getJsoup(lv4link, "全部商品分类");
                     Element a = document2.select("#breadcrumb > div > div:nth-child(9) > a").first();
                     // lv4cid
                     String href = a.attr("abs:href");
@@ -348,7 +348,7 @@ public class DangDangCategoryTask {
 
                     ItemCategory itemCategory = new ItemCategory();
 
-                    Document document2 = ProxyService.getJsoup(lv5link);
+                    Document document2 = ProxyService.getJsoup(lv5link, "全部商品分类");
                     Element a = document2.select("#breadcrumb > div > div:nth-child(11) > a").first();
                     // lv5cid
                     String href = a.attr("abs:href");
