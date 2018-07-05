@@ -29,9 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.danyl.dangdangspider.constants.TimeConstants.DAYS;
-import static com.danyl.dangdangspider.constants.TimeConstants.HOURS;
-import static com.danyl.dangdangspider.constants.TimeConstants.MINUTES;
+import static com.danyl.dangdangspider.constants.TimeConstants.*;
 import static com.danyl.dangdangspider.jooq.gen.proxy.tables.Proxy.PROXY;
 import static java.util.stream.Collectors.toList;
 
@@ -268,9 +266,10 @@ public class ScheduledTasks {
                 .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
                 .build();
         Call call = okHttpClient.newCall(request);
+        Response response = null;
         try {
             long start = System.currentTimeMillis();
-            Response response = call.execute();
+            response = call.execute();
             long end = System.currentTimeMillis();
             int costTime = (int) (end - start);
             if (costTime > MINUTES) {
@@ -285,6 +284,10 @@ public class ScheduledTasks {
             }
         } catch (Exception e) {
             log.error("validate proxy failed: {}", e.getMessage());
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
         return Pair.of(false, Integer.MAX_VALUE);
     }
