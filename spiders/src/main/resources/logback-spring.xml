@@ -23,7 +23,7 @@
         <!--滚动策略-->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--路径-->
-            <fileNamePattern>C:\dangdang-spider\info.%d.log</fileNamePattern>
+            <fileNamePattern>C:\spiders\info.%d.log</fileNamePattern>
         </rollingPolicy>
     </appender>
 
@@ -39,7 +39,7 @@
         <!--滚动策略-->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!--路径-->
-            <fileNamePattern>C:\dangdang-spider\error.%d.log</fileNamePattern>
+            <fileNamePattern>C:\spiders\error.%d.log</fileNamePattern>
         </rollingPolicy>
     </appender>
 

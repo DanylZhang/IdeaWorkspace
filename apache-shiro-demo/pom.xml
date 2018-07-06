@@ -8,7 +8,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>shiro</name>
+    <name>apache-shiro-demo</name>
     <description>Demo project for Apache Shiro</description>
 
     <parent>

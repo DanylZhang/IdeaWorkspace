@@ -1,4 +1,4 @@
-package com.danyl.dangdangspider.constants;
+package com.danyl.spiders.constants;
 
 public class TimeConstants {
     public static final int MINUTES = 1000 * 60;

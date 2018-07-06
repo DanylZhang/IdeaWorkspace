@@ -1,4 +1,4 @@
-package com.danyl.dangdangspider.service;
+package com.danyl.spiders.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
@@ -8,7 +8,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -23,13 +22,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.danyl.dangdangspider.constants.TimeConstants.MINUTES;
-import static com.danyl.dangdangspider.jooq.gen.proxy.tables.Proxy.PROXY;
+import static com.danyl.spiders.constants.TimeConstants.MINUTES;
+import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
 @Service

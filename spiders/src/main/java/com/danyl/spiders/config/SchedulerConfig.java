@@ -1,4 +1,4 @@
-package com.danyl.dangdangspider.config;
+package com.danyl.spiders.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

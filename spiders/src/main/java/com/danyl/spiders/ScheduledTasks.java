@@ -1,8 +1,8 @@
-package com.danyl.dangdangspider;
+package com.danyl.spiders;
 
-import com.danyl.dangdangspider.jooq.gen.proxy.tables.records.ProxyRecord;
-import com.danyl.dangdangspider.service.ProxyService;
-import com.danyl.dangdangspider.tasks.DangDangCategoryTask;
+import com.danyl.spiders.jooq.gen.proxy.tables.records.ProxyRecord;
+import com.danyl.spiders.service.ProxyService;
+import com.danyl.spiders.tasks.DangDangCategoryTask;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,8 +29,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.danyl.dangdangspider.constants.TimeConstants.*;
-import static com.danyl.dangdangspider.jooq.gen.proxy.tables.Proxy.PROXY;
+import static com.danyl.spiders.constants.TimeConstants.*;
+import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 import static java.util.stream.Collectors.toList;
 
 @Slf4j

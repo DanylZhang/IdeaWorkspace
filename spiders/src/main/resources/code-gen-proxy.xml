@@ -4,7 +4,7 @@
     <!-- Configure the database connection here -->
     <jdbc>
         <driver>org.sqlite.JDBC</driver>
-        <url>jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\dangdang-spider\src\main\resources\dangdang-spider.sqlite3</url>
+        <url>jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\spiders\src\main\resources\spiders.sqlite3</url>
         <user></user>
         <password></password>
     </jdbc>
@@ -12,12 +12,11 @@
     <generator>
         <database>
             <name>org.jooq.util.sqlite.SQLiteDatabase</name>
+            <!--数据库名称，不填默认生成所有-->
+            <inputSchema></inputSchema>
             <!--include和exclude用于控制为数据库中哪些表生成代码-->
             <includes>proxy|validation_url</includes>
             <excludes>sqlite_master</excludes>
-
-            <!--数据库名称，不填默认生成所有-->
-            <inputSchema></inputSchema>
 
             <!--不要Unsigned Integer-->
             <unsignedTypes>false</unsignedTypes>
@@ -50,7 +49,7 @@
 
         <target>
             <!--生成代码文件的包名及放置目录-->
-            <packageName>com.danyl.dangdangspider.jooq.gen.proxy</packageName>
+            <packageName>com.danyl.spiders.jooq.gen.proxy</packageName>
             <directory>src/main/java</directory>
         </target>
     </generator>

@@ -12,12 +12,11 @@
     <generator>
         <database>
             <name>org.jooq.util.mysql.MySQLDatabase</name>
+            <!--数据库名称-->
+            <inputSchema>dangdang</inputSchema>
             <!--include和exclude用于控制为数据库中哪些表生成代码-->
             <includes>item_category</includes>
             <excludes>item_estimate_sales_.*</excludes>
-
-            <!--数据库名称-->
-            <inputSchema>dangdang</inputSchema>
 
             <!--不要Unsigned Integer-->
             <unsignedTypes>false</unsignedTypes>
@@ -50,7 +49,7 @@
 
         <target>
             <!--生成代码文件的包名及放置目录-->
-            <packageName>com.danyl.dangdangspider.jooq.gen.dangdang</packageName>
+            <packageName>com.danyl.spiders.jooq.gen.dangdang</packageName>
             <directory>src/main/java</directory>
         </target>
     </generator>

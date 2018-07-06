@@ -1,4 +1,4 @@
-package com.danyl.dangdangspider.utils;
+package com.danyl.spiders.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

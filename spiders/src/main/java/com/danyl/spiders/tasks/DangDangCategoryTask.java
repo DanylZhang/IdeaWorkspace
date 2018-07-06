@@ -1,8 +1,8 @@
-package com.danyl.dangdangspider.tasks;
+package com.danyl.spiders.tasks;
 
-import com.danyl.dangdangspider.jooq.gen.dangdang.tables.pojos.ItemCategory;
-import com.danyl.dangdangspider.jooq.gen.dangdang.tables.records.ItemCategoryRecord;
-import com.danyl.dangdangspider.service.ProxyService;
+import com.danyl.spiders.jooq.gen.dangdang.tables.pojos.ItemCategory;
+import com.danyl.spiders.jooq.gen.dangdang.tables.records.ItemCategoryRecord;
+import com.danyl.spiders.service.ProxyService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -18,7 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static com.danyl.dangdangspider.jooq.gen.dangdang.Tables.ITEM_CATEGORY;
+import static com.danyl.spiders.jooq.gen.dangdang.Tables.ITEM_CATEGORY;
 
 @Data
 @Slf4j
