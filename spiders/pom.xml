@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.danyl</groupId>
-    <artifactId>dangdang-spider</artifactId>
+    <artifactId>spiders</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>dangdang-spider</name>
-    <description>dangdang spider</description>
+    <name>spiders</name>
+    <description>spider tasks</description>
 
     <developers>
         <developer>
@@ -23,7 +23,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.0.3.RELEASE</version>
-        <relativePath/>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <properties>
@@ -63,6 +63,20 @@
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-starter</artifactId>
             <version>1.1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -113,13 +127,13 @@
     </dependencies>
 
     <build>
-        <finalName>dangdang-spider</finalName>
+        <finalName>spiders</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <!--<executable>true</executable>-->
+                    <executable>true</executable>
                 </configuration>
             </plugin>
 
@@ -141,10 +155,10 @@
 
                 <configuration>
                     <!--<configurationFile>src/main/resources/code-gen-dangdang.xml</configurationFile>-->
+                    <!--<configurationFile>src/main/resources/code-gen-vip.xml</configurationFile>-->
                     <configurationFile>src/main/resources/code-gen-proxy.xml</configurationFile>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
 </project>
