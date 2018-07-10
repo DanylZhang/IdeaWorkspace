@@ -1,6 +1,8 @@
 package com.danyl.spiders.tasks;
 
 import com.danyl.spiders.jooq.gen.proxy.tables.records.ProxyRecord;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -9,8 +11,6 @@ import org.jooq.Result;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.configurationprocessor.json.JSONObject;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -43,7 +43,7 @@ public class CheckProxyTask {
     private DSLContext proxy;
 
     // 校验当当网可用的代理
-    @Scheduled(fixedDelay = HOURS)
+    @Scheduled(fixedDelay = MINUTES * 30)
     public void ddCheckProxy() {
         String url = "http://category.dangdang.com/cid4002389.html";
         String regex = "帆布鞋";
@@ -51,11 +51,48 @@ public class CheckProxyTask {
     }
 
     // 校验唯品会可用的代理
-    @Scheduled(fixedDelay = HOURS)
+    @Scheduled(fixedDelay = MINUTES * 30)
     public void vipCheckProxy() {
         String url = "https://www.vip.com/";
         String regex = "ADS\\w{5}";
         checkProxy(url, regex);
+    }
+
+    // 更新可用代理的comment位置信息
+    @Scheduled(fixedDelay = HOURS)
+    public void updateProxyComment() {
+        log.info("update proxy's comment start {}", new Date());
+
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(1000, 3000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy,drop it!"));
+        Result<ProxyRecord> proxyRecords = proxy.selectFrom(PROXY)
+                .where(PROXY.IS_VALID.eq(true)).fetch();
+        List<ProxyRecord> collect = proxyRecords.stream()
+                .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
+                    try {
+                        // 对有效代理更新地域信息
+                        String ipJson = Jsoup.connect("http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp())
+                                .proxy(proxyRecord.getIp(), proxyRecord.getPort())
+                                .ignoreContentType(true)
+                                .execute().body();
+                        DocumentContext parse = JsonPath.parse(ipJson);
+                        String country = parse.read("$.data.country");
+                        String region = parse.read("$.data.region");
+                        String city = parse.read("$.data.city");
+                        String isp = parse.read("$.data.isp");
+                        String comment = country.concat(region.equals("XX") ? "" : region)
+                                .concat(city.equals("XX") ? "" : city)
+                                .concat(isp.equals("XX") ? "" : isp);
+                        proxyRecord.setComment(comment);
+                    } catch (Exception e) {
+                        log.error("get proxy comment error, ip: {}, msg:{}", proxyRecord.getIp(), e.getMessage());
+                    }
+                    return proxyRecord;
+                }, customExecutor))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .collect(toList());
+        proxy.batchUpdate(collect).execute();
     }
 
     /**
@@ -102,7 +139,7 @@ public class CheckProxyTask {
             if (Pattern.compile(regex).matcher(res).find()) {
                 return Pair.of(true, costTime);
             } else {
-                log.error("validate proxy response failed, proxy: {}, response: {}", proxy.toString(), res);
+                log.error("validate proxy failed: Proxy have unexpected response");
             }
         } catch (Exception e) {
             log.error("validate proxy failed: {}", e.getMessage());
@@ -117,7 +154,7 @@ public class CheckProxyTask {
     public void checkProxy(String url, String regex) {
         log.info("check proxy start {}", new Date());
 
-        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(500, 1000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy validate,drop it!"));
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(1000, 3000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy validate,drop it!"));
         Result<ProxyRecord> proxyRecords = proxy.selectFrom(PROXY).fetch();
         List<ProxyRecord> collect = proxyRecords.parallelStream()
                 .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
@@ -128,44 +165,6 @@ public class CheckProxyTask {
                         proxyRecord.setSpeed(validateResult.getRight());
                     } else {
                         proxyRecord.setIsValid(false);
-                    }
-                    return proxyRecord;
-                }, customExecutor))
-                .collect(Collectors.toList())
-                .parallelStream()
-                .map(CompletableFuture::join)
-                .collect(toList());
-        proxy.batchUpdate(collect).execute();
-        proxy.batchDelete(collect.parallelStream().filter(proxyRecord -> !proxyRecord.getIsValid()).collect(Collectors.toList())).execute();
-
-        updateProxyComment();
-    }
-
-    // 更新可用代理的comment位置信息
-    public void updateProxyComment() {
-        log.info("update proxy's comment start {}", new Date());
-
-        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(500, 1000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy,drop it!"));
-        Result<ProxyRecord> proxyRecords = proxy.selectFrom(PROXY).fetch();
-        List<ProxyRecord> collect = proxyRecords.parallelStream()
-                .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
-                    try {
-                        // 对有效代理更新地域信息
-                        String ipJson = Jsoup.connect("http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp())
-                                .proxy(proxyRecord.getIp(), proxyRecord.getPort())
-                                .get().text();
-                        JSONObject jsonObject = new JSONObject(ipJson);
-                        JSONObject data = jsonObject.getJSONObject("data");
-                        String country = data.getString("country");
-                        String region = data.getString("region");
-                        String city = data.getString("city");
-                        String isp = data.getString("isp");
-                        String comment = country.concat(region.equals("XX") ? "" : region)
-                                .concat(city.equals("XX") ? "" : city)
-                                .concat(isp.equals("XX") ? "" : isp);
-                        proxyRecord.setComment(comment);
-                    } catch (Exception e) {
-                        log.error("get proxy comment error, ip: {}, msg:{}", proxyRecord.getIp(), e.getMessage());
                     }
                     return proxyRecord;
                 }, customExecutor))

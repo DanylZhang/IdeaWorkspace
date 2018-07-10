@@ -38,11 +38,11 @@ public class VipAdsTask {
     @Qualifier("DSLContextNewVip")
     private DSLContext create;
 
-    @Scheduled(fixedDelay = HOURS * 6)
+    @Scheduled(fixedDelay = HOURS * 8)
     public void crawlVipAds() {
         Document document = ProxyService.jsoupGet("https://www.vip.com/", "ADS\\w{5}");
         String html = document.html();
-        Matcher matcher = Pattern.compile("(ADS\\w{5})").matcher(html);
+        Matcher matcher = Pattern.compile("ADS\\w{5}").matcher(html);
         List<String> adsList = new ArrayList<>();
         while (matcher.find()) {
             String ads = matcher.group(1);
