@@ -123,16 +123,16 @@ public class ProxyService {
         instance.proxies.remove(proxy);
         instance.lock.writeLock().unlock();
 
-        InetSocketAddress address = (InetSocketAddress) proxy.address();
-        String ip = address.getHostString();
-        int port = address.getPort();
-        // 1.宽松模式，将数据库中此条代理置为false，留待下一次校验
-        instance.proxy.update(PROXY)
-                .set(PROXY.IS_VALID, false)
-                .where(PROXY.IP.eq(ip)).and(PROXY.PORT.eq(port))
-                .executeAsync(Executors.newCachedThreadPool());
-        // 2.严格模式，同时删除数据库中此条代理
-        // instance.proxy.deleteFrom(PROXY).where(PROXY.IP.eq(ip)).and(PROXY.PORT.eq(port)).executeAsync();
+        //InetSocketAddress address = (InetSocketAddress) proxy.address();
+        //String ip = address.getHostString();
+        //int port = address.getPort();
+        //// 1.宽松模式，将数据库中此条代理置为false，留待下一次校验
+        // instance.proxy.update(PROXY)
+        //         .set(PROXY.IS_VALID, false)
+        //         .where(PROXY.IP.eq(ip)).and(PROXY.PORT.eq(port))
+        //         .executeAsync(Executors.newSingleThreadExecutor());
+        //// 2.严格模式，同时删除数据库中此条代理
+        //// instance.proxy.deleteFrom(PROXY).where(PROXY.IP.eq(ip)).and(PROXY.PORT.eq(port)).executeAsync();
     }
 
     private static void emptyProxyNeedSleep(String url) {
