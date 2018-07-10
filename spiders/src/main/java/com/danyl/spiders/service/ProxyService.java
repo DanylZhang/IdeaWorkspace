@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.jooq.DSLContext;
 import org.jsoup.Connection;
+import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
@@ -114,7 +116,9 @@ public class ProxyService {
     }
 
     private void remove(Proxy proxy) {
-
+        if (proxy == null) {
+            return;
+        }
         instance.lock.writeLock().lock();
         instance.proxies.remove(proxy);
         instance.lock.writeLock().unlock();
@@ -160,47 +164,82 @@ public class ProxyService {
         }
     }
 
-    // 提供一个便捷的静态方法获取使用代理的Jsoup
-    public static Document getJsoup(String url) {
-        final ProxyService instance = getInstance();
-        while (true) {
-            Connection jsoupConnection = Jsoup.connect(url).timeout(MINUTES);
-            // 1. 从proxies中拿到一个代理，并设置给jsoupConnection
-            Proxy proxy0 = instance.get();
-            if (proxy0 != null) {
-                jsoupConnection.proxy(proxy0);
-            } else {
-                emptyProxyNeedSleep(url);
-            }
-            try {
-                return jsoupConnection.get();
-            } catch (Exception e) {
-                log.error("ProxyService.getJsoup error: {}", e.getMessage());
-                instance.remove(proxy0);
-            }
-        }
+    /**
+     * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
+     *
+     * @param url 目标网址
+     */
+    public static Document jsoupGet(String url) {
+        return jsoupGet(url, ".");
     }
 
-    // 提供一个便捷的静态方法获取使用代理的Jsoup，并指定regex校验response
-    public static Document getJsoup(String url, String regex) {
+    /**
+     * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
+     *
+     * @param url   目标网址
+     * @param regex response 校验正则，不符合预期的将被循环执行
+     */
+    public static Document jsoupGet(String url, String regex) {
+        Response response = jsoupExecute(url, regex);
+        Document document = null;
+        try {
+            document = response.parse();
+        } catch (IOException e) {
+            log.error("ProxyService.jsoupGet error: {}", e.getMessage());
+        }
+        return document;
+    }
+
+    /**
+     * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
+     *
+     * @param url 目标网址
+     */
+    public static Response jsoupExecute(String url) {
+        Connection connect = Jsoup.connect(url);
+        return jsoupExecute(connect, ".");
+    }
+
+    /**
+     * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
+     *
+     * @param url   目标网址
+     * @param regex response 校验正则，不符合预期的将被循环执行
+     */
+    public static Response jsoupExecute(String url, String regex) {
+        Connection connect = Jsoup.connect(url);
+        return jsoupExecute(connect, regex);
+    }
+
+    /**
+     * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
+     *
+     * @param jsoupConnection 指定了url以及一些参数的 jsoup Connection
+     * @param regex           response 校验正则，不符合预期的将被循环执行
+     */
+    public static Response jsoupExecute(Connection jsoupConnection, String regex) {
         final ProxyService instance = getInstance();
         while (true) {
-            Connection jsoupConnection = Jsoup.connect(url).timeout(MINUTES);
+            jsoupConnection.timeout(MINUTES)
+                    .followRedirects(true)
+                    .ignoreContentType(true);
             // 1. 从proxies中拿到一个代理，并设置给jsoupConnection
             Proxy proxy0 = instance.get();
             if (proxy0 != null) {
                 jsoupConnection.proxy(proxy0);
             } else {
-                emptyProxyNeedSleep(url);
+                emptyProxyNeedSleep(jsoupConnection.request().url().toExternalForm());
             }
             try {
-                Document document = jsoupConnection.get();
-                if (Pattern.compile(regex).matcher(document.text()).find()) {
-                    return document;
+                Response execute = jsoupConnection.execute();
+                if (Pattern.compile(regex).matcher(execute.body()).find()) {
+                    return execute;
                 }
             } catch (Exception e) {
-                log.error("ProxyService.getJsoup error: {}", e.getMessage());
-                instance.remove(proxy0);
+                log.error("ProxyService.jsoupExecute error: {}", e.getMessage());
+                if (proxy0 != null) {
+                    instance.remove(proxy0);
+                }
             }
         }
     }

@@ -4,7 +4,7 @@
     <!-- Configure the database connection here -->
     <jdbc>
         <driver>org.sqlite.JDBC</driver>
-        <url>jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\dangdang-spider\src\main\resources\dangdang-spider.sqlite3</url>
+        <url>jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\spiders\src\main\resources\spiders.sqlite3</url>
         <user></user>
         <password></password>
     </jdbc>

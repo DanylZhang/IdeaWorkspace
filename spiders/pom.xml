@@ -124,6 +124,10 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.7</version>
         </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -155,8 +159,8 @@
 
                 <configuration>
                     <!--<configurationFile>src/main/resources/code-gen-dangdang.xml</configurationFile>-->
-                    <!--<configurationFile>src/main/resources/code-gen-vip.xml</configurationFile>-->
-                    <configurationFile>src/main/resources/code-gen-proxy.xml</configurationFile>
+                    <configurationFile>src/main/resources/code-gen-vip.xml</configurationFile>
+                    <!--<configurationFile>src/main/resources/code-gen-proxy.xml</configurationFile>-->
                 </configuration>
             </plugin>
         </plugins>

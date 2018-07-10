@@ -73,6 +73,13 @@ public class AdsActivityDao extends DAOImpl<AdsActivityRecord, com.danyl.spiders
     }
 
     /**
+     * Fetch records that have <code>type IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.vip.tables.pojos.AdsActivity> fetchByType(Integer... values) {
+        return fetch(AdsActivity.ADS_ACTIVITY.TYPE, values);
+    }
+
+    /**
      * Fetch records that have <code>url IN (values)</code>
      */
     public List<com.danyl.spiders.jooq.gen.vip.tables.pojos.AdsActivity> fetchByUrl(String... values) {
@@ -87,10 +94,10 @@ public class AdsActivityDao extends DAOImpl<AdsActivityRecord, com.danyl.spiders
     }
 
     /**
-     * Fetch records that have <code>type IN (values)</code>
+     * Fetch records that have <code>img IN (values)</code>
      */
-    public List<com.danyl.spiders.jooq.gen.vip.tables.pojos.AdsActivity> fetchByType(Integer... values) {
-        return fetch(AdsActivity.ADS_ACTIVITY.TYPE, values);
+    public List<com.danyl.spiders.jooq.gen.vip.tables.pojos.AdsActivity> fetchByImg(String... values) {
+        return fetch(AdsActivity.ADS_ACTIVITY.IMG, values);
     }
 
     /**

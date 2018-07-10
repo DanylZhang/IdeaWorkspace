@@ -11,7 +11,6 @@
         <module name="babasport-core" />
         <module name="babasport-front" />
         <module name="concurrency" />
-        <module name="dangdang-spider" />
         <module name="lscj-sz-concurrency" />
         <module name="mybatis-generator-plus" />
         <module name="spiders" />

@@ -2,7 +2,7 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: org.sqlite.JDBC
-    url: jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\dangdang-spider\src\main\resources\dangdang-spider.sqlite3
+    url: jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\spiders\src\main\resources\spiders.sqlite3
     username:
     password:
     schema: classpath:schema.sql

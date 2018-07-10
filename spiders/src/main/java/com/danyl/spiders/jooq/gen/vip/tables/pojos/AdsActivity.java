@@ -23,12 +23,13 @@ import javax.annotation.Generated;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AdsActivity implements Serializable {
 
-    private static final long serialVersionUID = 531572713;
+    private static final long serialVersionUID = 2031522036;
 
     private Integer       id;
     private String        name;
-    private String        url;
     private Integer       type;
+    private String        url;
+    private String        img;
     private LocalDateTime lastUpdateTime;
 
     public AdsActivity() {}
@@ -36,22 +37,25 @@ public class AdsActivity implements Serializable {
     public AdsActivity(AdsActivity value) {
         this.id = value.id;
         this.name = value.name;
-        this.url = value.url;
         this.type = value.type;
+        this.url = value.url;
+        this.img = value.img;
         this.lastUpdateTime = value.lastUpdateTime;
     }
 
     public AdsActivity(
         Integer       id,
         String        name,
-        String        url,
         Integer       type,
+        String        url,
+        String        img,
         LocalDateTime lastUpdateTime
     ) {
         this.id = id;
         this.name = name;
-        this.url = url;
         this.type = type;
+        this.url = url;
+        this.img = img;
         this.lastUpdateTime = lastUpdateTime;
     }
 
@@ -73,6 +77,15 @@ public class AdsActivity implements Serializable {
         return this;
     }
 
+    public Integer getType() {
+        return this.type;
+    }
+
+    public AdsActivity setType(Integer type) {
+        this.type = type;
+        return this;
+    }
+
     public String getUrl() {
         return this.url;
     }
@@ -82,12 +95,12 @@ public class AdsActivity implements Serializable {
         return this;
     }
 
-    public Integer getType() {
-        return this.type;
+    public String getImg() {
+        return this.img;
     }
 
-    public AdsActivity setType(Integer type) {
-        this.type = type;
+    public AdsActivity setImg(String img) {
+        this.img = img;
         return this;
     }
 
@@ -121,17 +134,23 @@ public class AdsActivity implements Serializable {
         }
         else if (!name.equals(other.name))
             return false;
+        if (type == null) {
+            if (other.type != null)
+                return false;
+        }
+        else if (!type.equals(other.type))
+            return false;
         if (url == null) {
             if (other.url != null)
                 return false;
         }
         else if (!url.equals(other.url))
             return false;
-        if (type == null) {
-            if (other.type != null)
+        if (img == null) {
+            if (other.img != null)
                 return false;
         }
-        else if (!type.equals(other.type))
+        else if (!img.equals(other.img))
             return false;
         if (lastUpdateTime == null) {
             if (other.lastUpdateTime != null)
@@ -148,8 +167,9 @@ public class AdsActivity implements Serializable {
         int result = 1;
         result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
         result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
-        result = prime * result + ((this.url == null) ? 0 : this.url.hashCode());
         result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        result = prime * result + ((this.url == null) ? 0 : this.url.hashCode());
+        result = prime * result + ((this.img == null) ? 0 : this.img.hashCode());
         result = prime * result + ((this.lastUpdateTime == null) ? 0 : this.lastUpdateTime.hashCode());
         return result;
     }
@@ -160,8 +180,9 @@ public class AdsActivity implements Serializable {
 
         sb.append(id);
         sb.append(", ").append(name);
-        sb.append(", ").append(url);
         sb.append(", ").append(type);
+        sb.append(", ").append(url);
+        sb.append(", ").append(img);
         sb.append(", ").append(lastUpdateTime);
 
         sb.append(")");

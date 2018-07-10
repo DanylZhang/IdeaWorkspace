@@ -43,7 +43,7 @@ public class ProxyEnumSingletonService {
     }
 
     // 提供一个便捷的静态方法获取使用代理的Jsoup
-    public static Connection getJsoup(String url) {
+    public static Connection jsoupGet(String url) {
         final ProxyEnumSingletonService instance = getInstance();
         return Jsoup.connect(url).proxy(instance.get());
     }

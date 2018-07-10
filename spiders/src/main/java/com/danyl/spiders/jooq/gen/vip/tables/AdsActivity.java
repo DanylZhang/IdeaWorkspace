@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AdsActivity extends TableImpl<AdsActivityRecord> {
 
-    private static final long serialVersionUID = 309586589;
+    private static final long serialVersionUID = -834502821;
 
     /**
      * The reference instance of <code>new_vip.ads_activity</code>
@@ -66,14 +66,19 @@ public class AdsActivity extends TableImpl<AdsActivityRecord> {
     public final TableField<AdsActivityRecord, String> NAME = createField("name", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
 
     /**
+     * The column <code>new_vip.ads_activity.type</code>.
+     */
+    public final TableField<AdsActivityRecord, Integer> TYPE = createField("type", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+
+    /**
      * The column <code>new_vip.ads_activity.url</code>.
      */
     public final TableField<AdsActivityRecord, String> URL = createField("url", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
 
     /**
-     * The column <code>new_vip.ads_activity.type</code>.
+     * The column <code>new_vip.ads_activity.img</code>.
      */
-    public final TableField<AdsActivityRecord, Integer> TYPE = createField("type", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.inline("0", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<AdsActivityRecord, String> IMG = createField("img", org.jooq.impl.SQLDataType.VARCHAR(255).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>new_vip.ads_activity.last_update_time</code>.

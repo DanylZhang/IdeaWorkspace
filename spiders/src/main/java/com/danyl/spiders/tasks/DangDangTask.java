@@ -3,7 +3,6 @@ package com.danyl.spiders.tasks;
 import com.danyl.spiders.jooq.gen.dangdang.tables.pojos.ItemCategory;
 import com.danyl.spiders.jooq.gen.dangdang.tables.records.ItemCategoryRecord;
 import com.danyl.spiders.service.ProxyService;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.jooq.DSLContext;
@@ -11,34 +10,38 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static com.danyl.spiders.constants.TimeConstants.DAYS;
 import static com.danyl.spiders.jooq.gen.dangdang.Tables.ITEM_CATEGORY;
 
-@Data
 @Slf4j
+@EnableScheduling
 @Component
-public class DangDangCategoryTask {
+public class DangDangTask {
 
-    // Start url
-    private String startUrl = "http://category.dangdang.com/?ref=www-0-C";
+    @Autowired
+    @Qualifier("DSLContextDangDang")
+    private DSLContext dd;
 
     // 测试用
     private int limit = 5; // Integer.MAX_VALUE
 
-    private final DSLContext dd;
+    @Scheduled(fixedDelay = DAYS)
+    public void crawlDangDangCid() {
+        log.info("crawl cid start {}", new Date());
 
-    @Autowired
-    public DangDangCategoryTask(@Qualifier("DSLContextDangDang") DSLContext dd) {
-        this.dd = dd;
-    }
+        limit = Integer.MAX_VALUE;
 
-    public void cid() {
         lv1Cid();
         lv2Cid();
         lv3Cid();
@@ -47,8 +50,8 @@ public class DangDangCategoryTask {
     }
 
     private void lv1Cid() {
-        String url = this.startUrl;
-        Document document = ProxyService.getJsoup(url, "全部商品分类");
+        String startUrl = "http://category.dangdang.com/?ref=www-0-C";
+        Document document = ProxyService.jsoupGet(startUrl, "全部商品分类");
 
         if (document == null) {
             log.error("lv1Cid document is null!");
@@ -67,7 +70,7 @@ public class DangDangCategoryTask {
                 .distinct()
                 .limit(limit)
                 .map((href) -> {
-                    Document document1 = ProxyService.getJsoup(href, "全部商品分类");
+                    Document document1 = ProxyService.jsoupGet(href, "全部商品分类");
                     if (document1 == null) {
                         log.error("lv1Cid foreach document is null!");
                         return "";
@@ -80,7 +83,7 @@ public class DangDangCategoryTask {
 
                     ItemCategory itemCategory = new ItemCategory();
 
-                    Document document2 = ProxyService.getJsoup(lv1link, "全部商品分类");
+                    Document document2 = ProxyService.jsoupGet(lv1link, "全部商品分类");
 
                     Element a = document2.select("#breadcrumb > div > a.a.diff").first();
 
@@ -129,7 +132,7 @@ public class DangDangCategoryTask {
                 .flatMap(lv1Category -> {
                     Integer lv1CategoryCid = lv1Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv1CategoryCid.toString());
-                    Document document = ProxyService.getJsoup(url);
+                    Document document = ProxyService.jsoupGet(url);
                     Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
                     if (hasChild) {
                         return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv2link -> new MutablePair<String, ItemCategory>(lv2link, lv1Category));
@@ -145,7 +148,7 @@ public class DangDangCategoryTask {
 
                     ItemCategory itemCategory = new ItemCategory();
 
-                    Document document2 = ProxyService.getJsoup(lv2link, "全部商品分类");
+                    Document document2 = ProxyService.jsoupGet(lv2link, "全部商品分类");
 
                     Element a = document2.select("#breadcrumb > div > div > a").first();
 
@@ -196,7 +199,7 @@ public class DangDangCategoryTask {
                 .flatMap(lv2Category -> {
                     Integer lv2CategoryCid = lv2Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv2CategoryCid.toString());
-                    Document document = ProxyService.getJsoup(url);
+                    Document document = ProxyService.jsoupGet(url);
                     Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
                     if (hasChild) {
                         return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv3link -> new MutablePair<String, ItemCategory>(lv3link, lv2Category));
@@ -212,7 +215,7 @@ public class DangDangCategoryTask {
 
                     ItemCategory itemCategory = new ItemCategory();
 
-                    Document document2 = ProxyService.getJsoup(lv3link, "全部商品分类");
+                    Document document2 = ProxyService.jsoupGet(lv3link, "全部商品分类");
                     Element a = document2.select("#breadcrumb > div > div:nth-child(7) > a").first();
                     // lv3cid
                     String href = a.attr("abs:href");
@@ -263,7 +266,7 @@ public class DangDangCategoryTask {
                 .flatMap(lv3Category -> {
                     Integer lv3CategoryCid = lv3Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv3CategoryCid.toString());
-                    Document document = ProxyService.getJsoup(url);
+                    Document document = ProxyService.jsoupGet(url);
                     Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
                     if (hasChild) {
                         return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv4link -> new MutablePair<String, ItemCategory>(lv4link, lv3Category));
@@ -279,7 +282,7 @@ public class DangDangCategoryTask {
 
                     ItemCategory itemCategory = new ItemCategory();
 
-                    Document document2 = ProxyService.getJsoup(lv4link, "全部商品分类");
+                    Document document2 = ProxyService.jsoupGet(lv4link, "全部商品分类");
                     Element a = document2.select("#breadcrumb > div > div:nth-child(9) > a").first();
                     // lv4cid
                     String href = a.attr("abs:href");
@@ -332,7 +335,7 @@ public class DangDangCategoryTask {
                 .flatMap(lv4Category -> {
                     Integer lv4CategoryCid = lv4Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv4CategoryCid.toString());
-                    Document document = ProxyService.getJsoup(url);
+                    Document document = ProxyService.jsoupGet(url);
                     Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
                     if (hasChild) {
                         return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv5link -> new MutablePair<String, ItemCategory>(lv5link, lv4Category));
@@ -348,7 +351,7 @@ public class DangDangCategoryTask {
 
                     ItemCategory itemCategory = new ItemCategory();
 
-                    Document document2 = ProxyService.getJsoup(lv5link, "全部商品分类");
+                    Document document2 = ProxyService.jsoupGet(lv5link, "全部商品分类");
                     Element a = document2.select("#breadcrumb > div > div:nth-child(11) > a").first();
                     // lv5cid
                     String href = a.attr("abs:href");
