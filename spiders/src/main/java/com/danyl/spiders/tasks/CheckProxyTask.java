@@ -119,10 +119,14 @@ public class CheckProxyTask {
                 .parallelStream()
                 .map(CompletableFuture::join)
                 .forEach(proxyRecord -> {
-                    if (proxyRecord.getIsValid()) {
-                        proxyRecord.update();
-                    } else {
-                        proxyRecord.delete();
+                    try {
+                        if (proxyRecord.getIsValid()) {
+                            proxyRecord.update();
+                        } else {
+                            proxyRecord.delete();
+                        }
+                    }catch (Exception e){
+                        log.error("proxy update error: {}", e.getMessage());
                     }
                 });
     }

@@ -1,0 +1,37 @@
+server:
+  port: 33333
+
+spring:
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    # url: jdbc:sqlite::resource:spiders.sqlite3
+    url: jdbc:sqlite:./spiders.sqlite3
+    username:
+    password:
+    druid:
+      stat-view-servlet:
+        enabled: true
+        login-username: admin
+        login-password: admin
+      dangdang:
+        driver-class-name: com.mysql.jdbc.Driver
+        url: jdbc:mysql://192.168.0.14:13306/dangdang?characterEncoding=utf-8&useSSL=false
+        username: dataway-rw
+        password: QqHVMhmN*8
+      new-vip:
+        driver-class-name: com.mysql.jdbc.Driver
+        url: jdbc:mysql://192.168.0.14:13306/new_vip?characterEncoding=utf-8&useSSL=false
+        username: dataway-rw
+        password: QqHVMhmN*8
+      h2test:
+        driver-class-name: org.h2.Driver
+        url: jdbc:h2:file:./spiders;MODE=MYSQL;AUTO_SERVER=TRUE;AUTO_RECONNECT=TRUE;INIT=RUNSCRIPT FROM 'classpath:schema.sql'
+        username: sa
+        password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+logging:
+  level:
+    org.jooq.tools.LoggerListener: debug

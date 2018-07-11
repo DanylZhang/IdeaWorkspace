@@ -159,8 +159,8 @@
 
                 <configuration>
                     <!--<configurationFile>src/main/resources/code-gen-dangdang.xml</configurationFile>-->
-                    <configurationFile>src/main/resources/code-gen-vip.xml</configurationFile>
-                    <!--<configurationFile>src/main/resources/code-gen-proxy.xml</configurationFile>-->
+                    <!--<configurationFile>src/main/resources/code-gen-vip.xml</configurationFile>-->
+                    <configurationFile>src/main/resources/code-gen-proxy.xml</configurationFile>
                 </configuration>
             </plugin>
         </plugins>

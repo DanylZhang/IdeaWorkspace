@@ -55,14 +55,13 @@ public class VipAdsTask {
             List<Map<String, String>> read = parse.read("$..items[?(@.link=~/.*mst.vip.com.*/i)]");
             for (Map<String, String> map : read) {
                 String link = map.get("link");
-                System.out.println(link);
                 Connection connection = Jsoup.connect(link)
                         .followRedirects(true)
                         .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
                         .header("Cookie", "oversea_jump=cn; _smt_uid=5b0cee94.35dcab2c; WAP[from]=www; WAP[p_wh]=VIP_SH; warehouse=VIP_SH; m_vip_province=103101; WAP[p_area]=%25E4%25B8%258A%25E6%25B5%25B7; WAP[area_id]=103101101; wap_consumer=A1; vip_city_name=%E5%8C%97%E4%BA%AC%E5%B8%82; mar_ref=oper_special_3_4; mars_pid=303; cps=%3A5c5jp4tz%3Aed2c07a7%3A57139_168_0__1%3Af58df3bbf8714762a83259d697c1fd03; VipUINFO=luc%3Aa%7Csuc%3Aa%7Cbct%3Ac_new%7Chct%3Ac_new%7Cbdts%3A0%7Cbcts%3A0%7Ckfts%3A0%7Cc10%3A0%7Crcabt%3A0%7Cp2%3A0%7Cp3%3A1%7Cp4%3A0%7Cp5%3A0; mars_sid=0bcfed48549bd07b6aa7b4f3bed58cd9; PHPSESSID=j9i1mutv948qmffv6fmvpjb4h4; vip_address=%257B%2522pid%2522%253A%2522103101%2522%252C%2522pname%2522%253A%2522%255Cu4e0a%255Cu6d77%255Cu5e02%2522%252C%2522cid%2522%253A%2522103101101%2522%252C%2522cname%2522%253A%2522%255Cu5317%255Cu4eac%255Cu5e02%2522%252C%2522did%2522%253A101101101101%252C%2522dname%2522%253A%2522%255Cu4e1c%255Cu57ce%255Cu533a%2522%252C%2522sid%2522%253A911101101101%252C%2522sname%2522%253A%2522%255Cu4e1c%255Cu534e%255Cu95e8%255Cu8857%255Cu9053%2522%257D; vip_province=103101; vip_province_name=%E4%B8%8A%E6%B5%B7%E5%B8%82; vip_city_code=103101101; vip_wh=VIP_SH; vip_ipver=31; mst_csrf_key=56dfb498bca5e0e0ca63a75489348573; user_class=a; vipte_viewed_=567953774%2C570788523%2C570792728%2C562457047%2C563277169; mst_consumer=A1; visit_id=D9801FFC9679861344859BCA627A1F9F; _jzqco=%7C%7C%7C%7C%7C1.1001892331.1527574164472.1531190202351.1531193163987.1531190202351.1531193163987..0.0.161.161; mars_cid=1527574159932_457340df6cdd5de5a26b9715c01accd9");
                 Response response = ProxyService.jsoupExecute(connection, "encrypt_id");
                 link = response.url().toExternalForm();
-                System.out.println(link);
+                log.info("ads link: {}", link);
                 Document document1 = response.parse();
 
                 AdsActivity adsActivity = new AdsActivity();
@@ -93,18 +92,16 @@ public class VipAdsTask {
                     String group = matcher1.group(1);
                     DocumentContext parse1 = JsonPath.parse(group);
                     Integer page_id = Integer.valueOf(parse1.read("$.id").toString());
-                    System.out.println(page_id);
-                    System.out.println(html2);
                     List<String> plugin_ids = parse1.read("$.moduleList[?(@.floor)].id");
                     for (String plugin_id : plugin_ids) {
                         String purchasesUrl = "https://mst.vip.com/Special/getPurchases?page_id=" + page_id + "&plugin_id=" + plugin_id + "&floor=1f&client=vipcms&warehouse=VIP_SH&_=" + System.currentTimeMillis();
-                        System.out.println(purchasesUrl);
+                        log.info("getPurchases link: {}", purchasesUrl);
                         Connection connection1 = connection.url(purchasesUrl)
                                 .header("X-Requested-With", "XMLHttpRequest")
                                 .header("Referer", link)
                                 .header("Cookie", "oversea_jump=cn; _smt_uid=5b0cee94.35dcab2c; WAP[from]=www; WAP[p_wh]=VIP_SH; warehouse=VIP_SH; m_vip_province=103101; WAP[p_area]=%25E4%25B8%258A%25E6%25B5%25B7; WAP[area_id]=103101101; wap_consumer=A1; vip_city_name=%E5%8C%97%E4%BA%AC%E5%B8%82; mar_ref=oper_special_3_4; mars_pid=303; cps=%3A5c5jp4tz%3Aed2c07a7%3A57139_168_0__1%3Af58df3bbf8714762a83259d697c1fd03; VipUINFO=luc%3Aa%7Csuc%3Aa%7Cbct%3Ac_new%7Chct%3Ac_new%7Cbdts%3A0%7Cbcts%3A0%7Ckfts%3A0%7Cc10%3A0%7Crcabt%3A0%7Cp2%3A0%7Cp3%3A1%7Cp4%3A0%7Cp5%3A0; vip_address=%257B%2522pid%2522%253A%2522103101%2522%252C%2522pname%2522%253A%2522%255Cu4e0a%255Cu6d77%255Cu5e02%2522%252C%2522cid%2522%253A%2522103101101%2522%252C%2522cname%2522%253A%2522%255Cu5317%255Cu4eac%255Cu5e02%2522%252C%2522did%2522%253A101101101101%252C%2522dname%2522%253A%2522%255Cu4e1c%255Cu57ce%255Cu533a%2522%252C%2522sid%2522%253A911101101101%252C%2522sname%2522%253A%2522%255Cu4e1c%255Cu534e%255Cu95e8%255Cu8857%255Cu9053%2522%257D; vip_province=103101; vip_province_name=%E4%B8%8A%E6%B5%B7%E5%B8%82; vip_city_code=103101101; vip_wh=VIP_SH; vip_ipver=31; mst_csrf_key=56dfb498bca5e0e0ca63a75489348573; user_class=a; mst_consumer=A1; visit_id=D9801FFC9679861344859BCA627A1F9F; _jzqco=%7C%7C%7C%7C%7C1.1001892331.1527574164472.1531190202351.1531193163987.1531190202351.1531193163987..0.0.161.161; mstRedirect_0=%7B%22guide%22%3A%7B%225685729%22%3A%5B1531194110%2C5685733%5D%7D%2C%22cdi%22%3A%7B%225685733%22%3A%5B1531194110%2C5685733%5D%7D%7D; mars_sid=820e4ae920ce2d5cadc96d6ab7106901; mars_cid=1527574159932_457340df6cdd5de5a26b9715c01accd9");
                         String json = ProxyService.jsoupExecute(connection1, "code").body();
-                        System.out.println(json);
+                        log.info("getPurchases json: {}", json);
                         DocumentContext parse2 = JsonPath.parse(json);
                         List<String> spuIdList = parse2.read("$.data..v_spu_id");
                         if (spuIdList.size() > 0) {
