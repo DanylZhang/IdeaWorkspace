@@ -6,7 +6,6 @@ import org.jooq.DSLContext;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -29,7 +28,7 @@ public class CrawlProxyTask {
     @Qualifier("DSLContextProxy")
     private DSLContext proxy;
 
-    @Scheduled(fixedDelay = HOURS * 3)
+    @Scheduled(fixedDelay = HOURS)
     public void crawlProxy() {
         log.info("crawl proxy start {}", new Date());
 
@@ -68,7 +67,7 @@ public class CrawlProxyTask {
                 proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE)
                         .values(ip, port, false, type)
                         .onDuplicateKeyIgnore()
-                        .execute();
+                        .executeAsync(Executors.newSingleThreadExecutor());
             }
         }
     }
@@ -91,7 +90,7 @@ public class CrawlProxyTask {
                             proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
                                     .values(ip, port, false, type, comment)
                                     .onDuplicateKeyIgnore()
-                                    .execute();
+                                    .executeAsync(Executors.newSingleThreadExecutor());
                         });
             }
         }
@@ -112,7 +111,7 @@ public class CrawlProxyTask {
                         proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
                                 .values(ip, port, false, type, comment)
                                 .onDuplicateKeyIgnore()
-                                .execute();
+                                .executeAsync(Executors.newSingleThreadExecutor());
                     });
         }
     }
@@ -133,7 +132,7 @@ public class CrawlProxyTask {
                         proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
                                 .values(ip, port, false, type, comment)
                                 .onDuplicateKeyIgnore()
-                                .execute();
+                                .executeAsync(Executors.newSingleThreadExecutor());
                     });
         }
     }

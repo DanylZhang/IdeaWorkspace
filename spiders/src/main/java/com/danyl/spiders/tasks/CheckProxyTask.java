@@ -1,13 +1,11 @@
 package com.danyl.spiders.tasks;
 
-import com.danyl.spiders.jooq.gen.proxy.tables.records.ProxyRecord;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
-import org.jooq.Result;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,10 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.danyl.spiders.constants.TimeConstants.HOURS;
 import static com.danyl.spiders.constants.TimeConstants.MINUTES;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
-import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @EnableScheduling
@@ -59,14 +55,15 @@ public class CheckProxyTask {
     }
 
     // 更新可用代理的comment位置信息
-    @Scheduled(fixedDelay = HOURS)
+    @Scheduled(fixedDelay = MINUTES * 15)
     public void updateProxyComment() {
         log.info("update proxy's comment start {}", new Date());
 
         ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(1000, 3000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy,drop it!"));
-        Result<ProxyRecord> proxyRecords = proxy.selectFrom(PROXY)
-                .where(PROXY.IS_VALID.eq(true)).fetch();
-        List<ProxyRecord> collect = proxyRecords.stream()
+        proxy.selectFrom(PROXY)
+                .where(PROXY.IS_VALID.eq(true))
+                .fetch()
+                .stream()
                 .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
                     try {
                         // 对有效代理更新地域信息
@@ -91,8 +88,43 @@ public class CheckProxyTask {
                 .collect(Collectors.toList())
                 .stream()
                 .map(CompletableFuture::join)
-                .collect(toList());
-        proxy.batchUpdate(collect).execute();
+                .forEach(proxyRecord -> {
+                    try {
+                        proxyRecord.update(PROXY.COMMENT);
+                    } catch (Exception e) {
+                        log.error("proxy update comment error: {}", e.getMessage());
+                    }
+                });
+    }
+
+    public void checkProxy(String url, String regex) {
+        log.info("check proxy start {}", new Date());
+
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(1000, 3000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy validate,drop it!"));
+        proxy.selectFrom(PROXY)
+                .fetch()
+                .parallelStream()
+                .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
+                    final Proxy proxy1 = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyRecord.getIp(), proxyRecord.getPort()));
+                    Pair<Boolean, Integer> validateResult = doCheckProxy(proxy1, url, regex);
+                    if (validateResult.getLeft()) {
+                        proxyRecord.setIsValid(true);
+                        proxyRecord.setSpeed(validateResult.getRight());
+                    } else {
+                        proxyRecord.setIsValid(false);
+                    }
+                    return proxyRecord;
+                }, customExecutor))
+                .collect(Collectors.toList())
+                .parallelStream()
+                .map(CompletableFuture::join)
+                .forEach(proxyRecord -> {
+                    if (proxyRecord.getIsValid()) {
+                        proxyRecord.update();
+                    } else {
+                        proxyRecord.delete();
+                    }
+                });
     }
 
     /**
@@ -104,9 +136,9 @@ public class CheckProxyTask {
         HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
 
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(MINUTES, TimeUnit.MILLISECONDS)
-                .readTimeout(MINUTES, TimeUnit.MILLISECONDS)
-                .writeTimeout(MINUTES, TimeUnit.MILLISECONDS)
+                .connectTimeout(20, TimeUnit.SECONDS)
+                .readTimeout(20, TimeUnit.SECONDS)
+                .writeTimeout(20, TimeUnit.SECONDS)
                 .proxy(proxy)
                 .cookieJar(new CookieJar() {
                     @Override
@@ -117,7 +149,7 @@ public class CheckProxyTask {
                     @Override
                     public List<Cookie> loadForRequest(HttpUrl httpUrl) {
                         List<Cookie> cookies = cookieStore.get(httpUrl.host());
-                        return cookies != null ? cookies : new ArrayList<Cookie>();
+                        return cookies != null ? cookies : new ArrayList<>();
                     }
                 })
                 .build();
@@ -149,30 +181,5 @@ public class CheckProxyTask {
             }
         }
         return Pair.of(false, Integer.MAX_VALUE);
-    }
-
-    public void checkProxy(String url, String regex) {
-        log.info("check proxy start {}", new Date());
-
-        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(1000, 3000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy validate,drop it!"));
-        Result<ProxyRecord> proxyRecords = proxy.selectFrom(PROXY).fetch();
-        List<ProxyRecord> collect = proxyRecords.parallelStream()
-                .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
-                    final Proxy proxy1 = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyRecord.getIp(), proxyRecord.getPort()));
-                    Pair<Boolean, Integer> validateResult = doCheckProxy(proxy1, url, regex);
-                    if (validateResult.getLeft()) {
-                        proxyRecord.setIsValid(true);
-                        proxyRecord.setSpeed(validateResult.getRight());
-                    } else {
-                        proxyRecord.setIsValid(false);
-                    }
-                    return proxyRecord;
-                }, customExecutor))
-                .collect(Collectors.toList())
-                .parallelStream()
-                .map(CompletableFuture::join)
-                .collect(toList());
-        proxy.batchUpdate(collect).execute();
-        proxy.batchDelete(collect.parallelStream().filter(proxyRecord -> !proxyRecord.getIsValid()).collect(Collectors.toList())).execute();
     }
 }
