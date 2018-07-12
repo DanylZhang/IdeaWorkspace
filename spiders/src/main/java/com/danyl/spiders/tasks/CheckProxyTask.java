@@ -19,10 +19,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -97,10 +94,10 @@ public class CheckProxyTask {
                 });
     }
 
-    public void checkProxy(String url, String regex) {
+    private void checkProxy(String url, String regex) {
         log.info("check proxy start {}", new Date());
 
-        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(1000, 3000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy validate,drop it!"));
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(3, 1000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(100000, true), (r, executor) -> log.error("too many proxy validate,drop it!"));
         proxy.selectFrom(PROXY)
                 .fetch()
                 .parallelStream()
@@ -117,6 +114,7 @@ public class CheckProxyTask {
                 }, customExecutor))
                 .collect(Collectors.toList())
                 .parallelStream()
+                // 等待所有校验线程执行完毕
                 .map(CompletableFuture::join)
                 .forEach(proxyRecord -> {
                     try {
@@ -129,6 +127,9 @@ public class CheckProxyTask {
                         log.error("proxy update error: {}", e.getMessage());
                     }
                 });
+
+        // 关闭线程池
+        customExecutor.shutdown();
     }
 
     /**

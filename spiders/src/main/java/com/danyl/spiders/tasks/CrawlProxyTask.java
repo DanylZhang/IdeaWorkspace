@@ -53,7 +53,7 @@ public class CrawlProxyTask {
                 proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE)
                         .values(ip, port, false, type)
                         .onDuplicateKeyIgnore()
-                        .execute();
+                        .executeAsync();
             }
 
             // 2. 一次100个 http代理
@@ -67,7 +67,7 @@ public class CrawlProxyTask {
                 proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE)
                         .values(ip, port, false, type)
                         .onDuplicateKeyIgnore()
-                        .executeAsync(Executors.newSingleThreadExecutor());
+                        .executeAsync();
             }
         }
     }
@@ -90,7 +90,7 @@ public class CrawlProxyTask {
                             proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
                                     .values(ip, port, false, type, comment)
                                     .onDuplicateKeyIgnore()
-                                    .executeAsync(Executors.newSingleThreadExecutor());
+                                    .executeAsync();
                         });
             }
         }
@@ -111,7 +111,7 @@ public class CrawlProxyTask {
                         proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
                                 .values(ip, port, false, type, comment)
                                 .onDuplicateKeyIgnore()
-                                .executeAsync(Executors.newSingleThreadExecutor());
+                                .executeAsync();
                     });
         }
     }
@@ -132,7 +132,7 @@ public class CrawlProxyTask {
                         proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
                                 .values(ip, port, false, type, comment)
                                 .onDuplicateKeyIgnore()
-                                .executeAsync(Executors.newSingleThreadExecutor());
+                                .executeAsync();
                     });
         }
     }
