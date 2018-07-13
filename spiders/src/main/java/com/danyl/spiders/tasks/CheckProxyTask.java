@@ -7,6 +7,7 @@ import okhttp3.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
 import org.jsoup.Jsoup;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -56,7 +57,7 @@ public class CheckProxyTask {
     public void updateProxyComment() {
         log.info("update proxy's comment start {}", new Date());
 
-        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(1000, 3000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000000, true), (r, executor) -> log.error("too many proxy,drop it!"));
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(3, 100, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(10000, false), (r, executor) -> log.error("too many proxy update comment, drop it!"));
         proxy.selectFrom(PROXY)
                 .where(PROXY.IS_VALID.eq(true))
                 .fetch()
@@ -92,15 +93,18 @@ public class CheckProxyTask {
                         log.error("proxy update comment error: {}", e.getMessage());
                     }
                 });
+
+        // 别忘了关闭局部变量的线程池
+        customExecutor.shutdown();
     }
 
     private void checkProxy(String url, String regex) {
         log.info("check proxy start {}", new Date());
 
-        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(3, 1000, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(100000, true), (r, executor) -> log.error("too many proxy validate,drop it!"));
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(3, 300, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(10000, false), (r, executor) -> log.error("too many proxy validate, drop it!"));
         proxy.selectFrom(PROXY)
                 .fetch()
-                .parallelStream()
+                .stream()
                 .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
                     final Proxy proxy1 = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyRecord.getIp(), proxyRecord.getPort()));
                     Pair<Boolean, Integer> validateResult = doCheckProxy(proxy1, url, regex);
@@ -113,7 +117,7 @@ public class CheckProxyTask {
                     return proxyRecord;
                 }, customExecutor))
                 .collect(Collectors.toList())
-                .parallelStream()
+                .stream()
                 // 等待所有校验线程执行完毕
                 .map(CompletableFuture::join)
                 .forEach(proxyRecord -> {
@@ -128,7 +132,7 @@ public class CheckProxyTask {
                     }
                 });
 
-        // 关闭线程池
+        // 别忘了关闭局部变量的线程池
         customExecutor.shutdown();
     }
 

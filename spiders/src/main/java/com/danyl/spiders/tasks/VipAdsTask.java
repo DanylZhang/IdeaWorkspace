@@ -83,7 +83,7 @@ public class VipAdsTask {
                         .values(adsActivity.getId(), adsActivity.getName(), adsActivity.getUrl(), adsActivity.getImg(), adsActivity.getType(), adsActivity.getLastUpdateTime())
                         .onDuplicateKeyUpdate()
                         .set(ADS_ACTIVITY.LAST_UPDATE_TIME, adsActivity.getLastUpdateTime())
-                        .execute();
+                        .executeAsync();
 
                 // 继续查找广告页面内的广告商品
                 String html2 = document1.html();
@@ -118,7 +118,7 @@ public class VipAdsTask {
                                 create.insertInto(ADS, ADS.ITEM_ID, ADS.LIST_ID, ADS.SPUID, ADS.ACT_ID, ADS.DATE)
                                         .values(ads.getItemId(), ads.getListId(), ads.getSpuid(), ads.getActId(), ads.getDate())
                                         .onDuplicateKeyIgnore()
-                                        .execute();
+                                        .executeAsync();
                             }
                         }
                     }

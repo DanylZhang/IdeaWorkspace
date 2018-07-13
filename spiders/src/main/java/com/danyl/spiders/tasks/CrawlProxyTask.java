@@ -37,6 +37,7 @@ public class CrawlProxyTask {
         executorService.execute(this::getip3366);
         executorService.execute(this::getkuaidaili);
         executorService.execute(this::getxicidaili);
+        executorService.shutdown();
     }
 
     // 小六代理
