@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AdsActivity extends TableImpl<AdsActivityRecord> {
 
-    private static final long serialVersionUID = -834502821;
+    private static final long serialVersionUID = 1369880291;
 
     /**
      * The reference instance of <code>new_vip.ads_activity</code>
@@ -81,9 +81,14 @@ public class AdsActivity extends TableImpl<AdsActivityRecord> {
     public final TableField<AdsActivityRecord, String> IMG = createField("img", org.jooq.impl.SQLDataType.VARCHAR(255).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * The column <code>new_vip.ads_activity.last_update_time</code>.
+     * The column <code>new_vip.ads_activity.created</code>.
      */
-    public final TableField<AdsActivityRecord, LocalDateTime> LAST_UPDATE_TIME = createField("last_update_time", org.jooq.impl.SQLDataType.LOCALDATETIME, this, "");
+    public final TableField<AdsActivityRecord, LocalDateTime> CREATED = createField("created", org.jooq.impl.SQLDataType.LOCALDATETIME.defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "");
+
+    /**
+     * The column <code>new_vip.ads_activity.modified</code>.
+     */
+    public final TableField<AdsActivityRecord, LocalDateTime> MODIFIED = createField("modified", org.jooq.impl.SQLDataType.LOCALDATETIME.defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "");
 
     /**
      * Create a <code>new_vip.ads_activity</code> table reference

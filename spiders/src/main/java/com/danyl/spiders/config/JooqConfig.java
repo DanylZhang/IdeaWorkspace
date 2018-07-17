@@ -21,7 +21,7 @@ public class JooqConfig {
         DataSourceConnectionProvider dataSourceConnectionProvider = new DataSourceConnectionProvider(transactionAwareDataSourceProxy);
         Configuration configuration = new DefaultConfiguration()
                 .set(dataSourceConnectionProvider)
-                .set(SQLDialect.SQLITE);
+                .set(SQLDialect.H2);
         return DSL.using(configuration);
     }
 
@@ -42,16 +42,6 @@ public class JooqConfig {
         Configuration configuration = new DefaultConfiguration()
                 .set(dataSourceConnectionProvider)
                 .set(SQLDialect.MYSQL_5_7);
-        return DSL.using(configuration);
-    }
-
-    @Bean(name = "DSLContextH2Test")
-    public DSLContext getDSLContextH2Test(@Qualifier("dataSourceH2Test") DataSource dataSource) {
-        TransactionAwareDataSourceProxy transactionAwareDataSourceProxy = new TransactionAwareDataSourceProxy(dataSource);
-        DataSourceConnectionProvider dataSourceConnectionProvider = new DataSourceConnectionProvider(transactionAwareDataSourceProxy);
-        Configuration configuration = new DefaultConfiguration()
-                .set(dataSourceConnectionProvider)
-                .set(SQLDialect.H2);
         return DSL.using(configuration);
     }
 }

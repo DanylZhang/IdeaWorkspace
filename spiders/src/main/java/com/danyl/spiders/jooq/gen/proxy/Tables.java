@@ -5,13 +5,12 @@ package com.danyl.spiders.jooq.gen.proxy;
 
 
 import com.danyl.spiders.jooq.gen.proxy.tables.Proxy;
-import com.danyl.spiders.jooq.gen.proxy.tables.ValidationUrl;
 
 import javax.annotation.Generated;
 
 
 /**
- * Convenience access to all tables in 
+ * Convenience access to all tables in PUBLIC
  */
 @Generated(
     value = {
@@ -24,12 +23,7 @@ import javax.annotation.Generated;
 public class Tables {
 
     /**
-     * The table <code>proxy</code>.
+     * The table <code>PUBLIC.PROXY</code>.
      */
     public static final Proxy PROXY = com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
-
-    /**
-     * The table <code>validation_url</code>.
-     */
-    public static final ValidationUrl VALIDATION_URL = com.danyl.spiders.jooq.gen.proxy.tables.ValidationUrl.VALIDATION_URL;
 }

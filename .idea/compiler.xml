@@ -17,6 +17,7 @@
         <module name="spiders" />
         <module name="spring-security-demo" />
         <module name="springbootsell" />
+        <module name="xunwu" />
       </profile>
     </annotationProcessing>
   </component>

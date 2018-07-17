@@ -7,11 +7,10 @@ import org.jsoup.Connection;
 import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
@@ -20,8 +19,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -41,15 +38,14 @@ public class ProxyService {
         instance = new ProxyService();
     }
 
-    @Autowired
-    @Qualifier("DSLContextProxy")
+    @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
 
     private List<Proxy> proxies = new ArrayList<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock(true); // 防止高并发下写锁拿不到
 
     // 无可用代理时使用本机直连访问，需要控制访问频次(防封ip)，以域名做精细化访问控制
-    public static ConcurrentHashMap<String, AtomicInteger> accessControlCounterMap = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, AtomicInteger> accessControlCounterMap = new ConcurrentHashMap<>();
 
     private ProxyService() {
     }
@@ -62,12 +58,6 @@ public class ProxyService {
 
         // 初始化时先填充好代理
         instance.setProxies();
-
-        // 另开启一个线程刷新 proxies
-        Executors.newSingleThreadScheduledExecutor()
-                .scheduleWithFixedDelay(() -> {
-                    instance.setProxies();
-                }, 1, 3, TimeUnit.MINUTES);
     }
 
     //静态的工厂方法
@@ -123,16 +113,9 @@ public class ProxyService {
         instance.proxies.remove(proxy);
         instance.lock.writeLock().unlock();
 
-        //InetSocketAddress address = (InetSocketAddress) proxy.address();
-        //String ip = address.getHostString();
-        //int port = address.getPort();
-        //// 1.宽松模式，将数据库中此条代理置为false，留待下一次校验
-        // instance.proxy.update(PROXY)
-        //         .set(PROXY.IS_VALID, false)
-        //         .where(PROXY.IP.eq(ip)).and(PROXY.PORT.eq(port))
-        //         .executeAsync(Executors.newSingleThreadExecutor());
-        //// 2.严格模式，同时删除数据库中此条代理
-        //// instance.proxy.deleteFrom(PROXY).where(PROXY.IP.eq(ip)).and(PROXY.PORT.eq(port)).executeAsync();
+        if (instance.proxies.size() == 0) {
+            instance.setProxies();
+        }
     }
 
     private static void emptyProxyNeedSleep(String url) {
@@ -220,7 +203,7 @@ public class ProxyService {
     public static Response jsoupExecute(Connection jsoupConnection, String regex) {
         final ProxyService instance = getInstance();
         while (true) {
-            jsoupConnection.timeout(MINUTES)
+            jsoupConnection.timeout(MINUTES/2)
                     .followRedirects(true)
                     .ignoreContentType(true);
             // 1. 从proxies中拿到一个代理，并设置给jsoupConnection

@@ -10,11 +10,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -25,18 +25,16 @@ import static com.danyl.spiders.constants.TimeConstants.DAYS;
 import static com.danyl.spiders.jooq.gen.dangdang.Tables.ITEM_CATEGORY;
 
 @Slf4j
-@EnableScheduling
 @Component
 public class DangDangTask {
 
-    @Autowired
-    @Qualifier("DSLContextDangDang")
+    @Resource(name = "DSLContextDangDang")
     private DSLContext dd;
 
     // 测试用
     private int limit = 5; // Integer.MAX_VALUE
 
-    @Scheduled(fixedDelay = DAYS)
+    @Scheduled(fixedDelay = DAYS * 3)
     public void crawlDangDangCid() {
         log.info("crawl cid start {}", new Date());
 

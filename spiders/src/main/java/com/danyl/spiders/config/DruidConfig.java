@@ -29,10 +29,4 @@ public class DruidConfig {
     public DataSource dataSourceNewVip() {
         return DruidDataSourceBuilder.create().build();
     }
-
-    @Bean(name = "dataSourceH2Test")
-    @ConfigurationProperties("spring.datasource.druid.h2test")
-    public DataSource dataSourceH2Test() {
-        return DruidDataSourceBuilder.create().build();
-    }
 }

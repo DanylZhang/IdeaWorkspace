@@ -4,9 +4,9 @@
 package com.danyl.spiders.jooq.gen.proxy.tables;
 
 
-import com.danyl.spiders.jooq.gen.proxy.DefaultSchema;
 import com.danyl.spiders.jooq.gen.proxy.Indexes;
 import com.danyl.spiders.jooq.gen.proxy.Keys;
+import com.danyl.spiders.jooq.gen.proxy.Public;
 import com.danyl.spiders.jooq.gen.proxy.tables.records.ProxyRecord;
 
 import java.time.LocalDateTime;
@@ -39,10 +39,10 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Proxy extends TableImpl<ProxyRecord> {
 
-    private static final long serialVersionUID = 1851969008;
+    private static final long serialVersionUID = -1269427176;
 
     /**
-     * The reference instance of <code>proxy</code>
+     * The reference instance of <code>PUBLIC.PROXY</code>
      */
     public static final Proxy PROXY = new Proxy();
 
@@ -55,56 +55,56 @@ public class Proxy extends TableImpl<ProxyRecord> {
     }
 
     /**
-     * The column <code>proxy.ip</code>.
+     * The column <code>PUBLIC.PROXY.IP</code>.
      */
-    public final TableField<ProxyRecord, String> IP = createField("ip", org.jooq.impl.SQLDataType.VARCHAR(45).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<ProxyRecord, String> IP = createField("IP", org.jooq.impl.SQLDataType.VARCHAR(30).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * The column <code>proxy.port</code>.
+     * The column <code>PUBLIC.PROXY.PORT</code>.
      */
-    public final TableField<ProxyRecord, Integer> PORT = createField("port", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<ProxyRecord, Integer> PORT = createField("PORT", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.INTEGER)), this, "");
 
     /**
-     * The column <code>proxy.speed</code>.
+     * The column <code>PUBLIC.PROXY.SPEED</code>.
      */
-    public final TableField<ProxyRecord, Integer> SPEED = createField("speed", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("60000", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<ProxyRecord, Integer> SPEED = createField("SPEED", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("60000", org.jooq.impl.SQLDataType.INTEGER)), this, "");
 
     /**
-     * The column <code>proxy.type</code>.
+     * The column <code>PUBLIC.PROXY.TYPE</code>.
      */
-    public final TableField<ProxyRecord, String> TYPE = createField("type", org.jooq.impl.SQLDataType.VARCHAR(15).defaultValue(org.jooq.impl.DSL.field("'http'", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<ProxyRecord, String> TYPE = createField("TYPE", org.jooq.impl.SQLDataType.VARCHAR(15).defaultValue(org.jooq.impl.DSL.field("'http'", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * The column <code>proxy.is_valid</code>.
+     * The column <code>PUBLIC.PROXY.IS_VALID</code>.
      */
-    public final TableField<ProxyRecord, Boolean> IS_VALID = createField("is_valid", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
+    public final TableField<ProxyRecord, Boolean> IS_VALID = createField("IS_VALID", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("FALSE", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
-     * The column <code>proxy.comment</code>.
+     * The column <code>PUBLIC.PROXY.COMMENT</code>.
      */
-    public final TableField<ProxyRecord, String> COMMENT = createField("comment", org.jooq.impl.SQLDataType.VARCHAR(45).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<ProxyRecord, String> COMMENT = createField("COMMENT", org.jooq.impl.SQLDataType.VARCHAR(45).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * The column <code>proxy.create_time</code>.
+     * The column <code>PUBLIC.PROXY.CREATE_TIME</code>.
      */
-    public final TableField<ProxyRecord, LocalDateTime> CREATE_TIME = createField("create_time", org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("datetime('now','localtime')", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "");
+    public final TableField<ProxyRecord, LocalDateTime> CREATE_TIME = createField("CREATE_TIME", org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP()", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "");
 
     /**
-     * Create a <code>proxy</code> table reference
+     * Create a <code>PUBLIC.PROXY</code> table reference
      */
     public Proxy() {
-        this(DSL.name("proxy"), null);
+        this(DSL.name("PROXY"), null);
     }
 
     /**
-     * Create an aliased <code>proxy</code> table reference
+     * Create an aliased <code>PUBLIC.PROXY</code> table reference
      */
     public Proxy(String alias) {
         this(DSL.name(alias), PROXY);
     }
 
     /**
-     * Create an aliased <code>proxy</code> table reference
+     * Create an aliased <code>PUBLIC.PROXY</code> table reference
      */
     public Proxy(Name alias) {
         this(alias, PROXY);
@@ -123,7 +123,7 @@ public class Proxy extends TableImpl<ProxyRecord> {
      */
     @Override
     public Schema getSchema() {
-        return DefaultSchema.DEFAULT_SCHEMA;
+        return Public.PUBLIC;
     }
 
     /**
@@ -131,7 +131,7 @@ public class Proxy extends TableImpl<ProxyRecord> {
      */
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.SQLITE_AUTOINDEX_PROXY_1);
+        return Arrays.<Index>asList(Indexes.PRIMARY_KEY_4);
     }
 
     /**
@@ -139,7 +139,7 @@ public class Proxy extends TableImpl<ProxyRecord> {
      */
     @Override
     public UniqueKey<ProxyRecord> getPrimaryKey() {
-        return Keys.PK_PROXY;
+        return Keys.CONSTRAINT_4;
     }
 
     /**
@@ -147,7 +147,7 @@ public class Proxy extends TableImpl<ProxyRecord> {
      */
     @Override
     public List<UniqueKey<ProxyRecord>> getKeys() {
-        return Arrays.<UniqueKey<ProxyRecord>>asList(Keys.PK_PROXY);
+        return Arrays.<UniqueKey<ProxyRecord>>asList(Keys.CONSTRAINT_4);
     }
 
     /**

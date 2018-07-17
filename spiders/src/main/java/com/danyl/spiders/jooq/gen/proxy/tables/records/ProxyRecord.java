@@ -30,10 +30,10 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Record7<String, Integer, Integer, String, Boolean, String, LocalDateTime> {
 
-    private static final long serialVersionUID = -438271350;
+    private static final long serialVersionUID = -1802980926;
 
     /**
-     * Setter for <code>proxy.ip</code>.
+     * Setter for <code>PUBLIC.PROXY.IP</code>.
      */
     public ProxyRecord setIp(String value) {
         set(0, value);
@@ -41,14 +41,14 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Getter for <code>proxy.ip</code>.
+     * Getter for <code>PUBLIC.PROXY.IP</code>.
      */
     public String getIp() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>proxy.port</code>.
+     * Setter for <code>PUBLIC.PROXY.PORT</code>.
      */
     public ProxyRecord setPort(Integer value) {
         set(1, value);
@@ -56,14 +56,14 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Getter for <code>proxy.port</code>.
+     * Getter for <code>PUBLIC.PROXY.PORT</code>.
      */
     public Integer getPort() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>proxy.speed</code>.
+     * Setter for <code>PUBLIC.PROXY.SPEED</code>.
      */
     public ProxyRecord setSpeed(Integer value) {
         set(2, value);
@@ -71,14 +71,14 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Getter for <code>proxy.speed</code>.
+     * Getter for <code>PUBLIC.PROXY.SPEED</code>.
      */
     public Integer getSpeed() {
         return (Integer) get(2);
     }
 
     /**
-     * Setter for <code>proxy.type</code>.
+     * Setter for <code>PUBLIC.PROXY.TYPE</code>.
      */
     public ProxyRecord setType(String value) {
         set(3, value);
@@ -86,14 +86,14 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Getter for <code>proxy.type</code>.
+     * Getter for <code>PUBLIC.PROXY.TYPE</code>.
      */
     public String getType() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>proxy.is_valid</code>.
+     * Setter for <code>PUBLIC.PROXY.IS_VALID</code>.
      */
     public ProxyRecord setIsValid(Boolean value) {
         set(4, value);
@@ -101,14 +101,14 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Getter for <code>proxy.is_valid</code>.
+     * Getter for <code>PUBLIC.PROXY.IS_VALID</code>.
      */
     public Boolean getIsValid() {
         return (Boolean) get(4);
     }
 
     /**
-     * Setter for <code>proxy.comment</code>.
+     * Setter for <code>PUBLIC.PROXY.COMMENT</code>.
      */
     public ProxyRecord setComment(String value) {
         set(5, value);
@@ -116,14 +116,14 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Getter for <code>proxy.comment</code>.
+     * Getter for <code>PUBLIC.PROXY.COMMENT</code>.
      */
     public String getComment() {
         return (String) get(5);
     }
 
     /**
-     * Setter for <code>proxy.create_time</code>.
+     * Setter for <code>PUBLIC.PROXY.CREATE_TIME</code>.
      */
     public ProxyRecord setCreateTime(LocalDateTime value) {
         set(6, value);
@@ -131,7 +131,7 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Getter for <code>proxy.create_time</code>.
+     * Getter for <code>PUBLIC.PROXY.CREATE_TIME</code>.
      */
     public LocalDateTime getCreateTime() {
         return (LocalDateTime) get(6);

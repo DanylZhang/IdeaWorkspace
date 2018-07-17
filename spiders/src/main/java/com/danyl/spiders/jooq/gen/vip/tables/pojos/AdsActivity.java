@@ -23,14 +23,15 @@ import javax.annotation.Generated;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class AdsActivity implements Serializable {
 
-    private static final long serialVersionUID = 2031522036;
+    private static final long serialVersionUID = -224285321;
 
     private Integer       id;
     private String        name;
     private Integer       type;
     private String        url;
     private String        img;
-    private LocalDateTime lastUpdateTime;
+    private LocalDateTime created;
+    private LocalDateTime modified;
 
     public AdsActivity() {}
 
@@ -40,7 +41,8 @@ public class AdsActivity implements Serializable {
         this.type = value.type;
         this.url = value.url;
         this.img = value.img;
-        this.lastUpdateTime = value.lastUpdateTime;
+        this.created = value.created;
+        this.modified = value.modified;
     }
 
     public AdsActivity(
@@ -49,14 +51,16 @@ public class AdsActivity implements Serializable {
         Integer       type,
         String        url,
         String        img,
-        LocalDateTime lastUpdateTime
+        LocalDateTime created,
+        LocalDateTime modified
     ) {
         this.id = id;
         this.name = name;
         this.type = type;
         this.url = url;
         this.img = img;
-        this.lastUpdateTime = lastUpdateTime;
+        this.created = created;
+        this.modified = modified;
     }
 
     public Integer getId() {
@@ -104,12 +108,21 @@ public class AdsActivity implements Serializable {
         return this;
     }
 
-    public LocalDateTime getLastUpdateTime() {
-        return this.lastUpdateTime;
+    public LocalDateTime getCreated() {
+        return this.created;
     }
 
-    public AdsActivity setLastUpdateTime(LocalDateTime lastUpdateTime) {
-        this.lastUpdateTime = lastUpdateTime;
+    public AdsActivity setCreated(LocalDateTime created) {
+        this.created = created;
+        return this;
+    }
+
+    public LocalDateTime getModified() {
+        return this.modified;
+    }
+
+    public AdsActivity setModified(LocalDateTime modified) {
+        this.modified = modified;
         return this;
     }
 
@@ -152,11 +165,17 @@ public class AdsActivity implements Serializable {
         }
         else if (!img.equals(other.img))
             return false;
-        if (lastUpdateTime == null) {
-            if (other.lastUpdateTime != null)
+        if (created == null) {
+            if (other.created != null)
                 return false;
         }
-        else if (!lastUpdateTime.equals(other.lastUpdateTime))
+        else if (!created.equals(other.created))
+            return false;
+        if (modified == null) {
+            if (other.modified != null)
+                return false;
+        }
+        else if (!modified.equals(other.modified))
             return false;
         return true;
     }
@@ -170,7 +189,8 @@ public class AdsActivity implements Serializable {
         result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
         result = prime * result + ((this.url == null) ? 0 : this.url.hashCode());
         result = prime * result + ((this.img == null) ? 0 : this.img.hashCode());
-        result = prime * result + ((this.lastUpdateTime == null) ? 0 : this.lastUpdateTime.hashCode());
+        result = prime * result + ((this.created == null) ? 0 : this.created.hashCode());
+        result = prime * result + ((this.modified == null) ? 0 : this.modified.hashCode());
         return result;
     }
 
@@ -183,7 +203,8 @@ public class AdsActivity implements Serializable {
         sb.append(", ").append(type);
         sb.append(", ").append(url);
         sb.append(", ").append(img);
-        sb.append(", ").append(lastUpdateTime);
+        sb.append(", ").append(created);
+        sb.append(", ").append(modified);
 
         sb.append(")");
         return sb.toString();

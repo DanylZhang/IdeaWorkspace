@@ -1,6 +1,6 @@
 package com.danyl.lscjszconcurrency.ch5;
 
-import com.danyl.learnjava.lscjszconcurrency.ch5.deadlock.DeadLockChecker;
+import com.danyl.lscjszconcurrency.ch5.deadlock.DeadLockChecker;
 
 import java.util.concurrent.locks.ReentrantLock;
 

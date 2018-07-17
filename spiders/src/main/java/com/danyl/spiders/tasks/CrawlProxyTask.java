@@ -10,9 +10,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,12 +22,10 @@ import static com.danyl.spiders.constants.TimeConstants.HOURS;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
-@EnableScheduling
 @Component
 public class CrawlProxyTask {
 
-    @Autowired
-    @Qualifier("DSLContextProxy")
+    @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
 
     @Scheduled(fixedDelay = HOURS)
@@ -37,7 +37,14 @@ public class CrawlProxyTask {
         executorService.execute(this::getip3366);
         executorService.execute(this::getkuaidaili);
         executorService.execute(this::getxicidaili);
-        executorService.shutdown();
+
+        // shutdown非阻塞，再使用awaitTermination进行阻塞等待
+        try {
+            executorService.awaitTermination(30, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        executorService.shutdownNow();
     }
 
     // 小六代理

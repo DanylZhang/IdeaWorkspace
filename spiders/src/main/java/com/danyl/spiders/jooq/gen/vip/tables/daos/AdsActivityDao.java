@@ -101,9 +101,16 @@ public class AdsActivityDao extends DAOImpl<AdsActivityRecord, com.danyl.spiders
     }
 
     /**
-     * Fetch records that have <code>last_update_time IN (values)</code>
+     * Fetch records that have <code>created IN (values)</code>
      */
-    public List<com.danyl.spiders.jooq.gen.vip.tables.pojos.AdsActivity> fetchByLastUpdateTime(LocalDateTime... values) {
-        return fetch(AdsActivity.ADS_ACTIVITY.LAST_UPDATE_TIME, values);
+    public List<com.danyl.spiders.jooq.gen.vip.tables.pojos.AdsActivity> fetchByCreated(LocalDateTime... values) {
+        return fetch(AdsActivity.ADS_ACTIVITY.CREATED, values);
+    }
+
+    /**
+     * Fetch records that have <code>modified IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.vip.tables.pojos.AdsActivity> fetchByModified(LocalDateTime... values) {
+        return fetch(AdsActivity.ADS_ACTIVITY.MODIFIED, values);
     }
 }

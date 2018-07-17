@@ -14,7 +14,7 @@ import org.jooq.impl.Internal;
 
 
 /**
- * A class modelling indexes of tables of the <code></code> schema.
+ * A class modelling indexes of tables of the <code>PUBLIC</code> schema.
  */
 @Generated(
     value = {
@@ -30,13 +30,13 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
-    public static final Index SQLITE_AUTOINDEX_PROXY_1 = Indexes0.SQLITE_AUTOINDEX_PROXY_1;
+    public static final Index PRIMARY_KEY_4 = Indexes0.PRIMARY_KEY_4;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
     // -------------------------------------------------------------------------
 
     private static class Indexes0 {
-        public static Index SQLITE_AUTOINDEX_PROXY_1 = Internal.createIndex("sqlite_autoindex_proxy_1", Proxy.PROXY, new OrderField[] { Proxy.PROXY.IP, Proxy.PROXY.PORT }, true);
+        public static Index PRIMARY_KEY_4 = Internal.createIndex("PRIMARY_KEY_4", Proxy.PROXY, new OrderField[] { Proxy.PROXY.IP, Proxy.PROXY.PORT }, true);
     }
 }

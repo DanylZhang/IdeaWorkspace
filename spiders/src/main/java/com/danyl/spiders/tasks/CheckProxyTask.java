@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.ArrayList;
@@ -28,16 +29,14 @@ import static com.danyl.spiders.constants.TimeConstants.MINUTES;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
-@EnableScheduling
 @Component
 public class CheckProxyTask {
 
-    @Autowired
-    @Qualifier("DSLContextProxy")
+    @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
 
     // 校验当当网可用的代理
-    @Scheduled(fixedDelay = MINUTES * 30)
+    @Scheduled(fixedDelay = MINUTES * 10)
     public void ddCheckProxy() {
         String url = "http://category.dangdang.com/cid4002389.html";
         String regex = "帆布鞋";
@@ -45,7 +44,7 @@ public class CheckProxyTask {
     }
 
     // 校验唯品会可用的代理
-    @Scheduled(fixedDelay = MINUTES * 30)
+    @Scheduled(fixedDelay = MINUTES * 10)
     public void vipCheckProxy() {
         String url = "https://www.vip.com/";
         String regex = "ADS\\w{5}";
@@ -53,7 +52,7 @@ public class CheckProxyTask {
     }
 
     // 更新可用代理的comment位置信息
-    @Scheduled(fixedDelay = MINUTES * 15)
+    @Scheduled(fixedDelay = MINUTES * 30)
     public void updateProxyComment() {
         log.info("update proxy's comment start {}", new Date());
 
@@ -95,13 +94,14 @@ public class CheckProxyTask {
                 });
 
         // 别忘了关闭局部变量的线程池
-        customExecutor.shutdown();
+        customExecutor.shutdownNow();
+        log.info("update proxy's comment end {}", new Date());
     }
 
     private void checkProxy(String url, String regex) {
         log.info("check proxy start {}", new Date());
 
-        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(3, 300, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(10000, false), (r, executor) -> log.error("too many proxy validate, drop it!"));
+        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(3, 300, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(100000, false), (r, executor) -> log.error("too many proxy validate, drop it!"));
         proxy.selectFrom(PROXY)
                 .fetch()
                 .stream()
@@ -133,7 +133,8 @@ public class CheckProxyTask {
                 });
 
         // 别忘了关闭局部变量的线程池
-        customExecutor.shutdown();
+        customExecutor.shutdownNow();
+        log.info("check proxy end {}", new Date());
     }
 
     /**
@@ -145,9 +146,9 @@ public class CheckProxyTask {
         HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
 
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(20, TimeUnit.SECONDS)
-                .readTimeout(20, TimeUnit.SECONDS)
-                .writeTimeout(20, TimeUnit.SECONDS)
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
                 .proxy(proxy)
                 .cookieJar(new CookieJar() {
                     @Override
@@ -166,28 +167,20 @@ public class CheckProxyTask {
                 .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
                 .build();
         Call call = okHttpClient.newCall(request);
-        Response response = null;
-        try {
-            long start = System.currentTimeMillis();
-            response = call.execute();
+        long start = System.currentTimeMillis();
+        try (Response response = call.execute()) {
             long end = System.currentTimeMillis();
             int costTime = (int) (end - start);
-            if (costTime > MINUTES) {
+            // 超过半分钟就算超时
+            if (costTime > MINUTES/2) {
                 return Pair.of(false, costTime);
             }
 
             String res = response.body().string();
             if (Pattern.compile(regex).matcher(res).find()) {
                 return Pair.of(true, costTime);
-            } else {
-                log.error("validate proxy failed: Proxy have unexpected response");
             }
-        } catch (Exception e) {
-            log.error("validate proxy failed: {}", e.getMessage());
-        } finally {
-            if (response != null) {
-                response.close();
-            }
+        } catch (Exception ignored) {
         }
         return Pair.of(false, Integer.MAX_VALUE);
     }

@@ -1,0 +1,23 @@
+spring:
+  profiles:
+    active: dev
+  # session会话存储类型
+  session:
+    store-type: hash_map
+  thymeleaf:
+    mode: HTML
+    prefix: classpath:/templates/
+    suffix: .html
+  security:
+    user:
+      name: user
+      password: user
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+
+server:
+  error:
+    whitelabel:
+      enabled: false

@@ -53,49 +53,49 @@ public class ProxyDao extends DAOImpl<ProxyRecord, com.danyl.spiders.jooq.gen.pr
     }
 
     /**
-     * Fetch records that have <code>ip IN (values)</code>
+     * Fetch records that have <code>IP IN (values)</code>
      */
     public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByIp(String... values) {
         return fetch(Proxy.PROXY.IP, values);
     }
 
     /**
-     * Fetch records that have <code>port IN (values)</code>
+     * Fetch records that have <code>PORT IN (values)</code>
      */
     public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByPort(Integer... values) {
         return fetch(Proxy.PROXY.PORT, values);
     }
 
     /**
-     * Fetch records that have <code>speed IN (values)</code>
+     * Fetch records that have <code>SPEED IN (values)</code>
      */
     public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchBySpeed(Integer... values) {
         return fetch(Proxy.PROXY.SPEED, values);
     }
 
     /**
-     * Fetch records that have <code>type IN (values)</code>
+     * Fetch records that have <code>TYPE IN (values)</code>
      */
     public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByType(String... values) {
         return fetch(Proxy.PROXY.TYPE, values);
     }
 
     /**
-     * Fetch records that have <code>is_valid IN (values)</code>
+     * Fetch records that have <code>IS_VALID IN (values)</code>
      */
     public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByIsValid(Boolean... values) {
         return fetch(Proxy.PROXY.IS_VALID, values);
     }
 
     /**
-     * Fetch records that have <code>comment IN (values)</code>
+     * Fetch records that have <code>COMMENT IN (values)</code>
      */
     public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByComment(String... values) {
         return fetch(Proxy.PROXY.COMMENT, values);
     }
 
     /**
-     * Fetch records that have <code>create_time IN (values)</code>
+     * Fetch records that have <code>CREATE_TIME IN (values)</code>
      */
     public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByCreateTime(LocalDateTime... values) {
         return fetch(Proxy.PROXY.CREATE_TIME, values);
