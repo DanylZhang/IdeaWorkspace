@@ -51,28 +51,28 @@ public class PermissionDao extends DAOImpl<PermissionRecord, com.danyl.shiro.joo
     }
 
     /**
-     * Fetch records that have <code>pid IN (values)</code>
+     * Fetch records that have <code>PID IN (values)</code>
      */
     public List<com.danyl.shiro.jooq.gen.shiro.tables.pojos.Permission> fetchByPid(Integer... values) {
         return fetch(Permission.PERMISSION.PID, values);
     }
 
     /**
-     * Fetch a unique record that has <code>pid = value</code>
+     * Fetch a unique record that has <code>PID = value</code>
      */
     public com.danyl.shiro.jooq.gen.shiro.tables.pojos.Permission fetchOneByPid(Integer value) {
         return fetchOne(Permission.PERMISSION.PID, value);
     }
 
     /**
-     * Fetch records that have <code>name IN (values)</code>
+     * Fetch records that have <code>NAME IN (values)</code>
      */
     public List<com.danyl.shiro.jooq.gen.shiro.tables.pojos.Permission> fetchByName(String... values) {
         return fetch(Permission.PERMISSION.NAME, values);
     }
 
     /**
-     * Fetch records that have <code>url IN (values)</code>
+     * Fetch records that have <code>URL IN (values)</code>
      */
     public List<com.danyl.shiro.jooq.gen.shiro.tables.pojos.Permission> fetchByUrl(String... values) {
         return fetch(Permission.PERMISSION.URL, values);

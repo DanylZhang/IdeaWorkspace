@@ -27,10 +27,10 @@ import org.jooq.impl.TableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class PermissionRoleRecord extends TableRecordImpl<PermissionRoleRecord> implements Record2<Integer, Integer> {
 
-    private static final long serialVersionUID = 1972151291;
+    private static final long serialVersionUID = -1249482087;
 
     /**
-     * Setter for <code>permission_role.rid</code>.
+     * Setter for <code>PUBLIC.PERMISSION_ROLE.RID</code>.
      */
     public PermissionRoleRecord setRid(Integer value) {
         set(0, value);
@@ -38,14 +38,14 @@ public class PermissionRoleRecord extends TableRecordImpl<PermissionRoleRecord> 
     }
 
     /**
-     * Getter for <code>permission_role.rid</code>.
+     * Getter for <code>PUBLIC.PERMISSION_ROLE.RID</code>.
      */
     public Integer getRid() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>permission_role.pid</code>.
+     * Setter for <code>PUBLIC.PERMISSION_ROLE.PID</code>.
      */
     public PermissionRoleRecord setPid(Integer value) {
         set(1, value);
@@ -53,7 +53,7 @@ public class PermissionRoleRecord extends TableRecordImpl<PermissionRoleRecord> 
     }
 
     /**
-     * Getter for <code>permission_role.pid</code>.
+     * Getter for <code>PUBLIC.PERMISSION_ROLE.PID</code>.
      */
     public Integer getPid() {
         return (Integer) get(1);

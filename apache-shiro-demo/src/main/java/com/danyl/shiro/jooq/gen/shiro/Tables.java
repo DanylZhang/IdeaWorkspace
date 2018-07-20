@@ -14,7 +14,7 @@ import javax.annotation.Generated;
 
 
 /**
- * Convenience access to all tables in 
+ * Convenience access to all tables in PUBLIC
  */
 @Generated(
     value = {
@@ -27,27 +27,27 @@ import javax.annotation.Generated;
 public class Tables {
 
     /**
-     * The table <code>permission</code>.
+     * The table <code>PUBLIC.PERMISSION</code>.
      */
     public static final Permission PERMISSION = com.danyl.shiro.jooq.gen.shiro.tables.Permission.PERMISSION;
 
     /**
-     * The table <code>permission_role</code>.
+     * The table <code>PUBLIC.PERMISSION_ROLE</code>.
      */
     public static final PermissionRole PERMISSION_ROLE = com.danyl.shiro.jooq.gen.shiro.tables.PermissionRole.PERMISSION_ROLE;
 
     /**
-     * The table <code>role</code>.
+     * The table <code>PUBLIC.ROLE</code>.
      */
     public static final Role ROLE = com.danyl.shiro.jooq.gen.shiro.tables.Role.ROLE;
 
     /**
-     * The table <code>user</code>.
+     * The table <code>PUBLIC.USER</code>.
      */
     public static final User USER = com.danyl.shiro.jooq.gen.shiro.tables.User.USER;
 
     /**
-     * The table <code>user_role</code>.
+     * The table <code>PUBLIC.USER_ROLE</code>.
      */
     public static final UserRole USER_ROLE = com.danyl.shiro.jooq.gen.shiro.tables.UserRole.USER_ROLE;
 }

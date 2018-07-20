@@ -4,8 +4,8 @@
 package com.danyl.shiro.jooq.gen.shiro.tables;
 
 
-import com.danyl.shiro.jooq.gen.shiro.DefaultSchema;
 import com.danyl.shiro.jooq.gen.shiro.Indexes;
+import com.danyl.shiro.jooq.gen.shiro.Public;
 import com.danyl.shiro.jooq.gen.shiro.tables.records.UserRoleRecord;
 
 import java.util.Arrays;
@@ -36,10 +36,10 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class UserRole extends TableImpl<UserRoleRecord> {
 
-    private static final long serialVersionUID = -1001846592;
+    private static final long serialVersionUID = -164863924;
 
     /**
-     * The reference instance of <code>user_role</code>
+     * The reference instance of <code>PUBLIC.USER_ROLE</code>
      */
     public static final UserRole USER_ROLE = new UserRole();
 
@@ -52,31 +52,31 @@ public class UserRole extends TableImpl<UserRoleRecord> {
     }
 
     /**
-     * The column <code>user_role.uid</code>.
+     * The column <code>PUBLIC.USER_ROLE.UID</code>.
      */
-    public final TableField<UserRoleRecord, Integer> UID = createField("uid", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<UserRoleRecord, Integer> UID = createField("UID", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>user_role.rid</code>.
+     * The column <code>PUBLIC.USER_ROLE.RID</code>.
      */
-    public final TableField<UserRoleRecord, Integer> RID = createField("rid", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<UserRoleRecord, Integer> RID = createField("RID", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * Create a <code>user_role</code> table reference
+     * Create a <code>PUBLIC.USER_ROLE</code> table reference
      */
     public UserRole() {
-        this(DSL.name("user_role"), null);
+        this(DSL.name("USER_ROLE"), null);
     }
 
     /**
-     * Create an aliased <code>user_role</code> table reference
+     * Create an aliased <code>PUBLIC.USER_ROLE</code> table reference
      */
     public UserRole(String alias) {
         this(DSL.name(alias), USER_ROLE);
     }
 
     /**
-     * Create an aliased <code>user_role</code> table reference
+     * Create an aliased <code>PUBLIC.USER_ROLE</code> table reference
      */
     public UserRole(Name alias) {
         this(alias, USER_ROLE);
@@ -95,7 +95,7 @@ public class UserRole extends TableImpl<UserRoleRecord> {
      */
     @Override
     public Schema getSchema() {
-        return DefaultSchema.DEFAULT_SCHEMA;
+        return Public.PUBLIC;
     }
 
     /**
@@ -103,7 +103,7 @@ public class UserRole extends TableImpl<UserRoleRecord> {
      */
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.IDX_UID, Indexes.IDX_USER_RID);
+        return Arrays.<Index>asList(Indexes.IDX_UID, Indexes.IDX_UR_RID);
     }
 
     /**

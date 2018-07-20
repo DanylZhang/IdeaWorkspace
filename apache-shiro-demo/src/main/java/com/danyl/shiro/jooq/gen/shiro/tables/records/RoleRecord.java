@@ -28,10 +28,10 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class RoleRecord extends UpdatableRecordImpl<RoleRecord> implements Record2<Integer, String> {
 
-    private static final long serialVersionUID = -877879734;
+    private static final long serialVersionUID = 1062222740;
 
     /**
-     * Setter for <code>role.rid</code>.
+     * Setter for <code>PUBLIC.ROLE.RID</code>.
      */
     public RoleRecord setRid(Integer value) {
         set(0, value);
@@ -39,14 +39,14 @@ public class RoleRecord extends UpdatableRecordImpl<RoleRecord> implements Recor
     }
 
     /**
-     * Getter for <code>role.rid</code>.
+     * Getter for <code>PUBLIC.ROLE.RID</code>.
      */
     public Integer getRid() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>role.rname</code>.
+     * Setter for <code>PUBLIC.ROLE.RNAME</code>.
      */
     public RoleRecord setRname(String value) {
         set(1, value);
@@ -54,7 +54,7 @@ public class RoleRecord extends UpdatableRecordImpl<RoleRecord> implements Recor
     }
 
     /**
-     * Getter for <code>role.rname</code>.
+     * Getter for <code>PUBLIC.ROLE.RNAME</code>.
      */
     public String getRname() {
         return (String) get(1);

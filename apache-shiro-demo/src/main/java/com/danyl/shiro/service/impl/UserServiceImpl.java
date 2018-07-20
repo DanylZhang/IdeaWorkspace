@@ -4,7 +4,6 @@ import com.danyl.shiro.model.Permission;
 import com.danyl.shiro.model.Role;
 import com.danyl.shiro.model.User;
 import com.danyl.shiro.service.UserService;
-import org.apache.shiro.authz.permission.InvalidPermissionStringException;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -14,8 +13,6 @@ import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 import static com.danyl.shiro.jooq.gen.shiro.Tables.*;

@@ -41,7 +41,7 @@ public class VipAdsTask {
     @Resource(name = "DSLContextNewVip")
     private DSLContext create;
 
-    @Scheduled(fixedDelay = HOURS * 4)
+    @Scheduled(fixedDelay = HOURS * 6)
     public void crawlVipAds() {
         log.info("crawl vip ads start {}", new Date());
 

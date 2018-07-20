@@ -4,8 +4,9 @@
 package com.danyl.shiro.jooq.gen.shiro.tables;
 
 
-import com.danyl.shiro.jooq.gen.shiro.DefaultSchema;
+import com.danyl.shiro.jooq.gen.shiro.Indexes;
 import com.danyl.shiro.jooq.gen.shiro.Keys;
+import com.danyl.shiro.jooq.gen.shiro.Public;
 import com.danyl.shiro.jooq.gen.shiro.tables.records.UserRecord;
 
 import java.util.Arrays;
@@ -15,6 +16,7 @@ import javax.annotation.Generated;
 
 import org.jooq.Field;
 import org.jooq.Identity;
+import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Schema;
 import org.jooq.Table;
@@ -37,10 +39,10 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class User extends TableImpl<UserRecord> {
 
-    private static final long serialVersionUID = -1111139537;
+    private static final long serialVersionUID = -533069811;
 
     /**
-     * The reference instance of <code>user</code>
+     * The reference instance of <code>PUBLIC.USER</code>
      */
     public static final User USER = new User();
 
@@ -53,36 +55,36 @@ public class User extends TableImpl<UserRecord> {
     }
 
     /**
-     * The column <code>user.uid</code>.
+     * The column <code>PUBLIC.USER.UID</code>.
      */
-    public final TableField<UserRecord, Integer> UID = createField("uid", org.jooq.impl.SQLDataType.INTEGER.nullable(false).identity(true), this, "");
+    public final TableField<UserRecord, Integer> UID = createField("UID", org.jooq.impl.SQLDataType.INTEGER.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>user.username</code>.
+     * The column <code>PUBLIC.USER.USERNAME</code>.
      */
-    public final TableField<UserRecord, String> USERNAME = createField("username", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<UserRecord, String> USERNAME = createField("USERNAME", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * The column <code>user.password</code>.
+     * The column <code>PUBLIC.USER.PASSWORD</code>.
      */
-    public final TableField<UserRecord, String> PASSWORD = createField("password", org.jooq.impl.SQLDataType.VARCHAR(512).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<UserRecord, String> PASSWORD = createField("PASSWORD", org.jooq.impl.SQLDataType.VARCHAR(512).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * Create a <code>user</code> table reference
+     * Create a <code>PUBLIC.USER</code> table reference
      */
     public User() {
-        this(DSL.name("user"), null);
+        this(DSL.name("USER"), null);
     }
 
     /**
-     * Create an aliased <code>user</code> table reference
+     * Create an aliased <code>PUBLIC.USER</code> table reference
      */
     public User(String alias) {
         this(DSL.name(alias), USER);
     }
 
     /**
-     * Create an aliased <code>user</code> table reference
+     * Create an aliased <code>PUBLIC.USER</code> table reference
      */
     public User(Name alias) {
         this(alias, USER);
@@ -101,7 +103,15 @@ public class User extends TableImpl<UserRecord> {
      */
     @Override
     public Schema getSchema() {
-        return DefaultSchema.DEFAULT_SCHEMA;
+        return Public.PUBLIC;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Index> getIndexes() {
+        return Arrays.<Index>asList(Indexes.PRIMARY_KEY_2);
     }
 
     /**
@@ -117,7 +127,7 @@ public class User extends TableImpl<UserRecord> {
      */
     @Override
     public UniqueKey<UserRecord> getPrimaryKey() {
-        return Keys.PK_USER;
+        return Keys.CONSTRAINT_2;
     }
 
     /**
@@ -125,7 +135,7 @@ public class User extends TableImpl<UserRecord> {
      */
     @Override
     public List<UniqueKey<UserRecord>> getKeys() {
-        return Arrays.<UniqueKey<UserRecord>>asList(Keys.PK_USER);
+        return Arrays.<UniqueKey<UserRecord>>asList(Keys.CONSTRAINT_2);
     }
 
     /**

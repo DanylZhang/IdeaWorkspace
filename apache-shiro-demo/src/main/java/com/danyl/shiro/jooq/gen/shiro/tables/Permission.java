@@ -4,8 +4,9 @@
 package com.danyl.shiro.jooq.gen.shiro.tables;
 
 
-import com.danyl.shiro.jooq.gen.shiro.DefaultSchema;
+import com.danyl.shiro.jooq.gen.shiro.Indexes;
 import com.danyl.shiro.jooq.gen.shiro.Keys;
+import com.danyl.shiro.jooq.gen.shiro.Public;
 import com.danyl.shiro.jooq.gen.shiro.tables.records.PermissionRecord;
 
 import java.util.Arrays;
@@ -15,6 +16,7 @@ import javax.annotation.Generated;
 
 import org.jooq.Field;
 import org.jooq.Identity;
+import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Schema;
 import org.jooq.Table;
@@ -37,10 +39,10 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Permission extends TableImpl<PermissionRecord> {
 
-    private static final long serialVersionUID = -1991570516;
+    private static final long serialVersionUID = 642903344;
 
     /**
-     * The reference instance of <code>permission</code>
+     * The reference instance of <code>PUBLIC.PERMISSION</code>
      */
     public static final Permission PERMISSION = new Permission();
 
@@ -53,36 +55,36 @@ public class Permission extends TableImpl<PermissionRecord> {
     }
 
     /**
-     * The column <code>permission.pid</code>.
+     * The column <code>PUBLIC.PERMISSION.PID</code>.
      */
-    public final TableField<PermissionRecord, Integer> PID = createField("pid", org.jooq.impl.SQLDataType.INTEGER.nullable(false).identity(true), this, "");
+    public final TableField<PermissionRecord, Integer> PID = createField("PID", org.jooq.impl.SQLDataType.INTEGER.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>permission.name</code>.
+     * The column <code>PUBLIC.PERMISSION.NAME</code>.
      */
-    public final TableField<PermissionRecord, String> NAME = createField("name", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<PermissionRecord, String> NAME = createField("NAME", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * The column <code>permission.url</code>.
+     * The column <code>PUBLIC.PERMISSION.URL</code>.
      */
-    public final TableField<PermissionRecord, String> URL = createField("url", org.jooq.impl.SQLDataType.VARCHAR(512).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<PermissionRecord, String> URL = createField("URL", org.jooq.impl.SQLDataType.VARCHAR(512).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * Create a <code>permission</code> table reference
+     * Create a <code>PUBLIC.PERMISSION</code> table reference
      */
     public Permission() {
-        this(DSL.name("permission"), null);
+        this(DSL.name("PERMISSION"), null);
     }
 
     /**
-     * Create an aliased <code>permission</code> table reference
+     * Create an aliased <code>PUBLIC.PERMISSION</code> table reference
      */
     public Permission(String alias) {
         this(DSL.name(alias), PERMISSION);
     }
 
     /**
-     * Create an aliased <code>permission</code> table reference
+     * Create an aliased <code>PUBLIC.PERMISSION</code> table reference
      */
     public Permission(Name alias) {
         this(alias, PERMISSION);
@@ -101,7 +103,15 @@ public class Permission extends TableImpl<PermissionRecord> {
      */
     @Override
     public Schema getSchema() {
-        return DefaultSchema.DEFAULT_SCHEMA;
+        return Public.PUBLIC;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Index> getIndexes() {
+        return Arrays.<Index>asList(Indexes.PRIMARY_KEY_F);
     }
 
     /**
@@ -117,7 +127,7 @@ public class Permission extends TableImpl<PermissionRecord> {
      */
     @Override
     public UniqueKey<PermissionRecord> getPrimaryKey() {
-        return Keys.PK_PERMISSION;
+        return Keys.CONSTRAINT_F;
     }
 
     /**
@@ -125,7 +135,7 @@ public class Permission extends TableImpl<PermissionRecord> {
      */
     @Override
     public List<UniqueKey<PermissionRecord>> getKeys() {
-        return Arrays.<UniqueKey<PermissionRecord>>asList(Keys.PK_PERMISSION);
+        return Arrays.<UniqueKey<PermissionRecord>>asList(Keys.CONSTRAINT_F);
     }
 
     /**

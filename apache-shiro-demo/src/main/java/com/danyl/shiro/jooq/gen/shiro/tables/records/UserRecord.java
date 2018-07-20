@@ -28,10 +28,10 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class UserRecord extends UpdatableRecordImpl<UserRecord> implements Record3<Integer, String, String> {
 
-    private static final long serialVersionUID = -1349737931;
+    private static final long serialVersionUID = -1156424851;
 
     /**
-     * Setter for <code>user.uid</code>.
+     * Setter for <code>PUBLIC.USER.UID</code>.
      */
     public UserRecord setUid(Integer value) {
         set(0, value);
@@ -39,14 +39,14 @@ public class UserRecord extends UpdatableRecordImpl<UserRecord> implements Recor
     }
 
     /**
-     * Getter for <code>user.uid</code>.
+     * Getter for <code>PUBLIC.USER.UID</code>.
      */
     public Integer getUid() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>user.username</code>.
+     * Setter for <code>PUBLIC.USER.USERNAME</code>.
      */
     public UserRecord setUsername(String value) {
         set(1, value);
@@ -54,14 +54,14 @@ public class UserRecord extends UpdatableRecordImpl<UserRecord> implements Recor
     }
 
     /**
-     * Getter for <code>user.username</code>.
+     * Getter for <code>PUBLIC.USER.USERNAME</code>.
      */
     public String getUsername() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>user.password</code>.
+     * Setter for <code>PUBLIC.USER.PASSWORD</code>.
      */
     public UserRecord setPassword(String value) {
         set(2, value);
@@ -69,7 +69,7 @@ public class UserRecord extends UpdatableRecordImpl<UserRecord> implements Recor
     }
 
     /**
-     * Getter for <code>user.password</code>.
+     * Getter for <code>PUBLIC.USER.PASSWORD</code>.
      */
     public String getPassword() {
         return (String) get(2);

@@ -20,7 +20,7 @@ import org.jooq.impl.Internal;
 
 /**
  * A class modelling foreign key relationships and constraints of tables of 
- * the <code></code> schema.
+ * the <code>PUBLIC</code> schema.
  */
 @Generated(
     value = {
@@ -44,9 +44,9 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<PermissionRecord> PK_PERMISSION = UniqueKeys0.PK_PERMISSION;
-    public static final UniqueKey<RoleRecord> PK_ROLE = UniqueKeys0.PK_ROLE;
-    public static final UniqueKey<UserRecord> PK_USER = UniqueKeys0.PK_USER;
+    public static final UniqueKey<PermissionRecord> CONSTRAINT_F = UniqueKeys0.CONSTRAINT_F;
+    public static final UniqueKey<RoleRecord> CONSTRAINT_26 = UniqueKeys0.CONSTRAINT_26;
+    public static final UniqueKey<UserRecord> CONSTRAINT_2 = UniqueKeys0.CONSTRAINT_2;
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions
@@ -64,8 +64,8 @@ public class Keys {
     }
 
     private static class UniqueKeys0 {
-        public static final UniqueKey<PermissionRecord> PK_PERMISSION = Internal.createUniqueKey(Permission.PERMISSION, "pk_permission", Permission.PERMISSION.PID);
-        public static final UniqueKey<RoleRecord> PK_ROLE = Internal.createUniqueKey(Role.ROLE, "pk_role", Role.ROLE.RID);
-        public static final UniqueKey<UserRecord> PK_USER = Internal.createUniqueKey(User.USER, "pk_user", User.USER.UID);
+        public static final UniqueKey<PermissionRecord> CONSTRAINT_F = Internal.createUniqueKey(Permission.PERMISSION, "CONSTRAINT_F", Permission.PERMISSION.PID);
+        public static final UniqueKey<RoleRecord> CONSTRAINT_26 = Internal.createUniqueKey(Role.ROLE, "CONSTRAINT_26", Role.ROLE.RID);
+        public static final UniqueKey<UserRecord> CONSTRAINT_2 = Internal.createUniqueKey(User.USER, "CONSTRAINT_2", User.USER.UID);
     }
 }

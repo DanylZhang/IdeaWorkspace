@@ -3,21 +3,20 @@
 
     <!-- Configure the database connection here -->
     <jdbc>
-        <driver>org.sqlite.JDBC</driver>
-        <url>jdbc:sqlite:C:\Users\DELL\Documents\IdeaWorkspace\spiders\src\main\resources\spiders.sqlite3</url>
-        <user></user>
+        <driver>org.h2.Driver</driver>
+        <url>jdbc:h2:file:C:\Users\DELL\Documents\IdeaWorkspace\shiro</url>
+        <user>sa</user>
         <password></password>
     </jdbc>
 
     <generator>
         <database>
-            <name>org.jooq.util.sqlite.SQLiteDatabase</name>
+            <name>org.jooq.util.h2.H2Database</name>
+            <!--数据库名称，不填默认生成所有-->
+            <inputSchema>PUBLIC</inputSchema>
             <!--include和exclude用于控制为数据库中哪些表生成代码-->
             <includes>user|role|permission|user_role|permission_role</includes>
-            <excludes>sqlite_master</excludes>
-
-            <!--数据库名称，不填默认生成所有-->
-            <inputSchema></inputSchema>
+            <excludes></excludes>
 
             <!--不要Unsigned Integer-->
             <unsignedTypes>false</unsignedTypes>

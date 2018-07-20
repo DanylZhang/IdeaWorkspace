@@ -51,21 +51,21 @@ public class RoleDao extends DAOImpl<RoleRecord, com.danyl.shiro.jooq.gen.shiro.
     }
 
     /**
-     * Fetch records that have <code>rid IN (values)</code>
+     * Fetch records that have <code>RID IN (values)</code>
      */
     public List<com.danyl.shiro.jooq.gen.shiro.tables.pojos.Role> fetchByRid(Integer... values) {
         return fetch(Role.ROLE.RID, values);
     }
 
     /**
-     * Fetch a unique record that has <code>rid = value</code>
+     * Fetch a unique record that has <code>RID = value</code>
      */
     public com.danyl.shiro.jooq.gen.shiro.tables.pojos.Role fetchOneByRid(Integer value) {
         return fetchOne(Role.ROLE.RID, value);
     }
 
     /**
-     * Fetch records that have <code>rname IN (values)</code>
+     * Fetch records that have <code>RNAME IN (values)</code>
      */
     public List<com.danyl.shiro.jooq.gen.shiro.tables.pojos.Role> fetchByRname(String... values) {
         return fetch(Role.ROLE.RNAME, values);

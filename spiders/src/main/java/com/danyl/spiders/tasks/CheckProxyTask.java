@@ -8,6 +8,7 @@ import okhttp3.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -34,7 +35,7 @@ public class CheckProxyTask {
     private DSLContext proxy;
 
     // 校验可用的代理
-    @Scheduled(fixedDelay = MINUTES * 5)
+    @Scheduled(fixedDelay = MINUTES * 10)
     public void checkProxy() {
         ImmutableMap<String, String> validateUrlMap = new ImmutableMap.Builder<String, String>()
                 .put("http://category.dangdang.com/cid4002389.html", "帆布鞋")
@@ -134,6 +135,40 @@ public class CheckProxyTask {
      * @param regex 校验正则表达式
      */
     private static Pair<Boolean, Integer> doCheckProxy(Proxy proxy, String url, String regex) {
+        Integer timeout = MINUTES / 2;
+        Connection connection = Jsoup.connect(url)
+                .referrer(url)
+                .timeout(timeout)
+                .proxy(proxy)
+                .followRedirects(true)
+                .ignoreContentType(true)
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
+        long start = System.currentTimeMillis();
+        try {
+            Connection.Response response = connection.execute();
+            long end = System.currentTimeMillis();
+            int costTime = (int) (end - start);
+            // 超过半分钟就算超时
+            if (costTime > timeout) {
+                return Pair.of(false, costTime);
+            }
+
+            String res = response.body();
+            if (Pattern.compile(regex).matcher(res).find()) {
+                return Pair.of(true, costTime);
+            }
+        } catch (Exception ignored) {
+        }
+        return Pair.of(false, Integer.MAX_VALUE);
+    }
+
+    /**
+     * @param proxy 要检查的代理
+     * @param url   通过此url测试连通性
+     * @param regex 校验正则表达式
+     */
+    @Deprecated
+    private static Pair<Boolean, Integer> doCheckProxy0(Proxy proxy, String url, String regex) {
         HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
 
         OkHttpClient okHttpClient = new OkHttpClient.Builder()

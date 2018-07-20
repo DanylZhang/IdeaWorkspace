@@ -28,10 +28,10 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class PermissionRecord extends UpdatableRecordImpl<PermissionRecord> implements Record3<Integer, String, String> {
 
-    private static final long serialVersionUID = -1881544521;
+    private static final long serialVersionUID = 133134687;
 
     /**
-     * Setter for <code>permission.pid</code>.
+     * Setter for <code>PUBLIC.PERMISSION.PID</code>.
      */
     public PermissionRecord setPid(Integer value) {
         set(0, value);
@@ -39,14 +39,14 @@ public class PermissionRecord extends UpdatableRecordImpl<PermissionRecord> impl
     }
 
     /**
-     * Getter for <code>permission.pid</code>.
+     * Getter for <code>PUBLIC.PERMISSION.PID</code>.
      */
     public Integer getPid() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>permission.name</code>.
+     * Setter for <code>PUBLIC.PERMISSION.NAME</code>.
      */
     public PermissionRecord setName(String value) {
         set(1, value);
@@ -54,14 +54,14 @@ public class PermissionRecord extends UpdatableRecordImpl<PermissionRecord> impl
     }
 
     /**
-     * Getter for <code>permission.name</code>.
+     * Getter for <code>PUBLIC.PERMISSION.NAME</code>.
      */
     public String getName() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>permission.url</code>.
+     * Setter for <code>PUBLIC.PERMISSION.URL</code>.
      */
     public PermissionRecord setUrl(String value) {
         set(2, value);
@@ -69,7 +69,7 @@ public class PermissionRecord extends UpdatableRecordImpl<PermissionRecord> impl
     }
 
     /**
-     * Getter for <code>permission.url</code>.
+     * Getter for <code>PUBLIC.PERMISSION.URL</code>.
      */
     public String getUrl() {
         return (String) get(2);

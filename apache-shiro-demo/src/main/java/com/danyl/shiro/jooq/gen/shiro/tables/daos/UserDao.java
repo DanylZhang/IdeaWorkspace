@@ -51,28 +51,28 @@ public class UserDao extends DAOImpl<UserRecord, com.danyl.shiro.jooq.gen.shiro.
     }
 
     /**
-     * Fetch records that have <code>uid IN (values)</code>
+     * Fetch records that have <code>UID IN (values)</code>
      */
     public List<com.danyl.shiro.jooq.gen.shiro.tables.pojos.User> fetchByUid(Integer... values) {
         return fetch(User.USER.UID, values);
     }
 
     /**
-     * Fetch a unique record that has <code>uid = value</code>
+     * Fetch a unique record that has <code>UID = value</code>
      */
     public com.danyl.shiro.jooq.gen.shiro.tables.pojos.User fetchOneByUid(Integer value) {
         return fetchOne(User.USER.UID, value);
     }
 
     /**
-     * Fetch records that have <code>username IN (values)</code>
+     * Fetch records that have <code>USERNAME IN (values)</code>
      */
     public List<com.danyl.shiro.jooq.gen.shiro.tables.pojos.User> fetchByUsername(String... values) {
         return fetch(User.USER.USERNAME, values);
     }
 
     /**
-     * Fetch records that have <code>password IN (values)</code>
+     * Fetch records that have <code>PASSWORD IN (values)</code>
      */
     public List<com.danyl.shiro.jooq.gen.shiro.tables.pojos.User> fetchByPassword(String... values) {
         return fetch(User.USER.PASSWORD, values);

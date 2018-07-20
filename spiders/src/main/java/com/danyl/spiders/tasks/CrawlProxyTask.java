@@ -27,7 +27,7 @@ public class CrawlProxyTask {
     @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
 
-    @Scheduled(fixedDelay = MINUTES * 5)
+    @Scheduled(fixedDelay = MINUTES * 10)
     public void crawlProxy() {
         log.info("crawl proxy start {}", new Date());
 
@@ -39,7 +39,7 @@ public class CrawlProxyTask {
 
         // shutdown非阻塞，再使用awaitTermination进行阻塞等待
         try {
-            executorService.awaitTermination(10, TimeUnit.MINUTES);
+            executorService.awaitTermination(20, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

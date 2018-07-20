@@ -4,8 +4,9 @@
 package com.danyl.shiro.jooq.gen.shiro.tables;
 
 
-import com.danyl.shiro.jooq.gen.shiro.DefaultSchema;
+import com.danyl.shiro.jooq.gen.shiro.Indexes;
 import com.danyl.shiro.jooq.gen.shiro.Keys;
+import com.danyl.shiro.jooq.gen.shiro.Public;
 import com.danyl.shiro.jooq.gen.shiro.tables.records.RoleRecord;
 
 import java.util.Arrays;
@@ -15,6 +16,7 @@ import javax.annotation.Generated;
 
 import org.jooq.Field;
 import org.jooq.Identity;
+import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Schema;
 import org.jooq.Table;
@@ -37,10 +39,10 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Role extends TableImpl<RoleRecord> {
 
-    private static final long serialVersionUID = 1881654155;
+    private static final long serialVersionUID = -573288128;
 
     /**
-     * The reference instance of <code>role</code>
+     * The reference instance of <code>PUBLIC.ROLE</code>
      */
     public static final Role ROLE = new Role();
 
@@ -53,31 +55,31 @@ public class Role extends TableImpl<RoleRecord> {
     }
 
     /**
-     * The column <code>role.rid</code>.
+     * The column <code>PUBLIC.ROLE.RID</code>.
      */
-    public final TableField<RoleRecord, Integer> RID = createField("rid", org.jooq.impl.SQLDataType.INTEGER.nullable(false).identity(true), this, "");
+    public final TableField<RoleRecord, Integer> RID = createField("RID", org.jooq.impl.SQLDataType.INTEGER.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>role.rname</code>.
+     * The column <code>PUBLIC.ROLE.RNAME</code>.
      */
-    public final TableField<RoleRecord, String> RNAME = createField("rname", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<RoleRecord, String> RNAME = createField("RNAME", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
-     * Create a <code>role</code> table reference
+     * Create a <code>PUBLIC.ROLE</code> table reference
      */
     public Role() {
-        this(DSL.name("role"), null);
+        this(DSL.name("ROLE"), null);
     }
 
     /**
-     * Create an aliased <code>role</code> table reference
+     * Create an aliased <code>PUBLIC.ROLE</code> table reference
      */
     public Role(String alias) {
         this(DSL.name(alias), ROLE);
     }
 
     /**
-     * Create an aliased <code>role</code> table reference
+     * Create an aliased <code>PUBLIC.ROLE</code> table reference
      */
     public Role(Name alias) {
         this(alias, ROLE);
@@ -96,7 +98,15 @@ public class Role extends TableImpl<RoleRecord> {
      */
     @Override
     public Schema getSchema() {
-        return DefaultSchema.DEFAULT_SCHEMA;
+        return Public.PUBLIC;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Index> getIndexes() {
+        return Arrays.<Index>asList(Indexes.PRIMARY_KEY_26);
     }
 
     /**
@@ -112,7 +122,7 @@ public class Role extends TableImpl<RoleRecord> {
      */
     @Override
     public UniqueKey<RoleRecord> getPrimaryKey() {
-        return Keys.PK_ROLE;
+        return Keys.CONSTRAINT_26;
     }
 
     /**
@@ -120,7 +130,7 @@ public class Role extends TableImpl<RoleRecord> {
      */
     @Override
     public List<UniqueKey<RoleRecord>> getKeys() {
-        return Arrays.<UniqueKey<RoleRecord>>asList(Keys.PK_ROLE);
+        return Arrays.<UniqueKey<RoleRecord>>asList(Keys.CONSTRAINT_26);
     }
 
     /**

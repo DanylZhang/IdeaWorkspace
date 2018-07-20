@@ -4,8 +4,8 @@
 package com.danyl.shiro.jooq.gen.shiro.tables;
 
 
-import com.danyl.shiro.jooq.gen.shiro.DefaultSchema;
 import com.danyl.shiro.jooq.gen.shiro.Indexes;
+import com.danyl.shiro.jooq.gen.shiro.Public;
 import com.danyl.shiro.jooq.gen.shiro.tables.records.PermissionRoleRecord;
 
 import java.util.Arrays;
@@ -36,10 +36,10 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class PermissionRole extends TableImpl<PermissionRoleRecord> {
 
-    private static final long serialVersionUID = 392497082;
+    private static final long serialVersionUID = -1799978466;
 
     /**
-     * The reference instance of <code>permission_role</code>
+     * The reference instance of <code>PUBLIC.PERMISSION_ROLE</code>
      */
     public static final PermissionRole PERMISSION_ROLE = new PermissionRole();
 
@@ -52,31 +52,31 @@ public class PermissionRole extends TableImpl<PermissionRoleRecord> {
     }
 
     /**
-     * The column <code>permission_role.rid</code>.
+     * The column <code>PUBLIC.PERMISSION_ROLE.RID</code>.
      */
-    public final TableField<PermissionRoleRecord, Integer> RID = createField("rid", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<PermissionRoleRecord, Integer> RID = createField("RID", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>permission_role.pid</code>.
+     * The column <code>PUBLIC.PERMISSION_ROLE.PID</code>.
      */
-    public final TableField<PermissionRoleRecord, Integer> PID = createField("pid", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<PermissionRoleRecord, Integer> PID = createField("PID", org.jooq.impl.SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * Create a <code>permission_role</code> table reference
+     * Create a <code>PUBLIC.PERMISSION_ROLE</code> table reference
      */
     public PermissionRole() {
-        this(DSL.name("permission_role"), null);
+        this(DSL.name("PERMISSION_ROLE"), null);
     }
 
     /**
-     * Create an aliased <code>permission_role</code> table reference
+     * Create an aliased <code>PUBLIC.PERMISSION_ROLE</code> table reference
      */
     public PermissionRole(String alias) {
         this(DSL.name(alias), PERMISSION_ROLE);
     }
 
     /**
-     * Create an aliased <code>permission_role</code> table reference
+     * Create an aliased <code>PUBLIC.PERMISSION_ROLE</code> table reference
      */
     public PermissionRole(Name alias) {
         this(alias, PERMISSION_ROLE);
@@ -95,7 +95,7 @@ public class PermissionRole extends TableImpl<PermissionRoleRecord> {
      */
     @Override
     public Schema getSchema() {
-        return DefaultSchema.DEFAULT_SCHEMA;
+        return Public.PUBLIC;
     }
 
     /**

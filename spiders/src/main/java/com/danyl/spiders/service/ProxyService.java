@@ -79,8 +79,6 @@ public class ProxyService {
                 })
                 .collect(Collectors.toList());
 
-        // 这两句代码在高并发情况下会带来数据不安全，没有好办法，先在读线程内做自旋
-        // fixed 解决方案，此处加写锁，用代理时加读锁
         instance.lock.writeLock().lock();
         instance.proxies.clear();
         instance.proxies.addAll(proxyList);
@@ -237,7 +235,7 @@ public class ProxyService {
                     return execute;
                 }
             } catch (Exception e) {
-                log.error("ProxyService.jsoupExecute error: {}", e.getMessage());
+                log.error("ProxyService.jsoupExecute error: {}, url: {}", e.getMessage(), jsoupConnection.request().url().toExternalForm());
                 if (proxy0 != null) {
                     instance.remove(proxy0);
                 }

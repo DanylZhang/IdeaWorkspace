@@ -4,7 +4,10 @@
 package com.danyl.shiro.jooq.gen.shiro;
 
 
+import com.danyl.shiro.jooq.gen.shiro.tables.Permission;
 import com.danyl.shiro.jooq.gen.shiro.tables.PermissionRole;
+import com.danyl.shiro.jooq.gen.shiro.tables.Role;
+import com.danyl.shiro.jooq.gen.shiro.tables.User;
 import com.danyl.shiro.jooq.gen.shiro.tables.UserRole;
 
 import javax.annotation.Generated;
@@ -15,7 +18,7 @@ import org.jooq.impl.Internal;
 
 
 /**
- * A class modelling indexes of tables of the <code></code> schema.
+ * A class modelling indexes of tables of the <code>PUBLIC</code> schema.
  */
 @Generated(
     value = {
@@ -31,19 +34,25 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index PRIMARY_KEY_F = Indexes0.PRIMARY_KEY_F;
     public static final Index IDX_PID = Indexes0.IDX_PID;
     public static final Index IDX_RID = Indexes0.IDX_RID;
+    public static final Index PRIMARY_KEY_26 = Indexes0.PRIMARY_KEY_26;
+    public static final Index PRIMARY_KEY_2 = Indexes0.PRIMARY_KEY_2;
     public static final Index IDX_UID = Indexes0.IDX_UID;
-    public static final Index IDX_USER_RID = Indexes0.IDX_USER_RID;
+    public static final Index IDX_UR_RID = Indexes0.IDX_UR_RID;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
     // -------------------------------------------------------------------------
 
     private static class Indexes0 {
-        public static Index IDX_PID = Internal.createIndex("idx_pid", PermissionRole.PERMISSION_ROLE, new OrderField[] { PermissionRole.PERMISSION_ROLE.PID }, false);
-        public static Index IDX_RID = Internal.createIndex("idx_rid", PermissionRole.PERMISSION_ROLE, new OrderField[] { PermissionRole.PERMISSION_ROLE.RID }, false);
-        public static Index IDX_UID = Internal.createIndex("idx_uid", UserRole.USER_ROLE, new OrderField[] { UserRole.USER_ROLE.UID }, false);
-        public static Index IDX_USER_RID = Internal.createIndex("idx_user_rid", UserRole.USER_ROLE, new OrderField[] { UserRole.USER_ROLE.RID }, false);
+        public static Index PRIMARY_KEY_F = Internal.createIndex("PRIMARY_KEY_F", Permission.PERMISSION, new OrderField[] { Permission.PERMISSION.PID }, true);
+        public static Index IDX_PID = Internal.createIndex("IDX_PID", PermissionRole.PERMISSION_ROLE, new OrderField[] { PermissionRole.PERMISSION_ROLE.PID }, false);
+        public static Index IDX_RID = Internal.createIndex("IDX_RID", PermissionRole.PERMISSION_ROLE, new OrderField[] { PermissionRole.PERMISSION_ROLE.RID }, false);
+        public static Index PRIMARY_KEY_26 = Internal.createIndex("PRIMARY_KEY_26", Role.ROLE, new OrderField[] { Role.ROLE.RID }, true);
+        public static Index PRIMARY_KEY_2 = Internal.createIndex("PRIMARY_KEY_2", User.USER, new OrderField[] { User.USER.UID }, true);
+        public static Index IDX_UID = Internal.createIndex("IDX_UID", UserRole.USER_ROLE, new OrderField[] { UserRole.USER_ROLE.UID }, false);
+        public static Index IDX_UR_RID = Internal.createIndex("IDX_UR_RID", UserRole.USER_ROLE, new OrderField[] { UserRole.USER_ROLE.RID }, false);
     }
 }
