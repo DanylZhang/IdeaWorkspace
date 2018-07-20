@@ -10,3 +10,9 @@ spring:
       ddl-auto: none
   thymeleaf:
     cache: false
+  servlet:
+    multipart:
+      enabled: true
+      location: D:/
+      file-size-threshold: 5MB
+      max-request-size: 20MB

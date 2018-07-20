@@ -1,27 +1,25 @@
 package com.danyl.spiders.tasks;
 
+import com.google.common.collect.ImmutableMap;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
 import org.jsoup.Jsoup;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.*;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -35,20 +33,14 @@ public class CheckProxyTask {
     @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
 
-    // 校验当当网可用的代理
-    @Scheduled(fixedDelay = MINUTES * 10)
-    public void ddCheckProxy() {
-        String url = "http://category.dangdang.com/cid4002389.html";
-        String regex = "帆布鞋";
-        checkProxy(url, regex);
-    }
-
-    // 校验唯品会可用的代理
-    @Scheduled(fixedDelay = MINUTES * 10)
-    public void vipCheckProxy() {
-        String url = "https://www.vip.com/";
-        String regex = "ADS\\w{5}";
-        checkProxy(url, regex);
+    // 校验可用的代理
+    @Scheduled(fixedDelay = MINUTES * 5)
+    public void checkProxy() {
+        ImmutableMap<String, String> validateUrlMap = new ImmutableMap.Builder<String, String>()
+                .put("http://category.dangdang.com/cid4002389.html", "帆布鞋")
+                .put("https://www.vip.com/", "ADS\\w{5}")
+                .build();
+        checkProxy(validateUrlMap);
     }
 
     // 更新可用代理的comment位置信息
@@ -56,84 +48,83 @@ public class CheckProxyTask {
     public void updateProxyComment() {
         log.info("update proxy's comment start {}", new Date());
 
-        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(3, 100, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(10000, false), (r, executor) -> log.error("too many proxy update comment, drop it!"));
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
         proxy.selectFrom(PROXY)
                 .where(PROXY.IS_VALID.eq(true))
                 .fetch()
                 .stream()
-                .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
+                .map(proxyRecord -> CompletableFuture.runAsync(() -> {
                     try {
                         // 对有效代理更新地域信息
                         String ipJson = Jsoup.connect("http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp())
                                 .proxy(proxyRecord.getIp(), proxyRecord.getPort())
                                 .ignoreContentType(true)
                                 .execute().body();
+
                         DocumentContext parse = JsonPath.parse(ipJson);
                         String country = parse.read("$.data.country");
                         String region = parse.read("$.data.region");
                         String city = parse.read("$.data.city");
                         String isp = parse.read("$.data.isp");
+
                         String comment = country.concat(region.equals("XX") ? "" : region)
                                 .concat(city.equals("XX") ? "" : city)
                                 .concat(isp.equals("XX") ? "" : isp);
                         proxyRecord.setComment(comment);
-                    } catch (Exception e) {
-                        log.error("get proxy comment error, ip: {}, msg:{}", proxyRecord.getIp(), e.getMessage());
+                        proxyRecord.update(PROXY.COMMENT);
+                    } catch (Exception ignored) {
                     }
-                    return proxyRecord;
-                }, customExecutor))
+                }, fixedThreadPool))
                 .collect(Collectors.toList())
                 .stream()
                 .map(CompletableFuture::join)
-                .forEach(proxyRecord -> {
-                    try {
-                        proxyRecord.update(PROXY.COMMENT);
-                    } catch (Exception e) {
-                        log.error("proxy update comment error: {}", e.getMessage());
-                    }
+                .forEach(aVoid -> {
                 });
 
         // 别忘了关闭局部变量的线程池
-        customExecutor.shutdownNow();
+        fixedThreadPool.shutdownNow();
         log.info("update proxy's comment end {}", new Date());
     }
 
-    private void checkProxy(String url, String regex) {
+    private void checkProxy(Map<String, String> map) {
         log.info("check proxy start {}", new Date());
 
-        ThreadPoolExecutor customExecutor = new ThreadPoolExecutor(3, 300, MINUTES, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(100000, false), (r, executor) -> log.error("too many proxy validate, drop it!"));
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(256);
         proxy.selectFrom(PROXY)
                 .fetch()
                 .stream()
-                .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
-                    final Proxy proxy1 = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyRecord.getIp(), proxyRecord.getPort()));
-                    Pair<Boolean, Integer> validateResult = doCheckProxy(proxy1, url, regex);
+                .map(proxyRecord -> CompletableFuture.runAsync(() -> {
+                    Proxy proxy1 = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyRecord.getIp(), proxyRecord.getPort()));
+
+                    Pair<Boolean, Integer> validateResult = ImmutablePair.of(false, 60000);
+                    // 经测试发现高质量的代理极其稀少
+                    // 对每个校验Url进行测试，有一个校验成功就算该代理可用
+                    for (Map.Entry<String, String> entry : map.entrySet()) {
+                        String url = entry.getKey();
+                        String regex = entry.getValue();
+                        validateResult = doCheckProxy(proxy1, url, regex);
+                        if (validateResult.getLeft()) {
+                            break;
+                        }
+                    }
                     if (validateResult.getLeft()) {
                         proxyRecord.setIsValid(true);
                         proxyRecord.setSpeed(validateResult.getRight());
+                        proxyRecord.update();
                     } else {
                         proxyRecord.setIsValid(false);
+                        proxyRecord.delete();
                     }
-                    return proxyRecord;
-                }, customExecutor))
+                }, fixedThreadPool))
                 .collect(Collectors.toList())
                 .stream()
                 // 等待所有校验线程执行完毕
                 .map(CompletableFuture::join)
-                .forEach(proxyRecord -> {
-                    try {
-                        if (proxyRecord.getIsValid()) {
-                            proxyRecord.update();
-                        } else {
-                            proxyRecord.delete();
-                        }
-                    }catch (Exception e){
-                        log.error("proxy update error: {}", e.getMessage());
-                    }
+                .forEach(aVoid -> {
                 });
 
         // 别忘了关闭局部变量的线程池
-        customExecutor.shutdownNow();
+        fixedThreadPool.shutdownNow();
         log.info("check proxy end {}", new Date());
     }
 
@@ -146,9 +137,9 @@ public class CheckProxyTask {
         HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
 
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
                 .proxy(proxy)
                 .cookieJar(new CookieJar() {
                     @Override
@@ -172,7 +163,7 @@ public class CheckProxyTask {
             long end = System.currentTimeMillis();
             int costTime = (int) (end - start);
             // 超过半分钟就算超时
-            if (costTime > MINUTES/2) {
+            if (costTime > MINUTES / 2) {
                 return Pair.of(false, costTime);
             }
 

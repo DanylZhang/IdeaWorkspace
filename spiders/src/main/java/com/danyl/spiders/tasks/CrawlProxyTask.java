@@ -3,10 +3,9 @@ package com.danyl.spiders.tasks;
 import com.danyl.spiders.service.ProxyService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.danyl.spiders.constants.TimeConstants.HOURS;
+import static com.danyl.spiders.constants.TimeConstants.MINUTES;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
@@ -28,7 +27,7 @@ public class CrawlProxyTask {
     @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
 
-    @Scheduled(fixedDelay = HOURS)
+    @Scheduled(fixedDelay = MINUTES * 5)
     public void crawlProxy() {
         log.info("crawl proxy start {}", new Date());
 
@@ -40,7 +39,7 @@ public class CrawlProxyTask {
 
         // shutdown非阻塞，再使用awaitTermination进行阻塞等待
         try {
-            executorService.awaitTermination(30, TimeUnit.MINUTES);
+            executorService.awaitTermination(10, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -128,7 +127,9 @@ public class CrawlProxyTask {
     public void getxicidaili() {
         for (int i = 1; i <= 300; i++) {
             String url = "http://www.xicidaili.com/nn/" + i;
-            Document document = ProxyService.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+            Connection connection = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
+            Document document = ProxyService.jsoupGet(connection, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
             document.select("#ip_list > tbody > tr")
                     .parallelStream()
                     .skip(1)

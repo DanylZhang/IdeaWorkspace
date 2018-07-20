@@ -6,8 +6,6 @@ import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
@@ -16,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 /**
- * Web错误 全局配置
+ * web错误 全局配置
  */
 @Controller
 public class AppErrorController implements ErrorController {
@@ -47,9 +45,9 @@ public class AppErrorController implements ErrorController {
                 return "404";
             case 500:
                 return "500";
-            default:
-                return "index";
         }
+
+        return "index";
     }
 
     /**
@@ -60,9 +58,10 @@ public class AppErrorController implements ErrorController {
     public ApiResponse errorApiHandler(HttpServletRequest request) {
         WebRequest requestAttributes = new ServletWebRequest(request);
 
-        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(requestAttributes, false);
+        Map<String, Object> attr = this.errorAttributes.getErrorAttributes(requestAttributes, false);
         int status = getStatus(request);
-        return ApiResponse.ofMessage(status, String.valueOf(errorAttributes.getOrDefault("message", "error")));
+
+        return ApiResponse.ofMessage(status, String.valueOf(attr.getOrDefault("message", "error")));
     }
 
     private int getStatus(HttpServletRequest request) {
@@ -70,6 +69,7 @@ public class AppErrorController implements ErrorController {
         if (status != null) {
             return status;
         }
+
         return 500;
     }
 }

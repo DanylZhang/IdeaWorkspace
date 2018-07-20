@@ -88,7 +88,7 @@ public class ProxyService {
         log.info("ProxyService update proxies success, count: {}", instance.proxies.size());
     }
 
-    public Proxy get() {
+    private Proxy get() {
         Proxy result = null;
 
         instance.lock.readLock().lock();
@@ -111,9 +111,10 @@ public class ProxyService {
         }
         instance.lock.writeLock().lock();
         instance.proxies.remove(proxy);
+        int size = instance.proxies.size();
         instance.lock.writeLock().unlock();
 
-        if (instance.proxies.size() == 0) {
+        if (size < 3) {
             instance.setProxies();
         }
     }
@@ -174,6 +175,23 @@ public class ProxyService {
     }
 
     /**
+     * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
+     *
+     * @param connection 指定了url以及一些参数的 jsoup Connection
+     * @param regex      response 校验正则，不符合预期的将被循环执行
+     */
+    public static Document jsoupGet(Connection connection, String regex) {
+        Response response = jsoupExecute(connection, regex);
+        Document document = null;
+        try {
+            document = response.parse();
+        } catch (IOException e) {
+            log.error("ProxyService.jsoupGet error: {}", e.getMessage());
+        }
+        return document;
+    }
+
+    /**
      * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
      *
      * @param url 目标网址
@@ -203,7 +221,7 @@ public class ProxyService {
     public static Response jsoupExecute(Connection jsoupConnection, String regex) {
         final ProxyService instance = getInstance();
         while (true) {
-            jsoupConnection.timeout(MINUTES/2)
+            jsoupConnection.timeout(MINUTES / 2)
                     .followRedirects(true)
                     .ignoreContentType(true);
             // 1. 从proxies中拿到一个代理，并设置给jsoupConnection

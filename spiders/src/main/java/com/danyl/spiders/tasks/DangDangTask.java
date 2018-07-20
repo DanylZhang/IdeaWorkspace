@@ -36,7 +36,7 @@ public class DangDangTask {
 
     @Scheduled(fixedDelay = DAYS * 3)
     public void crawlDangDangCid() {
-        log.info("crawl cid start {}", new Date());
+        log.info("crawl dangdang cid start {}", new Date());
 
         limit = Integer.MAX_VALUE;
 
@@ -45,6 +45,8 @@ public class DangDangTask {
         lv3Cid();
         lv4Cid();
         lv5Cid();
+
+        log.info("crawl dangdang cid end {}", new Date());
     }
 
     private void lv1Cid() {

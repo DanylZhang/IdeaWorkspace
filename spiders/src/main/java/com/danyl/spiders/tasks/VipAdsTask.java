@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -42,6 +43,8 @@ public class VipAdsTask {
 
     @Scheduled(fixedDelay = HOURS * 4)
     public void crawlVipAds() {
+        log.info("crawl vip ads start {}", new Date());
+
         Document document = ProxyService.jsoupGet("https://www.vip.com/", "ADS\\w{5}");
         String html = document.html();
         Matcher matcher = Pattern.compile("(ADS\\w{5})").matcher(html);
@@ -141,5 +144,7 @@ public class VipAdsTask {
                         }
                     }
                 });
+
+        log.info("crawl vip ads end {}", new Date());
     }
 }
