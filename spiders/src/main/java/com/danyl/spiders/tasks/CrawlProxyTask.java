@@ -44,6 +44,7 @@ public class CrawlProxyTask {
             e.printStackTrace();
         }
         executorService.shutdownNow();
+        log.info("crawl proxy end {}", new Date());
     }
 
     // 小六代理

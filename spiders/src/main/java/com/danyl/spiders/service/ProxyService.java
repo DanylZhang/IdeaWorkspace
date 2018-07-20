@@ -167,7 +167,7 @@ public class ProxyService {
         try {
             document = response.parse();
         } catch (IOException e) {
-            log.error("ProxyService.jsoupGet error: {}", e.getMessage());
+            log.error("jsoupGet error: {}", e.getMessage());
         }
         return document;
     }
@@ -184,7 +184,7 @@ public class ProxyService {
         try {
             document = response.parse();
         } catch (IOException e) {
-            log.error("ProxyService.jsoupGet error: {}", e.getMessage());
+            log.error("jsoupGet error: {}", e.getMessage());
         }
         return document;
     }
@@ -217,25 +217,42 @@ public class ProxyService {
      * @param regex           response 校验正则，不符合预期的将被循环执行
      */
     public static Response jsoupExecute(Connection jsoupConnection, String regex) {
+        // 获取代理的实例
         final ProxyService instance = getInstance();
+        // 因为followRedirects会改变访问的URL，所以先保存URL
+        final String url = jsoupConnection.request().url().toExternalForm();
+        // 链接访问正常，但返回未匹配数据时的重试次数
+        int count = 30;
         while (true) {
-            jsoupConnection.timeout(MINUTES / 2)
+            jsoupConnection
+                    .url(url)
+                    .timeout(MINUTES / 2)
                     .followRedirects(true)
-                    .ignoreContentType(true);
+                    .ignoreContentType(true)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
+
             // 1. 从proxies中拿到一个代理，并设置给jsoupConnection
             Proxy proxy0 = instance.get();
             if (proxy0 != null) {
                 jsoupConnection.proxy(proxy0);
             } else {
-                emptyProxyNeedSleep(jsoupConnection.request().url().toExternalForm());
+                emptyProxyNeedSleep(url);
             }
             try {
                 Response execute = jsoupConnection.execute();
                 if (Pattern.compile(regex).matcher(execute.body()).find()) {
                     return execute;
+                } else {
+                    // 此时链接访问正常，但是未返回期望的结果，
+                    // 有可能目标链接包含的内容确实已经发生更改，
+                    // 用户提供的regex未匹配结果是正常情况
+                    // 故跳出死循环
+                    if (count-- <= 0) {
+                        return execute;
+                    }
                 }
             } catch (Exception e) {
-                log.error("ProxyService.jsoupExecute error: {}, url: {}", e.getMessage(), jsoupConnection.request().url().toExternalForm());
+                log.error("jsoupExecute error: {}, url: {}", e.getMessage(), url);
                 if (proxy0 != null) {
                     instance.remove(proxy0);
                 }
