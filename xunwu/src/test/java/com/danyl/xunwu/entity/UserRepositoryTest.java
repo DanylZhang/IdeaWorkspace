@@ -1,6 +1,6 @@
 package com.danyl.xunwu.entity;
 
-import com.danyl.xunwu.ApplicationTests;
+import com.danyl.xunwu.XunWuApplicationTests;
 import com.danyl.xunwu.repository.UserRepository;
 import org.junit.Assert;
 import org.junit.Test;
@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Optional;
 
-public class UserRepositoryTest extends ApplicationTests {
+public class UserRepositoryTest extends XunWuApplicationTests {
 
     @Autowired
     private UserRepository userRepository;

@@ -10,7 +10,7 @@ import java.io.IOException;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class ApplicationTests {
+public class SpidersApplicationTests {
 
     @Test
     public void jsoupTest() {
