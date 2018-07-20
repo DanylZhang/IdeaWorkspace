@@ -1,5 +1,6 @@
 package com.danyl.spiders.service;
 
+import com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.jooq.DSLContext;
@@ -12,9 +13,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
-import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.danyl.spiders.constants.TimeConstants.MINUTES;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
@@ -69,15 +67,7 @@ public class ProxyService {
         List<Proxy> proxyList = instance.proxy.selectFrom(PROXY)
                 .where(PROXY.IS_VALID.eq(true))
                 //.and(PROXY.COMMENT.startsWith("中国"))
-                .fetch()
-                .parallelStream()
-                .map(proxyRecord -> {
-                    String ip = proxyRecord.getIp();
-                    Integer port = proxyRecord.getPort();
-                    InetSocketAddress inetSocketAddress = new InetSocketAddress(ip, port);
-                    return new Proxy(Proxy.Type.HTTP, inetSocketAddress);
-                })
-                .collect(Collectors.toList());
+                .fetchInto(Proxy.class);
 
         instance.lock.writeLock().lock();
         instance.proxies.clear();
@@ -86,20 +76,27 @@ public class ProxyService {
         log.info("ProxyService update proxies success, count: {}", instance.proxies.size());
     }
 
-    private Proxy get() {
+    private Proxy get(String url) {
         Proxy result = null;
+        String protocol = getUrlProtocol(url);
 
+        // TODO 根据speed获取随机代理
         instance.lock.readLock().lock();
         int size = instance.proxies.size();
         int i = RandomUtils.nextInt(0, size);
         for (Proxy proxy0 : instance.proxies) {
-            result = proxy0;
+            if (proxy0.getType().equals(protocol)) {
+                result = proxy0;
+            }
             if (--i == 0) {
                 break;
             }
         }
         instance.lock.readLock().unlock();
 
+        if (result == null) {
+            emptyProxyNeedSleep(url);
+        }
         return result;
     }
 
@@ -115,6 +112,16 @@ public class ProxyService {
         if (size < 3) {
             instance.setProxies();
         }
+    }
+
+    public static String getUrlProtocol(String url) {
+        String protocol = "http";
+        try {
+            protocol = new URL(url).getProtocol();
+        } catch (MalformedURLException e) {
+            log.error("get url protocol error: {}", e.getMessage());
+        }
+        return protocol;
     }
 
     private static void emptyProxyNeedSleep(String url) {
@@ -232,11 +239,9 @@ public class ProxyService {
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
 
             // 1. 从proxies中拿到一个代理，并设置给jsoupConnection
-            Proxy proxy0 = instance.get();
+            Proxy proxy0 = instance.get(url);
             if (proxy0 != null) {
-                jsoupConnection.proxy(proxy0);
-            } else {
-                emptyProxyNeedSleep(url);
+                jsoupConnection.proxy(proxy0.getIp(), proxy0.getPort());
             }
             try {
                 Response execute = jsoupConnection.execute();

@@ -1,5 +1,7 @@
 package com.danyl.spiders.tasks;
 
+import com.danyl.spiders.jooq.gen.proxy.tables.records.ProxyRecord;
+import com.danyl.spiders.service.ProxyService;
 import com.google.common.collect.ImmutableMap;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
@@ -14,7 +16,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.net.InetSocketAddress;
+import java.io.IOException;
 import java.net.Proxy;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -36,55 +38,12 @@ public class CheckProxyTask {
 
     // 校验可用的代理
     @Scheduled(fixedDelay = MINUTES * 10)
-    public void checkProxy() {
+    public void validateProxy() {
         ImmutableMap<String, String> validateUrlMap = new ImmutableMap.Builder<String, String>()
                 .put("http://category.dangdang.com/cid4002389.html", "帆布鞋")
                 .put("https://www.vip.com/", "ADS\\w{5}")
                 .build();
         checkProxy(validateUrlMap);
-    }
-
-    // 更新可用代理的comment位置信息
-    @Scheduled(fixedDelay = MINUTES * 30)
-    public void updateProxyComment() {
-        log.info("update proxy's comment start {}", new Date());
-
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
-        proxy.selectFrom(PROXY)
-                .where(PROXY.IS_VALID.eq(true))
-                .fetch()
-                .stream()
-                .map(proxyRecord -> CompletableFuture.runAsync(() -> {
-                    try {
-                        // 对有效代理更新地域信息
-                        String ipJson = Jsoup.connect("http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp())
-                                .proxy(proxyRecord.getIp(), proxyRecord.getPort())
-                                .ignoreContentType(true)
-                                .execute().body();
-
-                        DocumentContext parse = JsonPath.parse(ipJson);
-                        String country = parse.read("$.data.country");
-                        String region = parse.read("$.data.region");
-                        String city = parse.read("$.data.city");
-                        String isp = parse.read("$.data.isp");
-
-                        String comment = country.concat(region.equals("XX") ? "" : region)
-                                .concat(city.equals("XX") ? "" : city)
-                                .concat(isp.equals("XX") ? "" : isp);
-                        proxyRecord.setComment(comment);
-                        proxyRecord.update(PROXY.COMMENT);
-                    } catch (Exception ignored) {
-                    }
-                }, fixedThreadPool))
-                .collect(Collectors.toList())
-                .stream()
-                .map(CompletableFuture::join)
-                .forEach(aVoid -> {
-                });
-
-        // 别忘了关闭局部变量的线程池
-        fixedThreadPool.shutdownNow();
-        log.info("update proxy's comment end {}", new Date());
     }
 
     private void checkProxy(Map<String, String> map) {
@@ -95,22 +54,27 @@ public class CheckProxyTask {
                 .fetch()
                 .stream()
                 .map(proxyRecord -> CompletableFuture.runAsync(() -> {
-                    Proxy proxy1 = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyRecord.getIp(), proxyRecord.getPort()));
-
-                    Pair<Boolean, Integer> validateResult = ImmutablePair.of(false, 60000);
+                    Pair<Boolean, Integer> validateResultPair = ImmutablePair.of(false, 60000);
                     // 经测试发现高质量的代理极其稀少
                     // 对每个校验Url进行测试，有一个校验成功就算该代理可用
                     for (Map.Entry<String, String> entry : map.entrySet()) {
                         String url = entry.getKey();
                         String regex = entry.getValue();
-                        validateResult = doCheckProxy(proxy1, url, regex);
-                        if (validateResult.getLeft()) {
-                            break;
+                        Pair<Boolean, Integer> tmpPair = doCheckProxy(proxyRecord.getIp(), proxyRecord.getPort(), url, regex);
+                        if (tmpPair.getLeft()) {
+                            // 如何tmpPair是校验成功的则赋值给validateResultPair,以便更新代理的speed
+                            validateResultPair = tmpPair;
+                            // 如果当前校验的Url是https协议，则更新代理的type为https
+                            String urlProtocol = ProxyService.getUrlProtocol(url);
+                            if ("https".equals(urlProtocol)) {
+                                proxyRecord.setType(urlProtocol);
+                            }
                         }
                     }
-                    if (validateResult.getLeft()) {
+                    if (validateResultPair.getLeft()) {
                         proxyRecord.setIsValid(true);
-                        proxyRecord.setSpeed(validateResult.getRight());
+                        proxyRecord.setSpeed(validateResultPair.getRight());
+                        proxyRecord.setComment(getProxyComment(proxyRecord));
                         proxyRecord.update();
                     } else {
                         proxyRecord.setIsValid(false);
@@ -130,16 +94,17 @@ public class CheckProxyTask {
     }
 
     /**
-     * @param proxy 要检查的代理
-     * @param url   通过此url测试连通性
+     * @param ip    要检查的代理 ip
+     * @param port  要检查的代理 port
+     * @param url   通过此Url校验代理连通性
      * @param regex 校验正则表达式
      */
-    private static Pair<Boolean, Integer> doCheckProxy(Proxy proxy, String url, String regex) {
+    private static Pair<Boolean, Integer> doCheckProxy(String ip, Integer port, String url, String regex) {
         Integer timeout = MINUTES / 2;
         Connection connection = Jsoup.connect(url)
                 .referrer(url)
                 .timeout(timeout)
-                .proxy(proxy)
+                .proxy(ip, port)
                 .followRedirects(true)
                 .ignoreContentType(true)
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
@@ -168,7 +133,7 @@ public class CheckProxyTask {
      * @param regex 校验正则表达式
      */
     @Deprecated
-    private static Pair<Boolean, Integer> doCheckProxy0(Proxy proxy, String url, String regex) {
+    private static Pair<Boolean, Integer> doCheckProxyOld(Proxy proxy, String url, String regex) {
         HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
 
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
@@ -209,5 +174,33 @@ public class CheckProxyTask {
         } catch (Exception ignored) {
         }
         return Pair.of(false, Integer.MAX_VALUE);
+    }
+
+    /**
+     * 对有效代理更新地域信息
+     *
+     * @param proxyRecord ProxyRecord
+     * @return proxy's comment
+     */
+    private static String getProxyComment(ProxyRecord proxyRecord) {
+        try {
+            String ipJson = Jsoup.connect("http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp())
+                    .proxy(proxyRecord.getIp(), proxyRecord.getPort())
+                    .ignoreContentType(true)
+                    .execute().body();
+
+            DocumentContext parse = JsonPath.parse(ipJson);
+            String country = parse.read("$.data.country");
+            String region = parse.read("$.data.region");
+            String city = parse.read("$.data.city");
+            String isp = parse.read("$.data.isp");
+
+            return country.concat(region.equals("XX") ? "" : region)
+                    .concat(city.equals("XX") ? "" : city)
+                    .concat(isp.equals("XX") ? "" : isp);
+        } catch (IOException e) {
+            log.error("update proxy comment error: {}", e.getMessage());
+        }
+        return "";
     }
 }

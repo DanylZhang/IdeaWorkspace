@@ -16,7 +16,7 @@ public class SpidersApplicationTests {
     public void jsoupTest() {
         try {
             System.out.println(Jsoup.connect("https://www.vip.com")
-                    .proxy("124.235.208.252", 443)
+                    .proxy("221.7.255.168", 8080)
                     .get().html());
         } catch (IOException e) {
             e.printStackTrace();
