@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.util.Strings;
 import org.jooq.DSLContext;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -26,7 +27,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.danyl.spiders.constants.HttpProtocolConstants.HTTPS;
 import static com.danyl.spiders.constants.TimeConstants.MINUTES;
+import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
@@ -39,7 +42,7 @@ public class CheckProxyTask {
     // 校验可用的代理
     @Scheduled(fixedDelay = MINUTES * 10)
     public void validateProxy() {
-        ImmutableMap<String, String> validateUrlMap = new ImmutableMap.Builder<String, String>()
+        ImmutableMap<String, String> validateUrlMap = ImmutableMap.<String, String>builder()
                 .put("http://category.dangdang.com/cid4002389.html", "帆布鞋")
                 .put("https://www.vip.com/", "ADS\\w{5}")
                 .build();
@@ -54,7 +57,7 @@ public class CheckProxyTask {
                 .fetch()
                 .stream()
                 .map(proxyRecord -> CompletableFuture.runAsync(() -> {
-                    Pair<Boolean, Integer> validateResultPair = ImmutablePair.of(false, 60000);
+                    Pair<Boolean, Integer> validateResultPair = ImmutablePair.of(false, TIMEOUT);
                     // 经测试发现高质量的代理极其稀少
                     // 对每个校验Url进行测试，有一个校验成功就算该代理可用
                     for (Map.Entry<String, String> entry : map.entrySet()) {
@@ -66,7 +69,7 @@ public class CheckProxyTask {
                             validateResultPair = tmpPair;
                             // 如果当前校验的Url是https协议，则更新代理的type为https
                             String urlProtocol = ProxyService.getUrlProtocol(url);
-                            if ("https".equals(urlProtocol)) {
+                            if (HTTPS.equals(urlProtocol)) {
                                 proxyRecord.setType(urlProtocol);
                             }
                         }
@@ -100,10 +103,9 @@ public class CheckProxyTask {
      * @param regex 校验正则表达式
      */
     private static Pair<Boolean, Integer> doCheckProxy(String ip, Integer port, String url, String regex) {
-        Integer timeout = MINUTES / 2;
         Connection connection = Jsoup.connect(url)
                 .referrer(url)
-                .timeout(timeout)
+                .timeout(TIMEOUT)
                 .proxy(ip, port)
                 .followRedirects(true)
                 .ignoreContentType(true)
@@ -114,7 +116,7 @@ public class CheckProxyTask {
             long end = System.currentTimeMillis();
             int costTime = (int) (end - start);
             // 超过半分钟就算超时
-            if (costTime > timeout) {
+            if (costTime > TIMEOUT) {
                 return Pair.of(false, costTime);
             }
 
@@ -163,7 +165,7 @@ public class CheckProxyTask {
             long end = System.currentTimeMillis();
             int costTime = (int) (end - start);
             // 超过半分钟就算超时
-            if (costTime > MINUTES / 2) {
+            if (costTime > TIMEOUT) {
                 return Pair.of(false, costTime);
             }
 
@@ -183,6 +185,7 @@ public class CheckProxyTask {
      * @return proxy's comment
      */
     private static String getProxyComment(ProxyRecord proxyRecord) {
+        String result = proxyRecord.getComment();
         try {
             String ipJson = Jsoup.connect("http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp())
                     .proxy(proxyRecord.getIp(), proxyRecord.getPort())
@@ -195,12 +198,16 @@ public class CheckProxyTask {
             String city = parse.read("$.data.city");
             String isp = parse.read("$.data.isp");
 
-            return country.concat(region.equals("XX") ? "" : region)
+            String comment = "".concat(country.equals("XX") ? "" : country)
+                    .concat(region.equals("XX") ? "" : region)
                     .concat(city.equals("XX") ? "" : city)
                     .concat(isp.equals("XX") ? "" : isp);
+            if (Strings.isNotBlank(comment)) {
+                result = comment;
+            }
         } catch (IOException e) {
             log.error("update proxy comment error: {}", e.getMessage());
         }
-        return "";
+        return result;
     }
 }

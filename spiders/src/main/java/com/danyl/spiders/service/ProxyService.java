@@ -3,6 +3,8 @@ package com.danyl.spiders.service;
 import com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.math3.distribution.EnumeratedDistribution;
+import org.apache.commons.math3.util.Pair;
 import org.jooq.DSLContext;
 import org.jsoup.Connection;
 import org.jsoup.Connection.Response;
@@ -22,8 +24,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-import static com.danyl.spiders.constants.TimeConstants.MINUTES;
+import static com.danyl.spiders.constants.HttpProtocolConstants.HTTP;
+import static com.danyl.spiders.constants.HttpProtocolConstants.HTTPS;
+import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
@@ -69,31 +74,48 @@ public class ProxyService {
                 //.and(PROXY.COMMENT.startsWith("中国"))
                 .fetchInto(Proxy.class);
 
+        int totalCount = proxyList.size();
+        long httpsCount = proxyList.stream()
+                .filter(proxy0 -> HTTPS.equals(proxy0.getType()))
+                .count();
+
         instance.lock.writeLock().lock();
         instance.proxies.clear();
         instance.proxies.addAll(proxyList);
         instance.lock.writeLock().unlock();
-        log.info("ProxyService update proxies success, count: {}", instance.proxies.size());
+        log.info("ProxyService update proxies success, total proxy: {}, https: {}", totalCount, httpsCount);
     }
 
+    /**
+     * 根据即将访问的Url的协议类型，返回相对应协议的代理
+     * 如果没有可用代理，将对此Url进行节流控制
+     *
+     * @param url 即将访问的Url
+     */
     private Proxy get(String url) {
         Proxy result = null;
         String protocol = getUrlProtocol(url);
 
-        // TODO 根据speed获取随机代理
         instance.lock.readLock().lock();
         int size = instance.proxies.size();
-        int i = RandomUtils.nextInt(0, size);
-        for (Proxy proxy0 : instance.proxies) {
-            if (proxy0.getType().equals(protocol)) {
-                result = proxy0;
-            }
-            if (--i == 0) {
-                break;
-            }
-        }
+        List<Proxy> tmpProxyList1 = instance.proxies.subList(0, size);
         instance.lock.readLock().unlock();
 
+        List<Pair<Proxy, Double>> tmpProxyList2 = tmpProxyList1.stream()
+                .filter(proxy0 -> {
+                    if (HTTPS.equals(protocol)) {
+                        return HTTPS.equals(proxy0.getType());
+                    } else {
+                        return true;
+                    }
+                })
+                // 代理的speed越快，possibility就越大
+                .map(proxy0 -> new Pair<>(proxy0, (double) (TIMEOUT - proxy0.getSpeed())))
+                .collect(Collectors.toList());
+        EnumeratedDistribution<Proxy> proxyList = new EnumeratedDistribution<>(tmpProxyList2);
+        result = proxyList.sample();
+
+        // 此处对无可用代理时进行节流处理
         if (result == null) {
             emptyProxyNeedSleep(url);
         }
@@ -115,7 +137,7 @@ public class ProxyService {
     }
 
     public static String getUrlProtocol(String url) {
-        String protocol = "http";
+        String protocol = HTTP;
         try {
             protocol = new URL(url).getProtocol();
         } catch (MalformedURLException e) {
@@ -233,7 +255,7 @@ public class ProxyService {
         while (true) {
             jsoupConnection
                     .url(url)
-                    .timeout(MINUTES / 2)
+                    .timeout(TIMEOUT)
                     .followRedirects(true)
                     .ignoreContentType(true)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");

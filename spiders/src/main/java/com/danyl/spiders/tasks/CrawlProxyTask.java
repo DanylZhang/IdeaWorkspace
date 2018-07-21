@@ -17,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.danyl.spiders.constants.HttpProtocolConstants.HTTP;
+import static com.danyl.spiders.constants.HttpProtocolConstants.HTTPS;
 import static com.danyl.spiders.constants.TimeConstants.MINUTES;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
@@ -57,7 +59,7 @@ public class CrawlProxyTask {
             while (matcher.find()) {
                 String ip = matcher.group(1);
                 int port = Integer.parseInt(matcher.group(2));
-                String type = "https";
+                String type = HTTPS;
                 proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE)
                         .values(ip, port, false, type)
                         .onDuplicateKeyIgnore()
@@ -71,7 +73,7 @@ public class CrawlProxyTask {
             while (matcher.find()) {
                 String ip = matcher.group(1);
                 int port = Integer.parseInt(matcher.group(2));
-                String type = "http";
+                String type = HTTP;
                 proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE)
                         .values(ip, port, false, type)
                         .onDuplicateKeyIgnore()
