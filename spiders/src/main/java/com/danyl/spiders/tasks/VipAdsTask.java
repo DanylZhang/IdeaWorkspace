@@ -125,24 +125,21 @@ public class VipAdsTask {
                             String json = ProxyService.jsoupExecute(connection, "code").body();
                             log.info("getPurchases json: {}", json);
                             DocumentContext parse2 = JsonPath.parse(json);
-                            List<String> spuIdList = parse2.read("$.data..v_spu_id");
-                            if (spuIdList.size() > 0) {
-                                List<Map<String, Object>> itemList = parse2.read("$.data");
-                                for (Map<String, Object> stringObjectMap : itemList) {
-                                    Ads ads = new Ads();
-                                    ads.setItemId(Integer.parseInt(stringObjectMap.get("product_id").toString()));
-                                    ads.setListId(Integer.parseInt(stringObjectMap.get("brand_id").toString()));
-                                    ads.setSpuid(Long.parseLong(stringObjectMap.get("v_spu_id").toString()));
-                                    ads.setActId(adsActivity.getId());
-                                    ads.setDate(LocalDate.now());
+                            List<Map<String, Object>> itemList = parse2.read("$.data[?(@.v_spu_id)]");
+                            itemList.forEach(stringObjectMap -> {
+                                Ads ads = new Ads();
+                                ads.setItemId(Integer.parseInt(stringObjectMap.get("product_id").toString()));
+                                ads.setListId(Integer.parseInt(stringObjectMap.get("brand_id").toString()));
+                                ads.setSpuid(Long.parseLong(stringObjectMap.get("v_spu_id").toString()));
+                                ads.setActId(adsActivity.getId());
+                                ads.setDate(LocalDate.now());
 
-                                    // 这一步将广告商品插入 ads表
-                                    create.insertInto(ADS, ADS.ITEM_ID, ADS.LIST_ID, ADS.SPUID, ADS.ACT_ID, ADS.DATE)
-                                            .values(ads.getItemId(), ads.getListId(), ads.getSpuid(), ads.getActId(), ads.getDate())
-                                            .onDuplicateKeyIgnore()
-                                            .execute();
-                                }
-                            }
+                                // 这一步将广告商品插入 ads表
+                                create.insertInto(ADS, ADS.ITEM_ID, ADS.LIST_ID, ADS.SPUID, ADS.ACT_ID, ADS.DATE)
+                                        .values(ads.getItemId(), ads.getListId(), ads.getSpuid(), ads.getActId(), ads.getDate())
+                                        .onDuplicateKeyIgnore()
+                                        .execute();
+                            });
                         }
                     }
                 });
