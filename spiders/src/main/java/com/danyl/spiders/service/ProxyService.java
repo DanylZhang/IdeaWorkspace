@@ -280,6 +280,7 @@ public class ProxyService {
                     // 用户提供的regex未匹配结果是正常情况
                     // 故跳出死循环
                     if (count-- <= 0) {
+                        log.error("jsoupExecute check regex error, url: {}, regex: {}", url, regex);
                         return execute;
                     }
                 }
