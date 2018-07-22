@@ -17,7 +17,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.net.Proxy;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -187,10 +186,9 @@ public class CheckProxyTask {
     private static String getProxyComment(ProxyRecord proxyRecord) {
         String result = proxyRecord.getComment();
         try {
-            String ipJson = Jsoup.connect("http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp())
-                    .proxy(proxyRecord.getIp(), proxyRecord.getPort())
-                    .ignoreContentType(true)
-                    .execute().body();
+            String url = "http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp();
+            String regex = "\"ip\":\"" + proxyRecord.getIp() + "\"";
+            String ipJson = ProxyService.jsoupExecute(url, regex).body();
 
             DocumentContext parse = JsonPath.parse(ipJson);
             String country = parse.read("$.data.country");
@@ -205,8 +203,7 @@ public class CheckProxyTask {
             if (Strings.isNotBlank(comment)) {
                 result = comment;
             }
-        } catch (IOException e) {
-            log.error("update proxy comment error: {}", e.getMessage());
+        } catch (Exception ignored) {
         }
         return result;
     }

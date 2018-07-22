@@ -109,11 +109,21 @@ public class ProxyService {
                         return true;
                     }
                 })
-                // 代理的speed越快，possibility就越大
+                // 代理的speed越快，probability就越大
                 .map(proxy0 -> new Pair<>(proxy0, (double) (TIMEOUT - proxy0.getSpeed())))
                 .collect(Collectors.toList());
-        EnumeratedDistribution<Proxy> proxyList = new EnumeratedDistribution<>(tmpProxyList2);
-        result = proxyList.sample();
+
+        // 此时判断可用的https或http类型代理的数量
+        if (tmpProxyList2.size() > 0) {
+            try {
+                EnumeratedDistribution<Proxy> proxyList = new EnumeratedDistribution<>(tmpProxyList2);
+                result = proxyList.sample();
+            } catch (Exception e) {
+                log.error("ProxyService get EnumeratedDistribution error: {}, url: {}, proxies count: {}, tmpProxyList2 count: {}", e.getMessage(), url, instance.proxies.size(), tmpProxyList2.size());
+            }
+        } else {
+            instance.setProxies();
+        }
 
         // 此处对无可用代理时进行节流处理
         if (result == null) {
@@ -128,12 +138,7 @@ public class ProxyService {
         }
         instance.lock.writeLock().lock();
         instance.proxies.remove(proxy);
-        int size = instance.proxies.size();
         instance.lock.writeLock().unlock();
-
-        if (size < 3) {
-            instance.setProxies();
-        }
     }
 
     public static String getUrlProtocol(String url) {
@@ -279,10 +284,8 @@ public class ProxyService {
                     }
                 }
             } catch (Exception e) {
-                log.error("jsoupExecute error: {}, url: {}", e.getMessage(), url);
-                if (proxy0 != null) {
-                    instance.remove(proxy0);
-                }
+                log.error("jsoupExecute error: {}, url: {}, proxy: {}", e.getMessage(), url, proxy0);
+                instance.remove(proxy0);
             }
         }
     }
