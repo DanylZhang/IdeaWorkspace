@@ -101,26 +101,27 @@ public class ProxyService {
         List<Proxy> tmpProxyList1 = instance.proxies.subList(0, size);
         instance.lock.readLock().unlock();
 
-        List<Pair<Proxy, Double>> tmpProxyList2 = tmpProxyList1.stream()
-                .filter(proxy0 -> {
-                    if (HTTPS.equals(protocol)) {
-                        return HTTPS.equals(proxy0.getType());
-                    } else {
-                        return true;
-                    }
-                })
-                // 代理的speed越快，probability就越大
-                .map(proxy0 -> new Pair<>(proxy0, (double) (TIMEOUT - proxy0.getSpeed())))
-                .collect(Collectors.toList());
+        List<Pair<Proxy, Double>> tmpProxyList2 = new ArrayList<>();
+        try {
+            tmpProxyList2 = tmpProxyList1.stream()
+                    .filter(proxy0 -> {
+                        if (HTTPS.equals(protocol)) {
+                            return HTTPS.equals(proxy0.getType());
+                        } else {
+                            return true;
+                        }
+                    })
+                    // 代理的speed越快，probability就越大
+                    .map(proxy0 -> new Pair<>(proxy0, (double) (TIMEOUT - proxy0.getSpeed())))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("ProxyService get error: {}, tmpProxyList1.size: {}, tmpProxyList2.size: {}", e.getMessage(), tmpProxyList1.size(), tmpProxyList2.size());
+        }
 
         // 此时判断可用的https或http类型代理的数量
         if (tmpProxyList2.size() > 0) {
-            try {
-                EnumeratedDistribution<Proxy> proxyList = new EnumeratedDistribution<>(tmpProxyList2);
-                result = proxyList.sample();
-            } catch (Exception e) {
-                log.error("ProxyService get EnumeratedDistribution error: {}, url: {}, proxies count: {}, tmpProxyList2 count: {}", e.getMessage(), url, instance.proxies.size(), tmpProxyList2.size());
-            }
+            EnumeratedDistribution<Proxy> proxyList = new EnumeratedDistribution<>(tmpProxyList2);
+            result = proxyList.sample();
         } else {
             instance.setProxies();
         }
