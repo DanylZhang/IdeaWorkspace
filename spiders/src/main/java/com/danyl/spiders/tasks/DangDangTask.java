@@ -8,15 +8,13 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.jooq.DSLContext;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -31,8 +29,11 @@ public class DangDangTask {
     @Resource(name = "DSLContextDangDang")
     private DSLContext dd;
 
-    // 测试用
+    // 测试节流用
     private int limit = 5; // Integer.MAX_VALUE
+
+    // 符合这个模式的都会被挑选出来 http://category.dangdang.com/cid4003471.html
+    private Pattern pattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
 
     @Scheduled(fixedDelay = DAYS * 3)
     public void crawlDangDangCid() {
@@ -58,8 +59,6 @@ public class DangDangTask {
             return;
         }
 
-        // 符合这个模式的都会被挑选出来 http://category.dangdang.com/cid4003471.html
-        Pattern pattern = Pattern.compile("https?://category\\.dangdang\\.com/cid\\d+\\.html");
         document.select("a")
                 .eachAttr("abs:href")
                 .stream()
@@ -84,13 +83,14 @@ public class DangDangTask {
                     ItemCategory itemCategory = new ItemCategory();
 
                     Document document2 = ProxyService.jsoupGet(lv1link, "全部商品分类");
-
                     Element a = document2.select("#breadcrumb > div > a.a.diff").first();
+                    if (Objects.isNull(a)) {
+                        return;
+                    }
 
                     // lv1cid
                     String href = a.attr("abs:href");
-                    Pattern cidPattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
-                    Matcher matcher = cidPattern.matcher(href);
+                    Matcher matcher = pattern.matcher(href);
                     if (matcher.find()) {
                         int lv1cid = Integer.parseInt(matcher.group(1));
                         itemCategory.setCid(lv1cid);
@@ -132,7 +132,7 @@ public class DangDangTask {
                 .flatMap(lv1Category -> {
                     Integer lv1CategoryCid = lv1Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv1CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url);
+                    Document document = ProxyService.jsoupGet(url, "全部商品分类");
                     Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
                     if (hasChild) {
                         return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv2link -> new MutablePair<String, ItemCategory>(lv2link, lv1Category));
@@ -146,16 +146,21 @@ public class DangDangTask {
                     ItemCategory lv1Category = lv2link_lv1Category.getRight();
                     System.out.println(lv2link);
 
+                    if (!pattern.matcher(lv2link).find()) {
+                        return;
+                    }
+
                     ItemCategory itemCategory = new ItemCategory();
 
                     Document document2 = ProxyService.jsoupGet(lv2link, "全部商品分类");
-
                     Element a = document2.select("#breadcrumb > div > div > a").first();
+                    if (Objects.isNull(a)) {
+                        return;
+                    }
 
                     // lv2cid
                     String href = a.attr("abs:href");
-                    Pattern cidPattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
-                    Matcher matcher = cidPattern.matcher(href);
+                    Matcher matcher = pattern.matcher(href);
                     if (matcher.find()) {
                         int lv2cid = Integer.parseInt(matcher.group(1));
                         itemCategory.setCid(lv2cid);
@@ -199,7 +204,7 @@ public class DangDangTask {
                 .flatMap(lv2Category -> {
                     Integer lv2CategoryCid = lv2Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv2CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url);
+                    Document document = ProxyService.jsoupGet(url, "全部商品分类");
                     Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
                     if (hasChild) {
                         return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv3link -> new MutablePair<String, ItemCategory>(lv3link, lv2Category));
@@ -213,14 +218,21 @@ public class DangDangTask {
                     ItemCategory lv2Category = lv3link_lv2Category.getRight();
                     System.out.println(lv3link);
 
+                    if (!pattern.matcher(lv3link).find()) {
+                        return;
+                    }
+
                     ItemCategory itemCategory = new ItemCategory();
 
                     Document document2 = ProxyService.jsoupGet(lv3link, "全部商品分类");
                     Element a = document2.select("#breadcrumb > div > div:nth-child(7) > a").first();
+                    if (Objects.isNull(a)) {
+                        return;
+                    }
+
                     // lv3cid
                     String href = a.attr("abs:href");
-                    Pattern cidPattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
-                    Matcher matcher = cidPattern.matcher(href);
+                    Matcher matcher = pattern.matcher(href);
                     if (matcher.find()) {
                         int lv3cid = Integer.parseInt(matcher.group(1));
                         itemCategory.setCid(lv3cid);
@@ -266,7 +278,7 @@ public class DangDangTask {
                 .flatMap(lv3Category -> {
                     Integer lv3CategoryCid = lv3Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv3CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url);
+                    Document document = ProxyService.jsoupGet(url, "全部商品分类");
                     Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
                     if (hasChild) {
                         return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv4link -> new MutablePair<String, ItemCategory>(lv4link, lv3Category));
@@ -280,14 +292,20 @@ public class DangDangTask {
                     ItemCategory lv3Category = lv4link_lv3Category.getRight();
                     System.out.println(lv4link);
 
+                    if (!pattern.matcher(lv4link).find()) {
+                        return;
+                    }
                     ItemCategory itemCategory = new ItemCategory();
 
                     Document document2 = ProxyService.jsoupGet(lv4link, "全部商品分类");
                     Element a = document2.select("#breadcrumb > div > div:nth-child(9) > a").first();
+                    if (Objects.isNull(a)) {
+                        return;
+                    }
+
                     // lv4cid
                     String href = a.attr("abs:href");
-                    Pattern cidPattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
-                    Matcher matcher = cidPattern.matcher(href);
+                    Matcher matcher = pattern.matcher(href);
                     if (matcher.find()) {
                         int lv4cid = Integer.parseInt(matcher.group(1));
                         itemCategory.setCid(lv4cid);
@@ -335,7 +353,7 @@ public class DangDangTask {
                 .flatMap(lv4Category -> {
                     Integer lv4CategoryCid = lv4Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv4CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url);
+                    Document document = ProxyService.jsoupGet(url, "全部商品分类");
                     Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
                     if (hasChild) {
                         return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv5link -> new MutablePair<String, ItemCategory>(lv5link, lv4Category));
@@ -349,14 +367,21 @@ public class DangDangTask {
                     ItemCategory lv4Category = lv5link_lv4Category.getRight();
                     System.out.println(lv5link);
 
+                    if (!pattern.matcher(lv5link).find()) {
+                        return;
+                    }
+
                     ItemCategory itemCategory = new ItemCategory();
 
                     Document document2 = ProxyService.jsoupGet(lv5link, "全部商品分类");
                     Element a = document2.select("#breadcrumb > div > div:nth-child(11) > a").first();
+                    if (Objects.isNull(a)) {
+                        return;
+                    }
+
                     // lv5cid
                     String href = a.attr("abs:href");
-                    Pattern cidPattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
-                    Matcher matcher = cidPattern.matcher(href);
+                    Matcher matcher = pattern.matcher(href);
                     if (matcher.find()) {
                         int lv5cid = Integer.parseInt(matcher.group(1));
                         itemCategory.setCid(lv5cid);
