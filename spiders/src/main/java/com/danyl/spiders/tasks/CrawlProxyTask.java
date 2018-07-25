@@ -41,7 +41,7 @@ public class CrawlProxyTask {
 
         // shutdown非阻塞，再使用awaitTermination进行阻塞等待
         try {
-            executorService.awaitTermination(20, TimeUnit.MINUTES);
+            executorService.awaitTermination(30, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

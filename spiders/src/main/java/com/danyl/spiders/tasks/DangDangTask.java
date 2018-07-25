@@ -35,7 +35,7 @@ public class DangDangTask {
     // 符合这个模式的都会被挑选出来 http://category.dangdang.com/cid4003471.html
     private Pattern pattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
 
-    @Scheduled(fixedDelay = DAYS * 3)
+    @Scheduled(fixedDelay = DAYS * 7)
     public void crawlDangDangCid() {
         log.info("crawl dangdang cid start {}", new Date());
 

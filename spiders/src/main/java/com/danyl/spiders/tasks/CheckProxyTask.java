@@ -39,7 +39,7 @@ public class CheckProxyTask {
     private DSLContext proxy;
 
     // 校验可用的代理
-    @Scheduled(fixedDelay = MINUTES * 10)
+    @Scheduled(fixedDelay = MINUTES * 30)
     public void validateProxy() {
         ImmutableMap<String, String> validateUrlMap = ImmutableMap.<String, String>builder()
                 .put("http://category.dangdang.com/cid4002389.html", "帆布鞋")
@@ -51,7 +51,7 @@ public class CheckProxyTask {
     private void checkProxy(Map<String, String> map) {
         log.info("check proxy start {}", new Date());
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(256);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(512);
         proxy.selectFrom(PROXY)
                 .fetch()
                 .stream()
