@@ -188,6 +188,7 @@ public class CheckProxyTask {
         try {
             String url = "http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp();
             String regex = "\"ip\":\"" + proxyRecord.getIp() + "\"";
+            // 如果是返回json字符串，不能用jsoup parse解析，会自动带上html标签
             String ipJson = ProxyService.jsoupExecute(url, regex).body();
 
             DocumentContext parse = JsonPath.parse(ipJson);

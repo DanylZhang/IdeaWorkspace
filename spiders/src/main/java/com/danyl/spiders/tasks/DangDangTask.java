@@ -8,6 +8,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.jooq.DSLContext;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -61,7 +62,7 @@ public class DangDangTask {
 
         document.select("a")
                 .eachAttr("abs:href")
-                .stream()
+                .parallelStream()
                 .filter(href -> {
                     href = href.trim();
                     return pattern.matcher(href).find();
@@ -73,8 +74,14 @@ public class DangDangTask {
                     if (document1 == null) {
                         log.error("lv1Cid foreach document is null!");
                         return "";
+                    } else {
+                        Elements elements = document1.select("#breadcrumb > div > a.a.diff");
+                        if (elements.size() > 0) {
+                            return elements.first().attr("abs:href");
+                        } else {
+                            return "";
+                        }
                     }
-                    return document1.select("#breadcrumb > div > a.a.diff").first().attr("abs:href");
                 })
                 .distinct()
                 .forEach((lv1link) -> {
@@ -127,15 +134,14 @@ public class DangDangTask {
 
     private void lv2Cid() {
         final List<ItemCategory> lv1Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(1)).fetch().into(ItemCategory.class);
-        lv1Categories.stream()
+        lv1Categories.parallelStream()
                 .limit(limit)
                 .flatMap(lv1Category -> {
                     Integer lv1CategoryCid = lv1Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv1CategoryCid.toString());
                     Document document = ProxyService.jsoupGet(url, "全部商品分类");
-                    Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
-                    if (hasChild) {
-                        return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv2link -> new MutablePair<String, ItemCategory>(lv2link, lv1Category));
+                    if (hasChild(document)) {
+                        return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv2link -> new MutablePair<>(lv2link, lv1Category));
                     }
                     return Stream.empty();
                 })
@@ -199,15 +205,14 @@ public class DangDangTask {
 
     private void lv3Cid() {
         final List<ItemCategory> lv2Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(2)).fetch().into(ItemCategory.class);
-        lv2Categories.stream()
+        lv2Categories.parallelStream()
                 .limit(limit)
                 .flatMap(lv2Category -> {
                     Integer lv2CategoryCid = lv2Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv2CategoryCid.toString());
                     Document document = ProxyService.jsoupGet(url, "全部商品分类");
-                    Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
-                    if (hasChild) {
-                        return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv3link -> new MutablePair<String, ItemCategory>(lv3link, lv2Category));
+                    if (hasChild(document)) {
+                        return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv3link -> new MutablePair<>(lv3link, lv2Category));
                     }
                     return Stream.empty();
                 })
@@ -273,15 +278,14 @@ public class DangDangTask {
 
     private void lv4Cid() {
         final List<ItemCategory> lv3Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(3)).fetch().into(ItemCategory.class);
-        lv3Categories.stream()
+        lv3Categories.parallelStream()
                 .limit(limit)
                 .flatMap(lv3Category -> {
                     Integer lv3CategoryCid = lv3Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv3CategoryCid.toString());
                     Document document = ProxyService.jsoupGet(url, "全部商品分类");
-                    Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
-                    if (hasChild) {
-                        return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv4link -> new MutablePair<String, ItemCategory>(lv4link, lv3Category));
+                    if (hasChild(document)) {
+                        return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv4link -> new MutablePair<>(lv4link, lv3Category));
                     }
                     return Stream.empty();
                 })
@@ -348,15 +352,14 @@ public class DangDangTask {
 
     private void lv5Cid() {
         final List<ItemCategory> lv4Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(4)).fetch().into(ItemCategory.class);
-        lv4Categories.stream()
+        lv4Categories.parallelStream()
                 .limit(limit)
                 .flatMap(lv4Category -> {
                     Integer lv4CategoryCid = lv4Category.getCid();
                     String url = "http://category.dangdang.com/cid{}.html".replace("{}", lv4CategoryCid.toString());
                     Document document = ProxyService.jsoupGet(url, "全部商品分类");
-                    Boolean hasChild = document.select("#navigation > ul > li:nth-child(1) > div.list_left").attr("title").equals("分类") ? true : false;
-                    if (hasChild) {
-                        return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv5link -> new MutablePair<String, ItemCategory>(lv5link, lv4Category));
+                    if (hasChild(document)) {
+                        return document.select("#navigation > ul > li:nth-child(1) > div.list_right > div.list_content.fix_list > div > span > a").eachAttr("abs:href").stream().map(lv5link -> new MutablePair<>(lv5link, lv4Category));
                     }
                     return Stream.empty();
                 })
@@ -422,5 +425,10 @@ public class DangDangTask {
                         dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
                     }
                 });
+    }
+
+    private Boolean hasChild(Document document) {
+        Elements elements = document.select("#navigation > ul > li:nth-child(1) > div.list_left");
+        return elements.size() > 0 && elements.attr("title").equals("分类");
     }
 }
