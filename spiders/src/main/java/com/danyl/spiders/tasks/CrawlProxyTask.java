@@ -29,7 +29,7 @@ public class CrawlProxyTask {
     @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
 
-    @Scheduled(fixedDelay = MINUTES * 10)
+    @Scheduled(fixedDelay = MINUTES * 20)
     public void crawlProxy() {
         log.info("crawl proxy start {}", new Date());
 

@@ -36,7 +36,7 @@ public class DangDangTask {
     // 符合这个模式的都会被挑选出来 http://category.dangdang.com/cid4003471.html
     private Pattern pattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
 
-    @Scheduled(fixedDelay = DAYS * 7)
+    @Scheduled(fixedDelay = DAYS * 3)
     public void crawlDangDangCid() {
         log.info("crawl dangdang cid start {}", new Date());
 
@@ -85,7 +85,7 @@ public class DangDangTask {
                 })
                 .distinct()
                 .forEach((lv1link) -> {
-                    System.out.println(lv1link);
+                    log.info("crawl url: {}", lv1link);
 
                     ItemCategory itemCategory = new ItemCategory();
 
@@ -150,7 +150,7 @@ public class DangDangTask {
                 .forEach((lv2link_lv1Category) -> {
                     String lv2link = lv2link_lv1Category.getLeft();
                     ItemCategory lv1Category = lv2link_lv1Category.getRight();
-                    System.out.println(lv2link);
+                    log.info("crawl url: {}", lv2link);
 
                     if (!pattern.matcher(lv2link).find()) {
                         return;
@@ -221,7 +221,7 @@ public class DangDangTask {
                 .forEach((lv3link_lv2Category) -> {
                     String lv3link = lv3link_lv2Category.getLeft();
                     ItemCategory lv2Category = lv3link_lv2Category.getRight();
-                    System.out.println(lv3link);
+                    log.info("crawl url: {}", lv3link);
 
                     if (!pattern.matcher(lv3link).find()) {
                         return;
@@ -294,8 +294,9 @@ public class DangDangTask {
                 .forEach((lv4link_lv3Category) -> {
                     String lv4link = lv4link_lv3Category.getLeft();
                     ItemCategory lv3Category = lv4link_lv3Category.getRight();
-                    System.out.println(lv4link);
+                    log.info("crawl url: {}", lv4link);
 
+                    // 对伪分类进行过滤 http://category.dangdang.com/cid4010390-a1000367%3A2.html
                     if (!pattern.matcher(lv4link).find()) {
                         return;
                     }
@@ -368,7 +369,7 @@ public class DangDangTask {
                 .forEach((lv5link_lv4Category) -> {
                     String lv5link = lv5link_lv4Category.getLeft();
                     ItemCategory lv4Category = lv5link_lv4Category.getRight();
-                    System.out.println(lv5link);
+                    log.info("crawl url: {}", lv5link);
 
                     if (!pattern.matcher(lv5link).find()) {
                         return;

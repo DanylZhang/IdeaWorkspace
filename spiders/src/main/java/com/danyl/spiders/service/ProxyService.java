@@ -252,7 +252,7 @@ public class ProxyService {
         // 因为followRedirects会改变访问的URL，所以先保存URL
         final String url = jsoupConnection.request().url().toExternalForm();
         // 链接访问正常，但返回未匹配数据时的重试次数
-        int count = 30;
+        int count = 10;
         while (true) {
             jsoupConnection
                     .url(url)
@@ -281,7 +281,7 @@ public class ProxyService {
                     }
                 }
             } catch (Exception e) {
-                log.error("jsoupExecute error: {}, url: {}, proxy: {}", e.getMessage(), url, proxy0);
+                // log.error("jsoupExecute error: {}, url: {}, proxy: {}", e.getMessage(), url, proxy0);
                 instance.remove(proxy0);
             }
         }
