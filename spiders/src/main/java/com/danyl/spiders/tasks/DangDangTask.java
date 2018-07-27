@@ -69,17 +69,18 @@ public class DangDangTask {
                 })
                 .distinct()
                 .limit(limit)
-                .map((href) -> {
+                .flatMap((href) -> {
                     Document document1 = ProxyService.jsoupGet(href, "全部商品分类");
                     if (document1 == null) {
-                        log.error("lv1Cid foreach document is null!");
-                        return "";
+                        log.error("lv1Cid foreach jsoupGet document is null, url: {}", href);
+                        return Stream.empty();
                     } else {
                         Elements elements = document1.select("#breadcrumb > div > a.a.diff");
                         if (elements.size() > 0) {
-                            return elements.first().attr("abs:href");
+                            return Stream.of(elements.first().attr("abs:href"));
                         } else {
-                            return "";
+                            log.error("lv1Cid #breadcrumb get null, url: {}", href);
+                            return Stream.empty();
                         }
                     }
                 })

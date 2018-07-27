@@ -252,7 +252,7 @@ public class ProxyService {
         // 因为followRedirects会改变访问的URL，所以先保存URL
         final String url = jsoupConnection.request().url().toExternalForm();
         // 链接访问正常，但返回未匹配数据时的重试次数
-        int count = 10;
+        int count = 15;
         while (true) {
             jsoupConnection
                     .url(url)
@@ -276,7 +276,7 @@ public class ProxyService {
                     // 用户提供的regex未匹配结果是正常情况
                     // 故跳出死循环
                     if (count-- <= 0) {
-                        log.error("jsoupExecute check regex error, url: {}, regex: {}", url, regex);
+                        log.error("jsoupExecute check regex error, url: {}, regex: {}, response: {}", url, regex, execute.body());
                         return execute;
                     }
                 }
