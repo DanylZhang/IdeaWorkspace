@@ -56,9 +56,6 @@ public class ProxyService {
     @PostConstruct
     public void init() {
         instance = this;
-        instance.proxy = this.proxy;
-        instance.proxies = this.proxies;
-
         // 初始化时先填充好代理
         instance.setProxies();
     }
@@ -252,7 +249,7 @@ public class ProxyService {
         // 因为followRedirects会改变访问的URL，所以先保存URL
         final String url = jsoupConnection.request().url().toExternalForm();
         // 链接访问正常，但返回未匹配数据时的重试次数
-        int count = 15;
+        int count = 10;
         while (true) {
             jsoupConnection
                     .url(url)
