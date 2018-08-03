@@ -62,7 +62,7 @@ public class CheckProxyTask {
                     for (Map.Entry<String, String> entry : map.entrySet()) {
                         String url = entry.getKey();
                         String regex = entry.getValue();
-                        Pair<Boolean, Integer> tmpPair = doCheckProxy(proxyRecord.getIp(), proxyRecord.getPort(), url, regex);
+                        Pair<Boolean, Integer> tmpPair = doCheckProxy(proxyRecord.getIp(), proxyRecord.getPort(), url, regex, TIMEOUT);
                         if (tmpPair.getLeft()) {
                             // 如何tmpPair是校验成功的则赋值给validateResultPair,以便更新代理的speed
                             validateResultPair = tmpPair;
@@ -101,10 +101,10 @@ public class CheckProxyTask {
      * @param url   通过此Url校验代理连通性
      * @param regex 校验正则表达式
      */
-    private static Pair<Boolean, Integer> doCheckProxy(String ip, Integer port, String url, String regex) {
+    public static Pair<Boolean, Integer> doCheckProxy(String ip, Integer port, String url, String regex, Integer timeout) {
         Connection connection = Jsoup.connect(url)
                 .referrer(url)
-                .timeout(TIMEOUT)
+                .timeout(timeout)
                 .proxy(ip, port)
                 .followRedirects(true)
                 .ignoreContentType(true)
@@ -114,8 +114,8 @@ public class CheckProxyTask {
             Connection.Response response = connection.execute();
             long end = System.currentTimeMillis();
             int costTime = (int) (end - start);
-            // 超过半分钟就算超时
-            if (costTime > TIMEOUT) {
+            // 超过 timeout就算超时
+            if (costTime > timeout) {
                 return Pair.of(false, costTime);
             }
 
