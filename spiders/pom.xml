@@ -167,8 +167,9 @@
                 </executions>
 
                 <configuration>
-                    <configurationFile>src/main/resources/code-gen-dangdang.xml</configurationFile>
+                    <!--<configurationFile>src/main/resources/code-gen-dangdang.xml</configurationFile>-->
                     <!--<configurationFile>src/main/resources/code-gen-vip.xml</configurationFile>-->
+                    <configurationFile>src/main/resources/code-gen-xiaomi.xml</configurationFile>
                     <!--<configurationFile>src/main/resources/code-gen-proxy.xml</configurationFile>-->
                 </configuration>
             </plugin>

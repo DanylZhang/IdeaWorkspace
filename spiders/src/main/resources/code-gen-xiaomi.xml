@@ -4,7 +4,7 @@
     <!-- Configure the database connection here -->
     <jdbc>
         <driver>com.mysql.jdbc.Driver</driver>
-        <url>jdbc:mysql://127.0.0.1:14306/new_vip?characterEncoding=utf-8&amp;useSSL=false</url>
+        <url>jdbc:mysql://127.0.0.1:14306/xiaomi?characterEncoding=utf-8&amp;useSSL=false</url>
         <user>dataway-rw</user>
         <password>QqHVMhmN*8</password>
     </jdbc>
@@ -13,9 +13,9 @@
         <database>
             <name>org.jooq.util.mysql.MySQLDatabase</name>
             <!--数据库名称-->
-            <inputSchema>new_vip</inputSchema>
+            <inputSchema>xiaomi</inputSchema>
             <!--include和exclude用于控制为数据库中哪些表生成代码-->
-            <includes>ads_activity|ads</includes>
+            <includes>item_category</includes>
             <excludes>item_estimate_sales_.*</excludes>
 
             <!--不要Unsigned Integer-->
@@ -49,7 +49,7 @@
 
         <target>
             <!--生成代码文件的包名及放置目录-->
-            <packageName>com.danyl.spiders.jooq.gen.vip</packageName>
+            <packageName>com.danyl.spiders.jooq.gen.xiaomi</packageName>
             <directory>src/main/java</directory>
         </target>
     </generator>
