@@ -103,4 +103,15 @@ public class ProxyController {
                 .build();
         return ResultVO.of(result);
     }
+
+    @GetMapping("/proxy/getSqlHint")
+    @ResponseBody
+    public ResultVO<Map> getSqlHint() {
+        Map tables = proxy.fetch("select TABLE_NAME,COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='PUBLIC';").intoGroups("TABLE_NAME", "COLUMN_NAME");
+        Map result = ImmutableMap.builder()
+                .put("tables", tables)
+                .put("defaultTable", "proxy")
+                .build();
+        return ResultVO.of(result);
+    }
 }
