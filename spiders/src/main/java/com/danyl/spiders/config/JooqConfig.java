@@ -44,4 +44,14 @@ public class JooqConfig {
                 .set(SQLDialect.MYSQL_5_7);
         return DSL.using(configuration);
     }
+
+    @Bean(name = "DSLContextXiaoMi")
+    public DSLContext getDSLContextXiaoMi(@Qualifier("dataSourceXiaoMi") DataSource dataSource) {
+        TransactionAwareDataSourceProxy transactionAwareDataSourceProxy = new TransactionAwareDataSourceProxy(dataSource);
+        DataSourceConnectionProvider dataSourceConnectionProvider = new DataSourceConnectionProvider(transactionAwareDataSourceProxy);
+        Configuration configuration = new DefaultConfiguration()
+                .set(dataSourceConnectionProvider)
+                .set(SQLDialect.MYSQL_5_7);
+        return DSL.using(configuration);
+    }
 }

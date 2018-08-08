@@ -68,6 +68,11 @@ public class CrawlProxyTask {
     public void getip3366() {
         for (int i = 1; i <= 4; i++) {
             for (int j = 1; j <= 10; j++) {
+                // TODO: 2018/8/8 ip3366有限制问题，简单暂停5秒，未解决
+                try {
+                    Thread.sleep(5 * 1000);
+                } catch (Exception ignored) {
+                }
                 String url = "http://www.ip3366.net/?stype=" + i + "&page=" + j;
                 Document document = ProxyService.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
                 document.select("#list > table > tbody > tr")

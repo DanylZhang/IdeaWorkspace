@@ -29,4 +29,10 @@ public class DruidConfig {
     public DataSource dataSourceNewVip() {
         return DruidDataSourceBuilder.create().build();
     }
+
+    @Bean(name = "dataSourceXiaoMi")
+    @ConfigurationProperties(prefix = "spring.datasource.druid.xiaomi")
+    public DataSource dataSourceXiaoMi() {
+        return DruidDataSourceBuilder.create().build();
+    }
 }

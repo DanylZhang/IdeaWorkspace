@@ -31,7 +31,7 @@ public class DangDangTask {
     private DSLContext dd;
 
     // 测试节流用
-    private int limit = 5; // Integer.MAX_VALUE
+    private int limit = 3; // Integer.MAX_VALUE
 
     // 符合这个模式的都会被挑选出来 http://category.dangdang.com/cid4003471.html
     private Pattern pattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
