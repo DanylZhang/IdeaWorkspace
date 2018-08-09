@@ -25,7 +25,7 @@ import static com.danyl.spiders.jooq.gen.xiaomi.Tables.ITEM_CATEGORY;
 
 @Slf4j
 @Component
-public class XiaoMiTask {
+public class XiaoMiProductTask {
 
     @Resource(name = "DSLContextXiaoMi")
     private DSLContext xm;
@@ -40,10 +40,10 @@ public class XiaoMiTask {
     private Pattern pattern = Pattern.compile("^https?://list\\.mi\\.com/([1-9]\\d*)$");
 
     @Scheduled(fixedDelay = DAYS * 3)
-    public void crawlXiaoMiCid() {
-        log.info("crawl xiaomi cid start {}", new Date());
+    public void crawlXiaoMiProduct() {
+        log.info("crawl xiaomi product start {}", new Date());
 
-        limit = Integer.MAX_VALUE;
+        // limit = Integer.MAX_VALUE;
 
         lv1Cid();
         lv2Cid();
@@ -51,7 +51,7 @@ public class XiaoMiTask {
         lv4Cid();
         lv5Cid();
 
-        log.info("crawl xiaomi cid end {}", new Date());
+        log.info("crawl xiaomi product end {}", new Date());
     }
 
     private void lv1Cid() {
@@ -123,7 +123,7 @@ public class XiaoMiTask {
 
     private void lv2Cid() {
         final List<ItemCategory> lv1Categories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(1)).fetch().into(ItemCategory.class);
-        lv1Categories.parallelStream()
+        lv1Categories.stream()
                 .limit(limit)
                 .flatMap(lv1Category -> {
                     Integer lv1CategoryCid = lv1Category.getCid();
@@ -202,7 +202,7 @@ public class XiaoMiTask {
 
     private void lv3Cid() {
         final List<ItemCategory> lv2Categories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(2)).fetch().into(ItemCategory.class);
-        lv2Categories.parallelStream()
+        lv2Categories.stream()
                 .limit(limit)
                 .flatMap(lv2Category -> {
                     Integer lv2CategoryCid = lv2Category.getCid();
@@ -283,7 +283,7 @@ public class XiaoMiTask {
 
     private void lv4Cid() {
         final List<ItemCategory> lv3Categories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(3)).fetch().into(ItemCategory.class);
-        lv3Categories.parallelStream()
+        lv3Categories.stream()
                 .limit(limit)
                 .flatMap(lv3Category -> {
                     Integer lv3CategoryCid = lv3Category.getCid();
@@ -366,7 +366,7 @@ public class XiaoMiTask {
 
     private void lv5Cid() {
         final List<ItemCategory> lv4Categories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(4)).fetch().into(ItemCategory.class);
-        lv4Categories.parallelStream()
+        lv4Categories.stream()
                 .limit(limit)
                 .flatMap(lv4Category -> {
                     Integer lv4CategoryCid = lv4Category.getCid();
@@ -461,7 +461,7 @@ public class XiaoMiTask {
 
     private Stream<Element> getCidATag(Document document) {
         return document.select("div.filter-box dl.filter-list > dd > a")
-                .parallelStream()
+                .stream()
                 .filter(a -> {
                     String text = a.text();
                     String href = a.attr("abs:href");

@@ -76,7 +76,7 @@ public class CrawlProxyTask {
                 String url = "http://www.ip3366.net/?stype=" + i + "&page=" + j;
                 Document document = ProxyService.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
                 document.select("#list > table > tbody > tr")
-                        .parallelStream()
+                        .stream()
                         .skip(1)
                         .forEach(element -> {
                             String ip = element.select("td:nth-child(1)").text().trim();
@@ -99,7 +99,7 @@ public class CrawlProxyTask {
             String url = "https://www.kuaidaili.com/free/inha/" + i + "/";
             Document document = ProxyService.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
             document.select("#list > table > tbody > tr")
-                    .parallelStream()
+                    .stream()
                     .forEach(element -> {
                         String ip = element.select("td:nth-child(1)").text();
                         int port = Integer.parseInt(element.select("td:nth-child(2)").text());
@@ -119,7 +119,7 @@ public class CrawlProxyTask {
             String url = "http://www.xicidaili.com/nn/" + i;
             Document document = ProxyService.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
             document.select("#ip_list > tbody > tr")
-                    .parallelStream()
+                    .stream()
                     .skip(1)
                     .forEach(element -> {
                         String ip = element.select("td:nth-child(2)").text();

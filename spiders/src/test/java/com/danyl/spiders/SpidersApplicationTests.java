@@ -30,7 +30,7 @@ public class SpidersApplicationTests {
         List<Proxy> proxyList = proxy.selectFrom(PROXY)
                 //.where(PROXY.IS_VALID.eq(true))
                 .fetchInto(Proxy.class);
-        proxyList.parallelStream()
+        proxyList.stream()
                 .forEach(proxy1 -> {
                     try {
                         Document document = Jsoup.connect(url)

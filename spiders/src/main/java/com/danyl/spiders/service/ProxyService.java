@@ -249,7 +249,7 @@ public class ProxyService {
         // 因为followRedirects会改变访问的URL，所以先保存URL
         final String url = jsoupConnection.request().url().toExternalForm();
         // 链接访问正常，但返回未匹配数据时的重试次数
-        int count = 10;
+        int count = 20;
         while (true) {
             jsoupConnection
                     .url(url)

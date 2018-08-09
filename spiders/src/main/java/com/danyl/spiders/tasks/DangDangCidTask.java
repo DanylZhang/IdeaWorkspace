@@ -25,7 +25,7 @@ import static com.danyl.spiders.jooq.gen.dangdang.Tables.ITEM_CATEGORY;
 
 @Slf4j
 @Component
-public class DangDangTask {
+public class DangDangCidTask {
 
     @Resource(name = "DSLContextDangDang")
     private DSLContext dd;
@@ -62,7 +62,7 @@ public class DangDangTask {
 
         document.select("a")
                 .eachAttr("abs:href")
-                .parallelStream()
+                .stream()
                 .filter(href -> {
                     href = href.trim();
                     return pattern.matcher(href).find();
@@ -135,7 +135,7 @@ public class DangDangTask {
 
     private void lv2Cid() {
         final List<ItemCategory> lv1Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(1)).fetch().into(ItemCategory.class);
-        lv1Categories.parallelStream()
+        lv1Categories.stream()
                 .limit(limit)
                 .flatMap(lv1Category -> {
                     Integer lv1CategoryCid = lv1Category.getCid();
@@ -206,7 +206,7 @@ public class DangDangTask {
 
     private void lv3Cid() {
         final List<ItemCategory> lv2Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(2)).fetch().into(ItemCategory.class);
-        lv2Categories.parallelStream()
+        lv2Categories.stream()
                 .limit(limit)
                 .flatMap(lv2Category -> {
                     Integer lv2CategoryCid = lv2Category.getCid();
@@ -279,7 +279,7 @@ public class DangDangTask {
 
     private void lv4Cid() {
         final List<ItemCategory> lv3Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(3)).fetch().into(ItemCategory.class);
-        lv3Categories.parallelStream()
+        lv3Categories.stream()
                 .limit(limit)
                 .flatMap(lv3Category -> {
                     Integer lv3CategoryCid = lv3Category.getCid();
@@ -354,7 +354,7 @@ public class DangDangTask {
 
     private void lv5Cid() {
         final List<ItemCategory> lv4Categories = dd.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(4)).fetch().into(ItemCategory.class);
-        lv4Categories.parallelStream()
+        lv4Categories.stream()
                 .limit(limit)
                 .flatMap(lv4Category -> {
                     Integer lv4CategoryCid = lv4Category.getCid();
