@@ -36,11 +36,11 @@ public class XiaoMiTask {
     // 小米的item_count需要用pageSize计算
     private int pageSize = 4 * 6;
 
-    // 符合这个模式的都会被挑选出来 https://list.mi.com/0
-    private Pattern pattern = Pattern.compile("https?://list\\.mi\\.com/([1-9]\\d*)");
+    // 符合这个模式的都会被挑选出来 ^https://list.mi.com/1$
+    private Pattern pattern = Pattern.compile("^https?://list\\.mi\\.com/([1-9]\\d*)$");
 
     @Scheduled(fixedDelay = DAYS * 3)
-    public void crawlDangDangCid() {
+    public void crawlXiaoMiCid() {
         log.info("crawl xiaomi cid start {}", new Date());
 
         limit = Integer.MAX_VALUE;
@@ -63,13 +63,8 @@ public class XiaoMiTask {
             return;
         }
 
-        document.select("div.filter-box dl.filter-list > dd > a")
-                .eachAttr("abs:href")
-                .parallelStream()
-                .filter(href -> {
-                    href = href.trim();
-                    return pattern.matcher(href).find();
-                })
+        getCidATag(document)
+                .map(a -> a.attr("abs:href"))
                 .distinct()
                 .limit(limit)
                 .forEach((lv1link) -> {
@@ -135,8 +130,8 @@ public class XiaoMiTask {
                     String url = "https://list.mi.com/{}".replace("{}", lv1CategoryCid.toString());
                     Document document = ProxyService.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
-                        return document.select("div.filter-box dl.filter-list > dd > a")
-                                .eachAttr("abs:href").stream().map(lv2link -> new MutablePair<>(lv2link, lv1Category));
+                        return getCidATag(document)
+                                .map(a -> new MutablePair<>(a.attr("abs:href"), lv1Category));
                     }
                     return Stream.empty();
                 })
@@ -214,8 +209,8 @@ public class XiaoMiTask {
                     String url = "https://list.mi.com/{}".replace("{}", lv2CategoryCid.toString());
                     Document document = ProxyService.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
-                        return document.select("div.filter-box dl.filter-list > dd > a")
-                                .eachAttr("abs:href").stream().map(lv3link -> new MutablePair<>(lv3link, lv2Category));
+                        return getCidATag(document)
+                                .map(a -> new MutablePair<>(a.attr("abs:href"), lv2Category));
                     }
                     return Stream.empty();
                 })
@@ -295,8 +290,8 @@ public class XiaoMiTask {
                     String url = "https://list.mi.com/{}".replace("{}", lv3CategoryCid.toString());
                     Document document = ProxyService.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
-                        return document.select("div.filter-box dl.filter-list > dd > a")
-                                .eachAttr("abs:href").stream().map(lv4link -> new MutablePair<>(lv4link, lv3Category));
+                        return getCidATag(document)
+                                .map(a -> new MutablePair<>(a.attr("abs:href"), lv3Category));
                     }
                     return Stream.empty();
                 })
@@ -378,8 +373,8 @@ public class XiaoMiTask {
                     String url = "https://list.mi.com/{}".replace("{}", lv4CategoryCid.toString());
                     Document document = ProxyService.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
-                        return document.select("div.filter-box dl.filter-list > dd > a")
-                                .eachAttr("abs:href").stream().map(lv5link -> new MutablePair<>(lv5link, lv4Category));
+                        return getCidATag(document)
+                                .map(a -> new MutablePair<>(a.attr("abs:href"), lv4Category));
                     }
                     return Stream.empty();
                 })
@@ -462,5 +457,20 @@ public class XiaoMiTask {
             return !document.select("div.container > div.filter-box > div.filter-list-wrap > dl.filter-list > dd").text().contains(categoryName);
         }
         return false;
+    }
+
+    private Stream<Element> getCidATag(Document document) {
+        return document.select("div.filter-box dl.filter-list > dd > a")
+                .parallelStream()
+                .filter(a -> {
+                    String text = a.text();
+                    String href = a.attr("abs:href");
+                    href = href.trim();
+                    // 小米分类里总有"全部"在捣乱
+                    if (text.equals("全部")) {
+                        return false;
+                    }
+                    return pattern.matcher(href).find();
+                });
     }
 }
