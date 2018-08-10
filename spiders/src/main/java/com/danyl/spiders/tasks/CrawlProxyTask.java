@@ -59,7 +59,7 @@ public class CrawlProxyTask {
                 proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE)
                         .values(ip, port, false, type)
                         .onDuplicateKeyIgnore()
-                        .executeAsync();
+                        .execute();
             }
         }
     }
@@ -87,7 +87,7 @@ public class CrawlProxyTask {
                             proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
                                     .values(ip, port, false, type, comment)
                                     .onDuplicateKeyIgnore()
-                                    .executeAsync();
+                                    .execute();
                         });
             }
         }
@@ -108,7 +108,7 @@ public class CrawlProxyTask {
                         proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
                                 .values(ip, port, false, type, comment)
                                 .onDuplicateKeyIgnore()
-                                .executeAsync();
+                                .execute();
                     });
         }
     }
@@ -133,7 +133,7 @@ public class CrawlProxyTask {
                         proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE, PROXY.COMMENT)
                                 .values(ip, port, false, type, comment)
                                 .onDuplicateKeyIgnore()
-                                .executeAsync();
+                                .execute();
                     });
         }
     }

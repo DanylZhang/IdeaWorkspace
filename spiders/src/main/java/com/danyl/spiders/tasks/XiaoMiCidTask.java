@@ -20,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static com.danyl.spiders.constants.Constants.XIAOMI_PAGESIZE;
 import static com.danyl.spiders.constants.TimeConstants.DAYS;
 import static com.danyl.spiders.jooq.gen.xiaomi.Tables.ITEM_CATEGORY;
 
@@ -32,9 +33,6 @@ public class XiaoMiCidTask {
 
     // 测试节流用
     private int limit = 3; // Integer.MAX_VALUE
-
-    // 小米的item_count需要用pageSize计算
-    private int pageSize = 4 * 6;
 
     // 符合这个模式的都会被挑选出来 ^https://list.mi.com/1$
     private Pattern pattern = Pattern.compile("^https?://list\\.mi\\.com/([1-9]\\d*)$");
@@ -96,7 +94,7 @@ public class XiaoMiCidTask {
                     boolean morePage = document1.select("div.xm-pagenavi").size() > 0;
                     if (morePage) {
                         int page = document1.select("div.xm-pagenavi > a").size();
-                        itemCategory.setItemCount(page * pageSize);
+                        itemCategory.setItemCount(page * XIAOMI_PAGESIZE);
                     } else {
                         Integer itemCount = document1.select("div.container > div.goods-list-box > div.goods-list > div.goods-item").size();
                         itemCategory.setItemCount(itemCount);
@@ -175,7 +173,7 @@ public class XiaoMiCidTask {
                     boolean morePage = document1.select("div.xm-pagenavi").size() > 0;
                     if (morePage) {
                         int page = document1.select("div.xm-pagenavi > a").size();
-                        itemCategory.setItemCount(page * pageSize);
+                        itemCategory.setItemCount(page * XIAOMI_PAGESIZE);
                     } else {
                         Integer itemCount = document1.select("div.container > div.goods-list-box > div.goods-list > div.goods-item").size();
                         itemCategory.setItemCount(itemCount);
@@ -256,7 +254,7 @@ public class XiaoMiCidTask {
                     boolean morePage = document1.select("div.xm-pagenavi").size() > 0;
                     if (morePage) {
                         int page = document1.select("div.xm-pagenavi > a").size();
-                        itemCategory.setItemCount(page * pageSize);
+                        itemCategory.setItemCount(page * XIAOMI_PAGESIZE);
                     } else {
                         Integer itemCount = document1.select("div.container > div.goods-list-box > div.goods-list > div.goods-item").size();
                         itemCategory.setItemCount(itemCount);
@@ -339,7 +337,7 @@ public class XiaoMiCidTask {
                     boolean morePage = document1.select("div.xm-pagenavi").size() > 0;
                     if (morePage) {
                         int page = document1.select("div.xm-pagenavi > a").size();
-                        itemCategory.setItemCount(page * pageSize);
+                        itemCategory.setItemCount(page * XIAOMI_PAGESIZE);
                     } else {
                         Integer itemCount = document1.select("div.container > div.goods-list-box > div.goods-list > div.goods-item").size();
                         itemCategory.setItemCount(itemCount);
@@ -424,7 +422,7 @@ public class XiaoMiCidTask {
                     boolean morePage = document1.select("div.xm-pagenavi").size() > 0;
                     if (morePage) {
                         int page = document1.select("div.xm-pagenavi > a").size();
-                        itemCategory.setItemCount(page * pageSize);
+                        itemCategory.setItemCount(page * XIAOMI_PAGESIZE);
                     } else {
                         Integer itemCount = document1.select("div.container > div.goods-list-box > div.goods-list > div.goods-item").size();
                         itemCategory.setItemCount(itemCount);

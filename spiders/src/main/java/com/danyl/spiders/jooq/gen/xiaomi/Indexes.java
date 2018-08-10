@@ -4,6 +4,7 @@
 package com.danyl.spiders.jooq.gen.xiaomi;
 
 
+import com.danyl.spiders.jooq.gen.xiaomi.tables.Item;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.ItemCategory;
 
 import javax.annotation.Generated;
@@ -30,6 +31,12 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index ITEM_PRIMARY = Indexes0.ITEM_PRIMARY;
+    public static final Index ITEM_X_BRAND = Indexes0.ITEM_X_BRAND;
+    public static final Index ITEM_X_CID = Indexes0.ITEM_X_CID;
+    public static final Index ITEM_X_COMMODITY_ID = Indexes0.ITEM_X_COMMODITY_ID;
+    public static final Index ITEM_X_GOODS_ID = Indexes0.ITEM_X_GOODS_ID;
+    public static final Index ITEM_X_PRODUCT_ID = Indexes0.ITEM_X_PRODUCT_ID;
     public static final Index ITEM_CATEGORY_PRIMARY = Indexes0.ITEM_CATEGORY_PRIMARY;
     public static final Index ITEM_CATEGORY_X_PARENT_CID = Indexes0.ITEM_CATEGORY_X_PARENT_CID;
 
@@ -38,6 +45,12 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     private static class Indexes0 {
+        public static Index ITEM_PRIMARY = Internal.createIndex("PRIMARY", Item.ITEM, new OrderField[] { Item.ITEM.ITEM_ID }, true);
+        public static Index ITEM_X_BRAND = Internal.createIndex("x_brand", Item.ITEM, new OrderField[] { Item.ITEM.BRAND }, false);
+        public static Index ITEM_X_CID = Internal.createIndex("x_cid", Item.ITEM, new OrderField[] { Item.ITEM.CID }, false);
+        public static Index ITEM_X_COMMODITY_ID = Internal.createIndex("x_commodity_id", Item.ITEM, new OrderField[] { Item.ITEM.COMMODITY_ID }, false);
+        public static Index ITEM_X_GOODS_ID = Internal.createIndex("x_goods_id", Item.ITEM, new OrderField[] { Item.ITEM.GOODS_ID }, false);
+        public static Index ITEM_X_PRODUCT_ID = Internal.createIndex("x_product_id", Item.ITEM, new OrderField[] { Item.ITEM.PRODUCT_ID }, false);
         public static Index ITEM_CATEGORY_PRIMARY = Internal.createIndex("PRIMARY", ItemCategory.ITEM_CATEGORY, new OrderField[] { ItemCategory.ITEM_CATEGORY.CID }, true);
         public static Index ITEM_CATEGORY_X_PARENT_CID = Internal.createIndex("x_parent_cid", ItemCategory.ITEM_CATEGORY, new OrderField[] { ItemCategory.ITEM_CATEGORY.PARENT_CID }, false);
     }

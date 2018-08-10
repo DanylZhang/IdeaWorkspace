@@ -1,26 +1,37 @@
 package com.danyl.spiders.tasks;
 
+import com.danyl.spiders.jooq.gen.xiaomi.tables.pojos.Item;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.pojos.ItemCategory;
-import com.danyl.spiders.jooq.gen.xiaomi.tables.records.ItemCategoryRecord;
+import com.danyl.spiders.jooq.gen.xiaomi.tables.records.ItemRecord;
 import com.danyl.spiders.service.ProxyService;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static com.danyl.spiders.constants.Constants.XIAOMI_PAGESIZE;
 import static com.danyl.spiders.constants.TimeConstants.DAYS;
+import static com.danyl.spiders.jooq.gen.xiaomi.Tables.ITEM;
 import static com.danyl.spiders.jooq.gen.xiaomi.Tables.ITEM_CATEGORY;
 
 @Slf4j
@@ -31,446 +42,237 @@ public class XiaoMiProductTask {
     private DSLContext xm;
 
     // 测试节流用
-    private int limit = 3; // Integer.MAX_VALUE
+    private int limit = Integer.MAX_VALUE;
 
-    // 小米的item_count需要用pageSize计算
-    private int pageSize = 4 * 6;
-
-    // 符合这个模式的都会被挑选出来 ^https://list.mi.com/1$
-    private Pattern pattern = Pattern.compile("^https?://list\\.mi\\.com/([1-9]\\d*)$");
+    // li->json->price pattern
+    private Pattern pattern = Pattern.compile("(\\d+(\\.\\d*)?)元(\\s*<del>.*元</del>)?");
 
     @Scheduled(fixedDelay = DAYS * 3)
-    public void crawlXiaoMiProduct() {
+    public void crawlXiaoMiItem() {
         log.info("crawl xiaomi product start {}", new Date());
 
-        // limit = Integer.MAX_VALUE;
+        List<ItemCategory> itemCategories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(2)).fetchInto(ItemCategory.class);
 
-        lv1Cid();
-        lv2Cid();
-        lv3Cid();
-        lv4Cid();
-        lv5Cid();
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
+        itemCategories.stream()
+                .flatMap(itemCategory -> {
+                    Integer itemCount = itemCategory.getItemCount();
+                    int pageNum = new Double(Math.ceil(itemCount * 1.0 / XIAOMI_PAGESIZE)).intValue();
+                    return IntStream.rangeClosed(1, pageNum).mapToObj(PageIndex -> {
+                        String url = String.format("https://list.mi.com/%d-0-0-0-0-0-0-0-%d", itemCategory.getCid(), PageIndex);
+                        return Pair.of(itemCategory.getCid(), url);
+                    });
+                })
+                .limit(limit)
+                .map(cidUrlPair -> CompletableFuture.runAsync(() -> {
+                    Integer cid = cidUrlPair.getLeft();
+                    String url = cidUrlPair.getRight();
+                    Document document = ProxyService.jsoupGet(url, "所有商品");
+                    if (document == null) {
+                        return;
+                    }
+                    document.select("div.content div.goods-list-box > div.goods-list > div.goods-item ul > li")
+                            .forEach(li -> {
+                                try {
+                                    String json = li.attr("data-config");
+                                    DocumentContext parse = JsonPath.parse(json);
+                                    Long commodityId = Long.parseLong(parse.read("$.cid").toString());
+                                    long goodsId = Long.parseLong(parse.read("$.gid").toString());
+                                    Matcher matcher = pattern.matcher(parse.read("$.price").toString());
+                                    int price = 0;
+                                    if (matcher.find()) {
+                                        price = new Double(new Double(matcher.group(1)) * 100).intValue();
+                                    }
 
+                                    String imgUrl = li.child(0).absUrl("src");
+                                    String name = li.child(0).attr("alt");
+
+                                    Item item = new Item();
+                                    item.setItemId(commodityId + "-" + goodsId);
+                                    item.setCommodityId(commodityId);
+                                    item.setGoodsId(goodsId);
+                                    item.setName(name);
+                                    item.setCid(cid);
+                                    item.setPrice(price);
+                                    item.setImg(imgUrl);
+
+                                    ItemRecord itemRecord = xm.selectFrom(ITEM).where(ITEM.ITEM_ID.eq(item.getItemId())).fetchOne();
+                                    if (itemRecord != null) {
+                                        xm.executeUpdate(xm.newRecord(ITEM, item));
+                                    } else {
+                                        xm.executeInsert(xm.newRecord(ITEM, item));
+                                    }
+
+                                    // 有些li中gid为0，可能确实为0，也可能有二级属性
+                                    if (goodsId == 0) {
+                                        String url1 = "https://item.mi.com/{}.html?cfrom=list".replace("{}", commodityId.toString());
+                                        Document document1 = ProxyService.jsoupGet(url1, "小米商城");
+                                        if (document1 == null) {
+                                            return;
+                                        }
+
+                                        Matcher matcher1 = Pattern.compile("goodsStyleList:(.+?),\\s*//商品是否缺货").matcher(document1.html());
+                                        if (matcher1.find()) {
+                                            String json1 = matcher1.group(1);
+                                            DocumentContext parse1 = JsonPath.parse(json1);
+                                            List<Map<String, Object>> maps = parse1.read("$.*");
+                                            for (Map<String, Object> map : maps) {
+                                                commodityId = Long.parseLong(map.get("commodity_id").toString());
+                                                goodsId = Long.parseLong(map.get("goods_id").toString());
+                                                price = new Double(new Double(map.get("price").toString()) * 100).intValue();
+                                                imgUrl = map.get("image").toString();
+                                                name = map.get("name").toString();
+
+                                                Item item1 = new Item();
+                                                item1.setItemId(commodityId + "-" + goodsId);
+                                                item1.setCommodityId(commodityId);
+                                                item1.setGoodsId(goodsId);
+                                                item1.setName(name);
+                                                item1.setCid(cid);
+                                                item1.setPrice(price);
+                                                item1.setImg(imgUrl);
+
+                                                // 进入商品详情页了，估计可以拿到productId
+                                                Matcher productIdMatcher = Pattern.compile("productId:\"(\\d+)\",").matcher(document1.html());
+                                                if (productIdMatcher.find()) {
+                                                    Long productId = Long.parseLong(productIdMatcher.group(1));
+                                                    item1.setProductId(productId);
+                                                }
+
+                                                ItemRecord itemRecord1 = xm.selectFrom(ITEM).where(ITEM.ITEM_ID.eq(item.getItemId())).fetchOne();
+                                                if (itemRecord1 != null) {
+                                                    xm.executeUpdate(xm.newRecord(ITEM, item));
+                                                } else {
+                                                    xm.executeInsert(xm.newRecord(ITEM, item));
+                                                }
+                                            }
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    log.error("crawl xiaomi product li parse error: {}", e.getMessage());
+                                }
+                            });
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
+                });
+
+        fixedThreadPool.shutdown();
         log.info("crawl xiaomi product end {}", new Date());
     }
 
-    private void lv1Cid() {
-        String startUrl = "https://list.mi.com/0";
-        Document document = ProxyService.jsoupGet(startUrl, "所有商品");
+    @Scheduled(fixedDelay = DAYS)
+    public void crawlXiaoMiProductId() {
+        log.info("crawl xiaomi productId start {}", new Date());
 
-        if (document == null) {
-            log.error("lv1Cid document is null!");
-            return;
-        }
+        List<Long> commodityIds = xm.selectDistinct(ITEM.COMMODITY_ID)
+                .from(ITEM)
+                .fetch(ITEM.COMMODITY_ID);
 
-        getCidATag(document)
-                .map(a -> a.attr("abs:href"))
-                .distinct()
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
+        commodityIds.stream()
                 .limit(limit)
-                .forEach((lv1link) -> {
-                    ItemCategory itemCategory = new ItemCategory();
-                    // lv1cid
-                    Matcher matcher = pattern.matcher(lv1link);
+                .map(commodityId -> CompletableFuture.supplyAsync(() -> {
+                    long productId = 0L;
+                    // 小米商城普通商品，无独立宣传页
+                    String regex1 = "productId:\"(\\d+)\",";
+                    // 小米商城推广商品，有独立宣传页
+                    String regex2 = "'https://m\\.mi\\.com/commodity/detail/(\\d+)'";
+                    // 小米商城推广商品，有独立宣传页，过时推广
+                    String regex3 = "'//m\\.mi\\.com/_/product/view/product_id/(\\d+)'";
+                    // 小米商城推广商品，有独立宣传页，其他格式
+                    String regex4 = "view\\?product_id=(\\d+)";
+
+                    String url = "https://item.mi.com/{}.html?cfrom=list".replace("{}", commodityId.toString());
+                    Document document = ProxyService.jsoupGet(url, String.format("(%s)|(%s)|(%s)|(%s)", regex1, regex2, regex3, regex4));
+                    if (document == null) {
+                        return productId;
+                    }
+                    String html = document.html();
+
+                    Matcher matcher = Pattern.compile(regex1).matcher(html);
                     if (matcher.find()) {
-                        int lv1cid = Integer.parseInt(matcher.group(1));
-                        itemCategory.setCid(lv1cid);
-                        itemCategory.setParentCid(0);
-                        itemCategory.setTopParentCid(lv1cid);
-                        itemCategory.setLv1cid(lv1cid);
+                        productId = Long.parseLong(matcher.group(1));
                     }
-
-                    log.info("crawl url: {}", lv1link);
-                    Document document1 = ProxyService.jsoupGet(lv1link, "所有商品");
-                    Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
-                    if (Objects.isNull(span)) {
-                        return;
-                    }
-
-                    // lv1name
-                    String name = span.text();
-                    itemCategory.setName(name);
-                    itemCategory.setFullName(name);
-                    itemCategory.setLv1name(name);
-
-                    // item_count
-                    boolean morePage = document1.select("div.xm-pagenavi").size() > 0;
-                    if (morePage) {
-                        int page = document1.select("div.xm-pagenavi > a").size();
-                        itemCategory.setItemCount(page * pageSize);
-                    } else {
-                        Integer itemCount = document1.select("div.container > div.goods-list-box > div.goods-list > div.goods-item").size();
-                        itemCategory.setItemCount(itemCount);
-                    }
-
-                    // is_parent
-                    Elements dt = document1.select("div.container > div.filter-box > div.filter-list-wrap > dl.filter-list > dt");
-                    if ((dt.size() > 0 && dt.text().contains("分类"))) {
-                        itemCategory.setIsParent(1);
-                    } else {
-                        itemCategory.setIsParent(0);
-                    }
-                    // level
-                    itemCategory.setLevel(1);
-
-                    ItemCategoryRecord itemCategoryRecord = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.CID.eq(itemCategory.getCid())).fetchOne();
-                    if (itemCategoryRecord != null) {
-                        xm.executeUpdate(xm.newRecord(ITEM_CATEGORY, itemCategory));
-                    } else {
-                        xm.executeInsert(xm.newRecord(ITEM_CATEGORY, itemCategory));
-                    }
-                });
-    }
-
-    private void lv2Cid() {
-        final List<ItemCategory> lv1Categories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(1)).fetch().into(ItemCategory.class);
-        lv1Categories.stream()
-                .limit(limit)
-                .flatMap(lv1Category -> {
-                    Integer lv1CategoryCid = lv1Category.getCid();
-                    String url = "https://list.mi.com/{}".replace("{}", lv1CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url, "所有商品");
-                    if (hasChild(document)) {
-                        return getCidATag(document)
-                                .map(a -> new MutablePair<>(a.attr("abs:href"), lv1Category));
-                    }
-                    return Stream.empty();
-                })
-                .distinct()
-                .limit(limit)
-                .forEach((lv2link_lv1Category) -> {
-                    String lv2link = lv2link_lv1Category.getLeft();
-                    ItemCategory lv1Category = lv2link_lv1Category.getRight();
-
-                    if (!pattern.matcher(lv2link).find()) {
-                        return;
-                    }
-
-                    ItemCategory itemCategory = new ItemCategory();
-                    // lv2cid
-                    Matcher matcher = pattern.matcher(lv2link);
+                    matcher = Pattern.compile(regex2).matcher(html);
                     if (matcher.find()) {
-                        int lv2cid = Integer.parseInt(matcher.group(1));
-                        itemCategory.setCid(lv2cid);
-                        itemCategory.setParentCid(lv1Category.getCid());
-                        itemCategory.setTopParentCid(lv1Category.getTopParentCid());
-                        itemCategory.setLv1cid(lv1Category.getLv1cid());
-                        itemCategory.setLv2cid(lv2cid);
+                        productId = Long.parseLong(matcher.group(1));
                     }
-
-                    log.info("crawl url: {}", lv2link);
-                    Document document1 = ProxyService.jsoupGet(lv2link, "所有商品");
-                    Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
-                    if (Objects.isNull(span)) {
-                        return;
-                    }
-
-                    // lv2name
-                    String name = span.text();
-                    itemCategory.setName(name);
-                    itemCategory.setLv1name(lv1Category.getLv1name());
-                    itemCategory.setLv2name(name);
-                    itemCategory.setFullName(lv1Category.getFullName() + ">" + name);
-
-                    // item_count
-                    boolean morePage = document1.select("div.xm-pagenavi").size() > 0;
-                    if (morePage) {
-                        int page = document1.select("div.xm-pagenavi > a").size();
-                        itemCategory.setItemCount(page * pageSize);
-                    } else {
-                        Integer itemCount = document1.select("div.container > div.goods-list-box > div.goods-list > div.goods-item").size();
-                        itemCategory.setItemCount(itemCount);
-                    }
-
-                    // is_parent
-                    if (hasChild(document1)) {
-                        itemCategory.setIsParent(1);
-                    } else {
-                        itemCategory.setIsParent(0);
-                    }
-
-                    // level
-                    itemCategory.setLevel(2);
-
-                    ItemCategoryRecord itemCategoryRecord = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.CID.eq(itemCategory.getCid())).fetchOne();
-                    if (itemCategoryRecord != null) {
-                        xm.executeUpdate(xm.newRecord(ITEM_CATEGORY, itemCategory));
-                    } else {
-                        xm.executeInsert(xm.newRecord(ITEM_CATEGORY, itemCategory));
-                    }
-                });
-    }
-
-    private void lv3Cid() {
-        final List<ItemCategory> lv2Categories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(2)).fetch().into(ItemCategory.class);
-        lv2Categories.stream()
-                .limit(limit)
-                .flatMap(lv2Category -> {
-                    Integer lv2CategoryCid = lv2Category.getCid();
-                    String url = "https://list.mi.com/{}".replace("{}", lv2CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url, "所有商品");
-                    if (hasChild(document)) {
-                        return getCidATag(document)
-                                .map(a -> new MutablePair<>(a.attr("abs:href"), lv2Category));
-                    }
-                    return Stream.empty();
-                })
-                .distinct()
-                .limit(limit)
-                .forEach((lv3link_lv2Category) -> {
-                    String lv3link = lv3link_lv2Category.getLeft();
-                    ItemCategory lv2Category = lv3link_lv2Category.getRight();
-
-                    if (!pattern.matcher(lv3link).find()) {
-                        return;
-                    }
-
-                    ItemCategory itemCategory = new ItemCategory();
-                    // lv3cid
-                    Matcher matcher = pattern.matcher(lv3link);
+                    matcher = Pattern.compile(regex3).matcher(html);
                     if (matcher.find()) {
-                        int lv3cid = Integer.parseInt(matcher.group(1));
-                        itemCategory.setCid(lv3cid);
-                        itemCategory.setParentCid(lv2Category.getCid());
-                        itemCategory.setTopParentCid(lv2Category.getTopParentCid());
-                        itemCategory.setLv1cid(lv2Category.getLv1cid());
-                        itemCategory.setLv2cid(lv2Category.getLv2cid());
-                        itemCategory.setLv3cid(lv3cid);
+                        productId = Long.parseLong(matcher.group(1));
                     }
-
-                    log.info("crawl url: {}", lv3link);
-                    Document document1 = ProxyService.jsoupGet(lv3link, "所有商品");
-                    Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
-                    if (Objects.isNull(span)) {
-                        return;
-                    }
-
-                    // lv3name
-                    String name = span.text();
-                    itemCategory.setName(name);
-                    itemCategory.setLv1name(lv2Category.getLv1name());
-                    itemCategory.setLv2name(lv2Category.getLv2name());
-                    itemCategory.setLv3name(name);
-                    itemCategory.setFullName(lv2Category.getFullName() + ">" + name);
-
-                    // item_count
-                    boolean morePage = document1.select("div.xm-pagenavi").size() > 0;
-                    if (morePage) {
-                        int page = document1.select("div.xm-pagenavi > a").size();
-                        itemCategory.setItemCount(page * pageSize);
-                    } else {
-                        Integer itemCount = document1.select("div.container > div.goods-list-box > div.goods-list > div.goods-item").size();
-                        itemCategory.setItemCount(itemCount);
-                    }
-
-                    // is_parent
-                    if (hasChild(document1)) {
-                        itemCategory.setIsParent(1);
-                    } else {
-                        itemCategory.setIsParent(0);
-                    }
-
-                    // level
-                    itemCategory.setLevel(3);
-
-                    ItemCategoryRecord itemCategoryRecord = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.CID.eq(itemCategory.getCid())).fetchOne();
-                    if (itemCategoryRecord != null) {
-                        xm.executeUpdate(xm.newRecord(ITEM_CATEGORY, itemCategory));
-                    } else {
-                        xm.executeInsert(xm.newRecord(ITEM_CATEGORY, itemCategory));
-                    }
-                });
-    }
-
-    private void lv4Cid() {
-        final List<ItemCategory> lv3Categories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(3)).fetch().into(ItemCategory.class);
-        lv3Categories.stream()
-                .limit(limit)
-                .flatMap(lv3Category -> {
-                    Integer lv3CategoryCid = lv3Category.getCid();
-                    String url = "https://list.mi.com/{}".replace("{}", lv3CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url, "所有商品");
-                    if (hasChild(document)) {
-                        return getCidATag(document)
-                                .map(a -> new MutablePair<>(a.attr("abs:href"), lv3Category));
-                    }
-                    return Stream.empty();
-                })
-                .distinct()
-                .limit(limit)
-                .forEach((lv4link_lv3Category) -> {
-                    String lv4link = lv4link_lv3Category.getLeft();
-                    ItemCategory lv3Category = lv4link_lv3Category.getRight();
-
-                    if (!pattern.matcher(lv4link).find()) {
-                        return;
-                    }
-
-                    ItemCategory itemCategory = new ItemCategory();
-                    // lv4cid
-                    Matcher matcher = pattern.matcher(lv4link);
+                    matcher = Pattern.compile(regex4).matcher(html);
                     if (matcher.find()) {
-                        int lv4cid = Integer.parseInt(matcher.group(1));
-                        itemCategory.setCid(lv4cid);
-                        itemCategory.setParentCid(lv3Category.getCid());
-                        itemCategory.setTopParentCid(lv3Category.getTopParentCid());
-                        itemCategory.setLv1cid(lv3Category.getLv1cid());
-                        itemCategory.setLv2cid(lv3Category.getLv2cid());
-                        itemCategory.setLv3cid(lv3Category.getLv3cid());
-                        itemCategory.setLv4cid(lv4cid);
+                        productId = Long.parseLong(matcher.group(1));
                     }
 
-                    log.info("crawl url: {}", lv4link);
-                    Document document1 = ProxyService.jsoupGet(lv4link, "所有商品");
-                    Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
-                    if (Objects.isNull(span)) {
+                    if (productId <= 0L) {
+                        log.error("get xiaomi productId error, commodityId: {}, url: {}", commodityId, url);
+                        String location = document.location();
+                        try {
+                            URL url1 = new URL(location);
+                            String targetUrl = new StringBuilder().append(url1.getProtocol())
+                                    .append(url1.getProtocol())
+                                    .append("://")
+                                    .append(url1.getHost())
+                                    .append(url1.getPath()).toString();
+                            url = new StringBuilder().append("https://order.mi.com/product/gettabinfo?url=")
+                                    .append(URLEncoder.encode(targetUrl, "UTF-8"))
+                                    .append("&_=")
+                                    .append(System.currentTimeMillis()).toString();
+                            Connection connection = Jsoup.connect(url).header("Referer", targetUrl).ignoreContentType(true);
+                            Document document1 = ProxyService.jsoupGet(connection, "\"msg\":\"ok\"");
+                            if (document1 == null) {
+                                log.error("get xiaomi productId error, commodityId: {}, url: {}", commodityId, url);
+                                return productId;
+                            }
+                            Matcher matcher1 = Pattern.compile("\"product_id\":(\\d+),").matcher(document1.html());
+                            if (matcher1.find()) {
+                                productId = Long.parseLong(matcher1.group(1));
+                            }
+                        } catch (Exception e) {
+                            log.error("get xiaomi productId error, commodityId: {}, url: {}", commodityId, url);
+                        }
+                    }
+                    if (productId > 0) {
+                        xm.update(ITEM).set(ITEM.PRODUCT_ID, productId).where(ITEM.COMMODITY_ID.eq(commodityId)).execute();
+                    }
+                    return productId;
+                }, fixedThreadPool).thenAcceptAsync(productId -> {
+                    if (productId == 0) {
+                        return;
+                    }
+                    String referer = "https://item.mi.com/comment/{}.html".replace("{}", "" + productId);
+                    String url = new StringBuilder().append("https://comment.huodong.mi.com/comment/entry/getSummary?goods_id=")
+                            .append(productId)
+                            .append("&v_pid=")
+                            .append(productId)
+                            .append("&sstart=0&slen=10&astart=0&alen=")
+                            .append(10)
+                            .append("&_=")
+                            .append(System.currentTimeMillis()).toString();
+                    Connection connection = Jsoup.connect(url).header("Referer", referer).ignoreContentType(true);
+                    Document document = ProxyService.jsoupGet(connection, "\"msg\":\"ok\"");
+                    if (document == null) {
                         return;
                     }
 
-                    // lv4name
-                    String name = span.text();
-                    itemCategory.setName(name);
-                    itemCategory.setLv1name(lv3Category.getLv1name());
-                    itemCategory.setLv2name(lv3Category.getLv2name());
-                    itemCategory.setLv3name(lv3Category.getLv3name());
-                    itemCategory.setLv4name(name);
-                    itemCategory.setFullName(lv3Category.getFullName() + ">" + name);
-
-                    // item_count
-                    boolean morePage = document1.select("div.xm-pagenavi").size() > 0;
-                    if (morePage) {
-                        int page = document1.select("div.xm-pagenavi > a").size();
-                        itemCategory.setItemCount(page * pageSize);
-                    } else {
-                        Integer itemCount = document1.select("div.container > div.goods-list-box > div.goods-list > div.goods-item").size();
-                        itemCategory.setItemCount(itemCount);
-                    }
-
-                    // is_parent
-                    if (hasChild(document1)) {
-                        itemCategory.setIsParent(1);
-                    } else {
-                        itemCategory.setIsParent(0);
-                    }
-
-                    // level
-                    itemCategory.setLevel(4);
-
-                    ItemCategoryRecord itemCategoryRecord = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.CID.eq(itemCategory.getCid())).fetchOne();
-                    if (itemCategoryRecord != null) {
-                        xm.executeUpdate(xm.newRecord(ITEM_CATEGORY, itemCategory));
-                    } else {
-                        xm.executeInsert(xm.newRecord(ITEM_CATEGORY, itemCategory));
-                    }
-                });
-    }
-
-    private void lv5Cid() {
-        final List<ItemCategory> lv4Categories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(4)).fetch().into(ItemCategory.class);
-        lv4Categories.stream()
-                .limit(limit)
-                .flatMap(lv4Category -> {
-                    Integer lv4CategoryCid = lv4Category.getCid();
-                    String url = "https://list.mi.com/{}".replace("{}", lv4CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url, "所有商品");
-                    if (hasChild(document)) {
-                        return getCidATag(document)
-                                .map(a -> new MutablePair<>(a.attr("abs:href"), lv4Category));
-                    }
-                    return Stream.empty();
-                })
-                .distinct()
-                .limit(limit)
-                .forEach((lv5link_lv4Category) -> {
-                    String lv5link = lv5link_lv4Category.getLeft();
-                    ItemCategory lv4Category = lv5link_lv4Category.getRight();
-
-                    if (!pattern.matcher(lv5link).find()) {
-                        return;
-                    }
-
-                    ItemCategory itemCategory = new ItemCategory();
-                    // lv5cid
-                    Matcher matcher = pattern.matcher(lv5link);
+                    Matcher matcher = Pattern.compile("\"total_count\":(\\d+),").matcher(document.html());
                     if (matcher.find()) {
-                        int lv5cid = Integer.parseInt(matcher.group(1));
-                        itemCategory.setCid(lv5cid);
-                        itemCategory.setParentCid(lv4Category.getCid());
-                        itemCategory.setTopParentCid(lv4Category.getTopParentCid());
-                        itemCategory.setLv1cid(lv4Category.getLv1cid());
-                        itemCategory.setLv2cid(lv4Category.getLv2cid());
-                        itemCategory.setLv3cid(lv4Category.getLv3cid());
-                        itemCategory.setLv4cid(lv4Category.getLv4cid());
-                        itemCategory.setLv5cid(lv5cid);
+                        int comment_num = Integer.parseInt(matcher.group(1));
+                        xm.update(ITEM).set(ITEM.COMMENT_NUM, comment_num).where(ITEM.PRODUCT_ID.eq(productId)).execute();
                     }
-
-                    log.info("crawl url: {}", lv5link);
-                    Document document1 = ProxyService.jsoupGet(lv5link, "所有商品");
-                    Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
-                    if (Objects.isNull(span)) {
-                        return;
-                    }
-
-                    // lv5name
-                    String name = span.text();
-                    itemCategory.setName(name);
-                    itemCategory.setLv1name(lv4Category.getLv1name());
-                    itemCategory.setLv2name(lv4Category.getLv2name());
-                    itemCategory.setLv3name(lv4Category.getLv3name());
-                    itemCategory.setLv4name(lv4Category.getLv4name());
-                    itemCategory.setLv5name(name);
-                    itemCategory.setFullName(lv4Category.getFullName() + ">" + name);
-
-                    // item_count
-                    boolean morePage = document1.select("div.xm-pagenavi").size() > 0;
-                    if (morePage) {
-                        int page = document1.select("div.xm-pagenavi > a").size();
-                        itemCategory.setItemCount(page * pageSize);
-                    } else {
-                        Integer itemCount = document1.select("div.container > div.goods-list-box > div.goods-list > div.goods-item").size();
-                        itemCategory.setItemCount(itemCount);
-                    }
-
-                    // is_parent
-                    if (hasChild(document1)) {
-                        itemCategory.setIsParent(1);
-                    } else {
-                        itemCategory.setIsParent(0);
-                    }
-
-                    // level
-                    itemCategory.setLevel(5);
-
-                    ItemCategoryRecord itemCategoryRecord = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.CID.eq(itemCategory.getCid())).fetchOne();
-                    if (itemCategoryRecord != null) {
-                        xm.executeUpdate(xm.newRecord(ITEM_CATEGORY, itemCategory));
-                    } else {
-                        xm.executeInsert(xm.newRecord(ITEM_CATEGORY, itemCategory));
-                    }
-                });
-    }
-
-    private Boolean hasChild(Document document) {
-        Elements dt = document.select("div.container > div.filter-box > div.filter-list-wrap > dl.filter-list > dt");
-        if ((dt.size() > 0 && dt.text().contains("分类"))) {
-            String categoryName = document.select("body > div.breadcrumbs > div > span:last-child").text();
-            // 小米官网二级类目到底，如果下方分类中包含面包屑中的最后一个类目，则认为没有子类目
-            return !document.select("div.container > div.filter-box > div.filter-list-wrap > dl.filter-list > dd").text().contains(categoryName);
-        }
-        return false;
-    }
-
-    private Stream<Element> getCidATag(Document document) {
-        return document.select("div.filter-box dl.filter-list > dd > a")
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
                 .stream()
-                .filter(a -> {
-                    String text = a.text();
-                    String href = a.attr("abs:href");
-                    href = href.trim();
-                    // 小米分类里总有"全部"在捣乱
-                    if (text.equals("全部")) {
-                        return false;
-                    }
-                    return pattern.matcher(href).find();
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
+
+        fixedThreadPool.shutdown();
+        log.info("crawl xiaomi productId end {}", new Date());
     }
 }

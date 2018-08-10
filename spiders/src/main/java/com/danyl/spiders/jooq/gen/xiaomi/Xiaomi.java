@@ -4,6 +4,7 @@
 package com.danyl.spiders.jooq.gen.xiaomi;
 
 
+import com.danyl.spiders.jooq.gen.xiaomi.tables.Item;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.ItemCategory;
 
 import java.util.ArrayList;
@@ -30,12 +31,17 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Xiaomi extends SchemaImpl {
 
-    private static final long serialVersionUID = 343330590;
+    private static final long serialVersionUID = 1738931790;
 
     /**
      * The reference instance of <code>xiaomi</code>
      */
     public static final Xiaomi XIAOMI = new Xiaomi();
+
+    /**
+     * The table <code>xiaomi.item</code>.
+     */
+    public final Item ITEM = com.danyl.spiders.jooq.gen.xiaomi.tables.Item.ITEM;
 
     /**
      * The table <code>xiaomi.item_category</code>.
@@ -67,6 +73,7 @@ public class Xiaomi extends SchemaImpl {
 
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
+            Item.ITEM,
             ItemCategory.ITEM_CATEGORY);
     }
 }

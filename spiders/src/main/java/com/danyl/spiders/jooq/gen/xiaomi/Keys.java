@@ -4,8 +4,10 @@
 package com.danyl.spiders.jooq.gen.xiaomi;
 
 
+import com.danyl.spiders.jooq.gen.xiaomi.tables.Item;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.ItemCategory;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.records.ItemCategoryRecord;
+import com.danyl.spiders.jooq.gen.xiaomi.tables.records.ItemRecord;
 
 import javax.annotation.Generated;
 
@@ -36,6 +38,7 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<ItemRecord> KEY_ITEM_PRIMARY = UniqueKeys0.KEY_ITEM_PRIMARY;
     public static final UniqueKey<ItemCategoryRecord> KEY_ITEM_CATEGORY_PRIMARY = UniqueKeys0.KEY_ITEM_CATEGORY_PRIMARY;
 
     // -------------------------------------------------------------------------
@@ -48,6 +51,7 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     private static class UniqueKeys0 {
+        public static final UniqueKey<ItemRecord> KEY_ITEM_PRIMARY = Internal.createUniqueKey(Item.ITEM, "KEY_item_PRIMARY", Item.ITEM.ITEM_ID);
         public static final UniqueKey<ItemCategoryRecord> KEY_ITEM_CATEGORY_PRIMARY = Internal.createUniqueKey(ItemCategory.ITEM_CATEGORY, "KEY_item_category_PRIMARY", ItemCategory.ITEM_CATEGORY.CID);
     }
 }

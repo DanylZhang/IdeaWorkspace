@@ -51,7 +51,7 @@ public class CheckProxyTask {
     private void checkProxy(Map<String, String> map) {
         log.info("check proxy start {}", new Date());
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(512);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(256);
         proxy.selectFrom(PROXY)
                 .fetch()
                 .stream()

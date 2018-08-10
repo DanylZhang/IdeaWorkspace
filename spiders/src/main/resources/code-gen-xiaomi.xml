@@ -15,7 +15,7 @@
             <!--数据库名称-->
             <inputSchema>xiaomi</inputSchema>
             <!--include和exclude用于控制为数据库中哪些表生成代码-->
-            <includes>item_category</includes>
+            <includes>item_category|item</includes>
             <excludes>item_estimate_sales_.*</excludes>
 
             <!--不要Unsigned Integer-->

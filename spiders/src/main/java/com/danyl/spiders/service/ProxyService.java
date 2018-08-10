@@ -189,14 +189,8 @@ public class ProxyService {
      * @param regex response 校验正则，不符合预期的将被循环执行
      */
     public static Document jsoupGet(String url, String regex) {
-        Response response = jsoupExecute(url, regex);
-        Document document = null;
-        try {
-            document = response.parse();
-        } catch (IOException e) {
-            log.error("jsoupGet error: {}", e.getMessage());
-        }
-        return document;
+        Connection connect = Jsoup.connect(url);
+        return jsoupGet(connect, regex);
     }
 
     /**
@@ -207,6 +201,10 @@ public class ProxyService {
      */
     public static Document jsoupGet(Connection connection, String regex) {
         Response response = jsoupExecute(connection, regex);
+        if (response == null) {
+            return null;
+        }
+
         Document document = null;
         try {
             document = response.parse();
@@ -242,6 +240,7 @@ public class ProxyService {
      *
      * @param jsoupConnection 指定了url以及一些参数的 jsoup Connection
      * @param regex           response 校验正则，不符合预期的将被循环执行
+     * @return the jsoup execute response, maybe null when regex don't match
      */
     public static Response jsoupExecute(Connection jsoupConnection, String regex) {
         // 获取代理的实例
@@ -250,6 +249,7 @@ public class ProxyService {
         final String url = jsoupConnection.request().url().toExternalForm();
         // 链接访问正常，但返回未匹配数据时的重试次数
         int count = 20;
+        Pattern pattern = Pattern.compile(regex);
         while (true) {
             jsoupConnection
                     .url(url)
@@ -265,7 +265,7 @@ public class ProxyService {
             }
             try {
                 Response execute = jsoupConnection.execute();
-                if (Pattern.compile(regex).matcher(execute.body()).find()) {
+                if (pattern.matcher(execute.body()).find()) {
                     return execute;
                 } else {
                     // 此时链接访问正常，但是未返回期望的结果，
@@ -274,7 +274,7 @@ public class ProxyService {
                     // 故跳出死循环
                     if (count-- <= 0) {
                         log.error("jsoupExecute check regex error, url: {}, regex: {}, response: {}", url, regex, execute.body());
-                        return execute;
+                        return null;
                     }
                 }
             } catch (Exception e) {

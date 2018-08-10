@@ -4,6 +4,7 @@
 package com.danyl.spiders.jooq.gen.xiaomi;
 
 
+import com.danyl.spiders.jooq.gen.xiaomi.tables.Item;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.ItemCategory;
 
 import javax.annotation.Generated;
@@ -21,6 +22,11 @@ import javax.annotation.Generated;
 )
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
+
+    /**
+     * The table <code>xiaomi.item</code>.
+     */
+    public static final Item ITEM = com.danyl.spiders.jooq.gen.xiaomi.tables.Item.ITEM;
 
     /**
      * The table <code>xiaomi.item_category</code>.

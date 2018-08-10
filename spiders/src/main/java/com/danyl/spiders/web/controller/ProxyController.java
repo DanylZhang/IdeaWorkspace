@@ -60,47 +60,46 @@ public class ProxyController {
 
             // 如果传入了where
             if (StringUtils.isNotBlank(proxySearch.getWhere())) {
-                String sql = proxySearch.getWhere().toLowerCase().trim();
+                String sql = proxySearch.getWhere().trim();
                 // 如果where由select开头
-                if (sql.startsWith("select")) {
-                    Table<Record> nested = DSL.table("(" + sql + ")").asTable("tmp");
+                if (sql.toLowerCase().startsWith("select")) {
+                    Table<Record> nested = DSL.table("(" + sql + ")").asTable("TMP");
                     try {
                         total = proxy.selectCount().from(nested).fetchOneInto(Integer.class);
                     } catch (Exception e) {
                         return ResultVO.of(500, e.getMessage());
                     }
                     query = proxy.selectQuery(nested);
-                    query.addLimit((proxySearch.getPageIndex() - 1) * proxySearch.getPageSize(), proxySearch.getPageSize());
                 }
                 // 如果where由where开头
-                else if (sql.startsWith("where")) {
-                    sql = sql.replaceFirst("where", " ");
+                else if (sql.toLowerCase().startsWith("where")) {
+                    sql = sql.replaceFirst("(?i)where", " ");
                     try {
                         total = proxy.selectCount().from(PROXY).where(sql).fetchOneInto(Integer.class);
                     } catch (Exception e) {
                         return ResultVO.of(500, e.getMessage());
                     }
-                    query = proxy.select().from(PROXY).where(sql).limit((proxySearch.getPageIndex() - 1) * proxySearch.getPageSize(), proxySearch.getPageSize()).getQuery();
+                    query = proxy.select().from(PROXY).where(sql).getQuery();
                 }
             }
             // 默认排序
             else {
                 total = proxy.fetchCount(PROXY);
                 query = proxy.select().from(PROXY).getQuery();
+            }
+            try {
                 List<? extends SortField<?>> orderList = proxySearch.getOrderBy().stream()
                         .flatMap(map -> map.entrySet().stream().map(entry -> {
                             // h2里面全是大写的字段名
                             String fieldName = entry.getKey().toUpperCase();
                             // SQL order
                             String fieldOrder = "ascending".equalsIgnoreCase(entry.getValue()) ? "ASC" : "DESC";
-                            return PROXY.field(fieldName).sort(SortOrder.valueOf(fieldOrder));
+                            return DSL.field(DSL.quotedName(fieldName)).sort(SortOrder.valueOf(fieldOrder));
                         }))
                         .distinct()
                         .collect(Collectors.toList());
                 query.addOrderBy(orderList);
                 query.addLimit((proxySearch.getPageIndex() - 1) * proxySearch.getPageSize(), proxySearch.getPageSize());
-            }
-            try {
                 formatJSON = query.fetch().formatJSON(JSONFormat.DEFAULT_FOR_RESULTS.recordFormat(JSONFormat.RecordFormat.ARRAY));
             } catch (Exception e) {
                 return ResultVO.of(500, e.getMessage());
