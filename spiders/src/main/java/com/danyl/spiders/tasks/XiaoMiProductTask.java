@@ -179,9 +179,9 @@ public class XiaoMiProductTask {
                     // 小米商城普通商品，无独立宣传页
                     String regex1 = "productId:\"(\\d+)\",";
                     // 小米商城推广商品，有独立宣传页
-                    String regex2 = "'https://m\\.mi\\.com/commodity/detail/(\\d+)'";
+                    String regex2 = "commodity/detail/(\\d+)'";
                     // 小米商城推广商品，有独立宣传页，过时推广
-                    String regex3 = "'//m\\.mi\\.com/_/product/view/product_id/(\\d+)'";
+                    String regex3 = "view/product_id/(\\d+)'";
                     // 小米商城推广商品，有独立宣传页，其他格式
                     String regex4 = "view\\?product_id=(\\d+)";
 
