@@ -151,7 +151,7 @@ public class ProxyController {
         GsonJsonParser gsonJsonParser = new GsonJsonParser();
         List<Object> records = proxies.stream().map(proxyRecord -> {
             String formatJSON1 = proxyRecord.formatJSON(JSONFormat.DEFAULT_FOR_RECORDS.recordFormat(JSONFormat.RecordFormat.ARRAY));
-            return gsonJsonParser.parseMap(formatJSON1);
+            return gsonJsonParser.parseList(formatJSON1);
         }).collect(Collectors.toList());
         // 拿到fields
         String formatJSON1 = proxy.selectFrom(PROXY).limit(1).fetch().formatJSON(JSONFormat.DEFAULT_FOR_RESULTS);
