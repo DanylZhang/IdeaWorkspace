@@ -163,12 +163,13 @@ public class XiaoMiProductTask {
         log.info("crawl xiaomi product end {}", new Date());
     }
 
-    @Scheduled(fixedDelay = DAYS)
+    @Scheduled(fixedDelay = DAYS * 3)
     public void crawlXiaoMiProductId() {
         log.info("crawl xiaomi productId start {}", new Date());
 
         List<Long> commodityIds = xm.selectDistinct(ITEM.COMMODITY_ID)
                 .from(ITEM)
+                .where(ITEM.PRODUCT_ID.eq(0L))
                 .fetch(ITEM.COMMODITY_ID);
 
         ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
@@ -186,11 +187,14 @@ public class XiaoMiProductTask {
                     String regex4 = "view\\?product_id=(\\d+)";
 
                     String url = "https://item.mi.com/{}.html?cfrom=list".replace("{}", commodityId.toString());
-                    Document document = ProxyService.jsoupGet(url, String.format("(%s)|(%s)|(%s)|(%s)", regex1, regex2, regex3, regex4));
+                    Document document = ProxyService.jsoupGet(url, "小米商城");
+
+                    String html;
                     if (document == null) {
-                        return productId;
+                        html = "";
+                    } else {
+                        html = document.html();
                     }
-                    String html = document.html();
 
                     Matcher matcher = Pattern.compile(regex1).matcher(html);
                     if (matcher.find()) {
@@ -211,32 +215,42 @@ public class XiaoMiProductTask {
 
                     if (productId <= 0L) {
                         log.error("get xiaomi productId error, commodityId: {}, url: {}", commodityId, url);
+
                         String location = document.location();
-                        try {
-                            URL url1 = new URL(location);
-                            String targetUrl = new StringBuilder().append(url1.getProtocol())
-                                    .append(url1.getProtocol())
-                                    .append("://")
-                                    .append(url1.getHost())
-                                    .append(url1.getPath()).toString();
-                            url = new StringBuilder().append("https://order.mi.com/product/gettabinfo?url=")
-                                    .append(URLEncoder.encode(targetUrl, "UTF-8"))
-                                    .append("&_=")
-                                    .append(System.currentTimeMillis()).toString();
-                            Connection connection = Jsoup.connect(url).header("Referer", targetUrl).ignoreContentType(true);
-                            Document document1 = ProxyService.jsoupGet(connection, "\"msg\":\"ok\"");
-                            if (document1 == null) {
+                        Matcher locationMatcher = Pattern.compile("https://item\\.mi\\.com/product/(\\d+)\\.html").matcher(location);
+                        if (locationMatcher.find()) {
+                            productId = Long.parseLong(locationMatcher.group(1));
+                        } else {
+                            try {
+                                URL url1 = new URL(location);
+                                String targetUrl = new StringBuilder()
+                                        .append(url1.getProtocol())
+                                        .append("://")
+                                        .append(url1.getHost())
+                                        .append(url1.getPath()).toString();
+                                url = new StringBuilder()
+                                        .append("https://order.mi.com/product/gettabinfo?url=")
+                                        .append(URLEncoder.encode(targetUrl, "UTF-8"))
+                                        .append("&_=")
+                                        .append(System.currentTimeMillis()).toString();
+                                Connection connection = Jsoup.connect(url).header("Referer", targetUrl).ignoreContentType(true);
+                                Document document1 = ProxyService.jsoupGet(connection, "\"msg\":\"ok\"");
+                                if (document1 == null) {
+                                    log.error("get xiaomi productId error, commodityId: {}, url: {}", commodityId, url);
+                                    return productId;
+                                }
+                                Matcher matcher1 = Pattern.compile("\"product_id\":(\\d+),").matcher(document1.html());
+                                if (matcher1.find()) {
+                                    productId = Long.parseLong(matcher1.group(1));
+                                } else {
+                                    log.error("get xiaomi productId error, commodityId: {}, url: {}", commodityId, url);
+                                }
+                            } catch (Exception e) {
                                 log.error("get xiaomi productId error, commodityId: {}, url: {}", commodityId, url);
-                                return productId;
                             }
-                            Matcher matcher1 = Pattern.compile("\"product_id\":(\\d+),").matcher(document1.html());
-                            if (matcher1.find()) {
-                                productId = Long.parseLong(matcher1.group(1));
-                            }
-                        } catch (Exception e) {
-                            log.error("get xiaomi productId error, commodityId: {}, url: {}", commodityId, url);
                         }
                     }
+
                     if (productId > 0) {
                         xm.update(ITEM).set(ITEM.PRODUCT_ID, productId).where(ITEM.COMMODITY_ID.eq(commodityId)).execute();
                     }

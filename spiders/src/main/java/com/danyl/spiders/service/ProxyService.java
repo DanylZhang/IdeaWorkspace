@@ -176,10 +176,11 @@ public class ProxyService {
     /**
      * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
      *
-     * @param url 目标网址
+     * @param url      目标网址
+     * @param useProxy 是否使用代理爬取
      */
-    public static Document jsoupGet(String url) {
-        return jsoupGet(url, ".");
+    public static Document jsoupGet(String url, Boolean useProxy) {
+        return jsoupGet(url, ".", useProxy);
     }
 
     /**
@@ -189,8 +190,19 @@ public class ProxyService {
      * @param regex response 校验正则，不符合预期的将被循环执行
      */
     public static Document jsoupGet(String url, String regex) {
+        return jsoupGet(url, regex, true);
+    }
+
+    /**
+     * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
+     *
+     * @param url      目标网址
+     * @param regex    response 校验正则，不符合预期的将被循环执行
+     * @param useProxy 是否使用代理爬取
+     */
+    public static Document jsoupGet(String url, String regex, Boolean useProxy) {
         Connection connect = Jsoup.connect(url);
-        return jsoupGet(connect, regex);
+        return jsoupGet(connect, regex, useProxy);
     }
 
     /**
@@ -200,7 +212,18 @@ public class ProxyService {
      * @param regex      response 校验正则，不符合预期的将被循环执行
      */
     public static Document jsoupGet(Connection connection, String regex) {
-        Response response = jsoupExecute(connection, regex);
+        return jsoupGet(connection, regex, true);
+    }
+
+    /**
+     * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
+     *
+     * @param connection 指定了url以及一些参数的 jsoup Connection
+     * @param regex      response 校验正则，不符合预期的将被循环执行
+     * @param useProxy   是否使用代理爬取
+     */
+    public static Document jsoupGet(Connection connection, String regex, Boolean useProxy) {
+        Response response = jsoupExecute(connection, regex, useProxy);
         if (response == null) {
             return null;
         }
@@ -217,11 +240,12 @@ public class ProxyService {
     /**
      * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
      *
-     * @param url 目标网址
+     * @param url      目标网址
+     * @param useProxy 是否使用代理爬取
      */
-    public static Response jsoupExecute(String url) {
+    public static Response jsoupExecute(String url, Boolean useProxy) {
         Connection connect = Jsoup.connect(url);
-        return jsoupExecute(connect, ".");
+        return jsoupExecute(connect, ".", useProxy);
     }
 
     /**
@@ -232,7 +256,23 @@ public class ProxyService {
      */
     public static Response jsoupExecute(String url, String regex) {
         Connection connect = Jsoup.connect(url);
-        return jsoupExecute(connect, regex);
+        return jsoupExecute(connect, regex, true);
+    }
+
+    /**
+     * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
+     *
+     * @param url      目标网址
+     * @param regex    response 校验正则，不符合预期的将被循环执行
+     * @param useProxy 是否使用代理爬取
+     */
+    public static Response jsoupExecute(String url, String regex, Boolean useProxy) {
+        Connection connect = Jsoup.connect(url);
+        return jsoupExecute(connect, regex, useProxy);
+    }
+
+    public static Response jsoupExecute(Connection jsoupConnection, String regex) {
+        return jsoupExecute(jsoupConnection, regex, true);
     }
 
     /**
@@ -240,9 +280,10 @@ public class ProxyService {
      *
      * @param jsoupConnection 指定了url以及一些参数的 jsoup Connection
      * @param regex           response 校验正则，不符合预期的将被循环执行
+     * @param useProxy        是否使用代理爬取
      * @return the jsoup execute response, maybe null when regex don't match
      */
-    public static Response jsoupExecute(Connection jsoupConnection, String regex) {
+    private static Response jsoupExecute(Connection jsoupConnection, String regex, Boolean useProxy) {
         // 获取代理的实例
         final ProxyService instance = getInstance();
         // 因为followRedirects会改变访问的URL，所以先保存URL
@@ -258,8 +299,11 @@ public class ProxyService {
                     .ignoreContentType(true)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
 
-            // 1. 从proxies中拿到一个代理，并设置给jsoupConnection
-            Proxy proxy0 = instance.get(url);
+            // 从proxies中拿到一个代理，并设置给jsoupConnection
+            Proxy proxy0 = null;
+            if (useProxy) {
+                proxy0 = instance.get(url);
+            }
             if (proxy0 != null) {
                 jsoupConnection.proxy(proxy0.getIp(), proxy0.getPort());
             }
