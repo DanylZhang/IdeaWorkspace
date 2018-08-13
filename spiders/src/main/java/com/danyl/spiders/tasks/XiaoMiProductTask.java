@@ -51,7 +51,7 @@ public class XiaoMiProductTask {
     public void crawlXiaoMiItem() {
         log.info("crawl xiaomi product start {}", new Date());
 
-        List<ItemCategory> itemCategories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.LEVEL.eq(2)).fetchInto(ItemCategory.class);
+        List<ItemCategory> itemCategories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.IS_PARENT.eq(0)).fetchInto(ItemCategory.class);
 
         ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
         itemCategories.stream()
