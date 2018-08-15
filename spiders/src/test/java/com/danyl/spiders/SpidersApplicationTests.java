@@ -1,8 +1,14 @@
 package com.danyl.spiders;
 
 import com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy;
+import com.danyl.spiders.service.ProxyService;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.Test;
@@ -12,7 +18,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
@@ -44,5 +52,40 @@ public class SpidersApplicationTests {
                     } catch (IOException ignored) {
                     }
                 });
+    }
+
+    @Test
+    public void xiaomiAstartTest() {
+        // 最终结论 astart=70后开始重复
+        String product_id = "10000099";
+
+        Integer astart = 0;
+        Set<Integer> comment_ids = new LinkedHashSet<>();
+        while (true) {
+            String url = String.format("https://comment.huodong.mi.com/comment/entry/getSummary?goods_id=%s&v_pid=%s&sstart=0&slen=10&astart=%s&alen=10&_=%s", product_id, product_id, astart, System.currentTimeMillis());
+            System.out.println(url);
+            Connection connection = Jsoup.connect(url).referrer(String.format("https://item.mi.com/%s.html?cfrom=search", product_id));
+            Connection.Response response = ProxyService.jsoupExecute(connection, "msg", false);
+            String json = response.body();
+            System.out.println(json);
+            DocumentContext parse = JsonPath.parse(json);
+            List<Integer> tmp_comment_id_list = parse.read("$..addtime_comments..comment_id");
+            Set<Integer> tmp_comment_ids = new LinkedHashSet<>(tmp_comment_id_list);
+            System.out.println(tmp_comment_ids);
+            System.out.println(tmp_comment_ids.size());
+            Sets.SetView<Integer> intersection = Sets.intersection(comment_ids, tmp_comment_ids);
+            ImmutableSet<Integer> integers = intersection.immutableCopy();
+
+            System.out.println(integers);
+            System.out.println(integers.size());
+            System.out.println("astart:" + astart);
+            comment_ids.addAll(tmp_comment_ids);
+            astart += 10;
+            if (integers.size() > 0) {
+                System.out.println(integers);
+                System.out.println(integers.size());
+                return;
+            }
+        }
     }
 }

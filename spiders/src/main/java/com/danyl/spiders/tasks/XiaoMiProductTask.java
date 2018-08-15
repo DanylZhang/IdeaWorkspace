@@ -47,7 +47,7 @@ public class XiaoMiProductTask {
     // li->json->price pattern
     private Pattern pattern = Pattern.compile("(\\d+(\\.\\d*)?)元(\\s*<del>.*元</del>)?");
 
-    @Scheduled(fixedDelay = DAYS * 3)
+    @Scheduled(fixedDelay = DAYS)
     public void crawlXiaoMiItem() {
         log.info("crawl xiaomi product start {}", new Date());
 
@@ -163,13 +163,12 @@ public class XiaoMiProductTask {
         log.info("crawl xiaomi product end {}", new Date());
     }
 
-    @Scheduled(fixedDelay = DAYS * 3)
+    @Scheduled(fixedDelay = DAYS)
     public void crawlXiaoMiProductId() {
         log.info("crawl xiaomi productId start {}", new Date());
 
         List<Long> commodityIds = xm.selectDistinct(ITEM.COMMODITY_ID)
                 .from(ITEM)
-                .where(ITEM.PRODUCT_ID.eq(0L))
                 .fetch(ITEM.COMMODITY_ID);
 
         ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);

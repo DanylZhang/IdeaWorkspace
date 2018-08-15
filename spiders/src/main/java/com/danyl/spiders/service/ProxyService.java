@@ -283,7 +283,7 @@ public class ProxyService {
      * @param useProxy        是否使用代理爬取
      * @return the jsoup execute response, maybe null when regex don't match
      */
-    private static Response jsoupExecute(Connection jsoupConnection, String regex, Boolean useProxy) {
+    public static Response jsoupExecute(Connection jsoupConnection, String regex, Boolean useProxy) {
         // 获取代理的实例
         final ProxyService instance = getInstance();
         // 因为followRedirects会改变访问的URL，所以先保存URL
