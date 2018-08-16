@@ -102,15 +102,15 @@ public class CheckProxyTask {
      * @param regex 校验正则表达式
      */
     public static Pair<Boolean, Integer> doCheckProxy(String ip, Integer port, String url, String regex, Integer timeout) {
-        Connection connection = Jsoup.connect(url)
-                .referrer(url)
-                .timeout(timeout)
-                .proxy(ip, port)
-                .followRedirects(true)
-                .ignoreContentType(true)
-                .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
         long start = System.currentTimeMillis();
         try {
+            Connection connection = Jsoup.connect(url)
+                    .referrer(url)
+                    .timeout(timeout)
+                    .proxy(ip, port)
+                    .followRedirects(true)
+                    .ignoreContentType(true)
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
             Connection.Response response = connection.execute();
             long end = System.currentTimeMillis();
             int costTime = (int) (end - start);

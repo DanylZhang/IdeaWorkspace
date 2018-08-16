@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.*;
+import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.springframework.boot.json.GsonJsonParser;
 import org.springframework.stereotype.Controller;
@@ -173,5 +174,21 @@ public class ProxyController {
                 .put("defaultTable", "proxy")
                 .build();
         return ResultVO.of(result);
+    }
+
+    @PostMapping("/proxy/delete")
+    @ResponseBody
+    public ResultVO<Object> delete(@RequestBody Map<String, Object> map) {
+        DeleteConditionStep<ProxyRecord> delete = proxy.delete(PROXY).where("1=1");
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            delete.and(DSL.field(entry.getKey()).eq(entry.getValue()));
+        }
+        try {
+            delete.execute();
+        } catch (DataAccessException e) {
+            log.error("proxy delete error: {}", e.getMessage());
+            return ResultVO.of(500, e.getMessage());
+        }
+        return ResultVO.success();
     }
 }

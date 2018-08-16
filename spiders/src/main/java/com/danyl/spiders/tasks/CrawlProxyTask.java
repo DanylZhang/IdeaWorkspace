@@ -56,8 +56,8 @@ public class CrawlProxyTask {
                 String ip = matcher.group(1);
                 int port = Integer.parseInt(matcher.group(2));
                 String type = HTTPS;
-                proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE)
-                        .values(ip, port, false, type)
+                proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.TYPE,PROXY.COMMENT)
+                        .values(ip, port, false, type,"小六代理 66ip")
                         .onDuplicateKeyIgnore()
                         .execute();
             }
