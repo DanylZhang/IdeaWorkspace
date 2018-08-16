@@ -112,8 +112,11 @@ public class ProxyService {
 
         // 此时判断可用的https或http类型代理的数量
         if (tmpProxyList2.size() > 0) {
-            EnumeratedDistribution<Proxy> proxyList = new EnumeratedDistribution<>(tmpProxyList2);
-            result = proxyList.sample();
+            try {
+                EnumeratedDistribution<Proxy> proxyList = new EnumeratedDistribution<>(tmpProxyList2);
+                result = proxyList.sample();
+            } catch (Exception ignored) {
+            }
         } else {
             instance.setProxies();
         }
