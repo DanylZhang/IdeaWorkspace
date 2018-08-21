@@ -17,9 +17,16 @@
         <option value="$PROJECT_DIR$/lscj-sz-concurrency/pom.xml" />
         <option value="$PROJECT_DIR$/spring-security-demo/pom.xml" />
         <option value="$PROJECT_DIR$/mybatis-generator-plus/pom.xml" />
-        <option value="$PROJECT_DIR$/apache-shiro-demo/pom.xml" />
         <option value="$PROJECT_DIR$/xunwu/pom.xml" />
+        <option value="$PROJECT_DIR$/apache-shiro-demo/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/dubbo-demo/dubbo-api/pom.xml" />
+        <option value="$PROJECT_DIR$/dubbo-demo/dubbo-consumer/pom.xml" />
+        <option value="$PROJECT_DIR$/dubbo-demo/dubbo-provider/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK">

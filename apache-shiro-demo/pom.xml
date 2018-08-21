@@ -4,9 +4,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.danyl</groupId>
-    <artifactId>shiro</artifactId>
+    <artifactId>apache-shiro-demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <name>apache-shiro-demo</name>
     <description>Demo project for Apache Shiro</description>
