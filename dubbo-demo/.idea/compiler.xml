@@ -6,20 +6,17 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="apache-shiro-demo" />
-        <module name="babasport-back" />
-        <module name="babasport-core" />
-        <module name="babasport-front" />
-        <module name="concurrency" />
         <module name="dubbo-api" />
         <module name="dubbo-consumer" />
         <module name="dubbo-provider" />
-        <module name="lscj-sz-concurrency" />
-        <module name="mybatis-generator-plus" />
-        <module name="spiders" />
-        <module name="springbootsell" />
-        <module name="xunwu" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="api" target="1.8" />
+      <module name="dubbo-api" target="1.8" />
+      <module name="dubbo-consumer" target="1.8" />
+      <module name="dubbo-demo" target="1.8" />
+      <module name="dubbo-provider" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

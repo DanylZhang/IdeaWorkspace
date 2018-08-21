@@ -2,31 +2,22 @@
 <project version="4">
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
-    <file type="web" url="file://$PROJECT_DIR$/apache-shiro-demo" />
     <file type="web" url="file://$PROJECT_DIR$/babasport-back" />
     <file type="web" url="file://$PROJECT_DIR$/babasport-front" />
-    <file type="web" url="file://$PROJECT_DIR$/spring-security-demo" />
   </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
+        <option value="$PROJECT_DIR$/xunwu/pom.xml" />
         <option value="$PROJECT_DIR$/spiders/pom.xml" />
         <option value="$PROJECT_DIR$/concurrency/pom.xml" />
         <option value="$PROJECT_DIR$/springbootsell/pom.xml" />
         <option value="$PROJECT_DIR$/babasport-parent/pom.xml" />
-        <option value="$PROJECT_DIR$/lscj-sz-concurrency/pom.xml" />
-        <option value="$PROJECT_DIR$/spring-security-demo/pom.xml" />
-        <option value="$PROJECT_DIR$/mybatis-generator-plus/pom.xml" />
-        <option value="$PROJECT_DIR$/xunwu/pom.xml" />
         <option value="$PROJECT_DIR$/apache-shiro-demo/pom.xml" />
+        <option value="$PROJECT_DIR$/lscj-sz-concurrency/pom.xml" />
+        <option value="$PROJECT_DIR$/mybatis-generator-plus/pom.xml" />
+        <option value="$PROJECT_DIR$/dubbo-demo/pom.xml" />
       </list>
-    </option>
-    <option name="ignoredFiles">
-      <set>
-        <option value="$PROJECT_DIR$/dubbo-demo/dubbo-api/pom.xml" />
-        <option value="$PROJECT_DIR$/dubbo-demo/dubbo-consumer/pom.xml" />
-        <option value="$PROJECT_DIR$/dubbo-demo/dubbo-provider/pom.xml" />
-      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK">

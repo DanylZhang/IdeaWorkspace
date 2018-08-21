@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    # mem 内存模式，用一次即销毁
+    url: jdbc:h2:mem:dubbo
+    username: sa
+    password:
+    # 创建表脚本
+    schema: classpath:schema.sql
+    # 填充数据脚本
+    data: classpath:data.sql
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: true
+  jpa:
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      # 禁用hibernate根据entity生成数据库ddl，
+      # 因为该动作会在schema.sql、data.sql之后执行drop [table] if exist，数据会丢失
+      ddl-auto: none
