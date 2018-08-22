@@ -7,17 +7,20 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.util.Strings;
 import org.jooq.DSLContext;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.net.Proxy;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -76,7 +79,13 @@ public class CheckProxyTask {
                     if (validateResultPair.getLeft()) {
                         proxyRecord.setIsValid(true);
                         proxyRecord.setSpeed(validateResultPair.getRight());
-                        proxyRecord.setComment(getProxyComment(proxyRecord));
+
+                        String comment = proxyRecord.getComment();
+                        LocalDateTime createTime = proxyRecord.getCreateTime();
+                        if (StringUtils.isBlank(comment) || createTime.isAfter(LocalDateTime.now().plusDays(-1))) {
+                            proxyRecord.setComment(getProxyComment(proxyRecord));
+                        }
+
                         proxyRecord.update();
                     } else {
                         proxyRecord.setIsValid(false);
@@ -184,6 +193,10 @@ public class CheckProxyTask {
      * @return proxy's comment
      */
     private static String getProxyComment(ProxyRecord proxyRecord) {
+        return getProxyCommentBaidu(proxyRecord);
+    }
+
+    private static String getProxyCommentTaobao(ProxyRecord proxyRecord) {
         String result = proxyRecord.getComment();
         try {
             String url = "http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp();
@@ -203,6 +216,39 @@ public class CheckProxyTask {
                     .concat(isp.equals("XX") ? "" : isp);
             if (Strings.isNotBlank(comment)) {
                 result = comment;
+            }
+        } catch (Exception ignored) {
+        }
+        return result;
+    }
+
+    private static String getProxyCommentBaidu(ProxyRecord proxyRecord) {
+        String result = proxyRecord.getComment();
+        try {
+            String url = "https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query=" + proxyRecord.getIp() + "&co=&resource_id=6006&t=" + System.currentTimeMillis() + "&ie=utf8&oe=gbk&format=json&tn=baidu&_=" + System.currentTimeMillis();
+            String regex = "\"origip\":\"" + proxyRecord.getIp() + "\"";
+            // 如果是返回json字符串，不能用jsoup parse解析，会自动带上html标签
+            String ipJson = ProxyService.jsoupExecute(url, regex).body();
+
+            DocumentContext parse = JsonPath.parse(ipJson);
+            String comment = parse.read("$.data.location");
+            if (Strings.isNotBlank(comment)) {
+                result = comment;
+            }
+        } catch (Exception ignored) {
+        }
+        return result;
+    }
+
+    private static String getProxyCommentIPcn(ProxyRecord proxyRecord) {
+        String result = proxyRecord.getComment();
+        try {
+            String url = "https://ip.cn/index.php?ip=" + proxyRecord.getIp();
+            String regex = proxyRecord.getIp();
+            // 如果是返回json字符串，不能用jsoup parse解析，会自动带上html标签
+            Document document = ProxyService.jsoupGet(url, regex);
+            if (document != null) {
+                result = document.select("#result > div > p:nth-child(2) > code").text();
             }
         } catch (Exception ignored) {
         }
