@@ -29,18 +29,13 @@ import static com.danyl.spiders.jooq.gen.proxy.Tables.PROXY;
 
 @Slf4j
 @Controller
-@RequestMapping("/api")
+@RequestMapping("/api/proxy")
 public class ProxyController {
 
     @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
 
-    @GetMapping(value = {"/", "/index"})
-    public String index() {
-        return "index.html";
-    }
-
-    @PostMapping("/proxy/table")
+    @PostMapping("/table")
     @ResponseBody
     public ResultVO<Map<Object, Object>> table(@RequestBody @Valid final ProxySearch proxySearch, BindingResult bindingResult) {
         System.out.println(proxySearch);
@@ -165,7 +160,7 @@ public class ProxyController {
         return Pair.of(formatJSON, total);
     }
 
-    @GetMapping("/proxy/getSqlHint")
+    @GetMapping("/getSqlHint")
     @ResponseBody
     public ResultVO<Map> getSqlHint() {
         Map tables = proxy.fetch("select TABLE_NAME,COLUMN_NAME from INFORMATION_SCHEMA.COLUMNS where TABLE_SCHEMA='PUBLIC';").intoGroups("TABLE_NAME", "COLUMN_NAME");
@@ -176,7 +171,7 @@ public class ProxyController {
         return ResultVO.of(result);
     }
 
-    @PostMapping("/proxy/delete")
+    @PostMapping("/delete")
     @ResponseBody
     public ResultVO<Object> delete(@RequestBody Map<String, Object> map) {
         DeleteConditionStep<ProxyRecord> delete = proxy.delete(PROXY).where("1=1");
