@@ -82,6 +82,7 @@ public class CheckProxyTask {
 
                         String comment = proxyRecord.getComment();
                         LocalDateTime createTime = proxyRecord.getCreateTime();
+                        // comment是空的，或者昨天以来入库的
                         if (StringUtils.isBlank(comment) || createTime.isAfter(LocalDateTime.now().plusDays(-1))) {
                             proxyRecord.setComment(getProxyComment(proxyRecord));
                         }
