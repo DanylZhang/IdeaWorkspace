@@ -68,7 +68,6 @@ public class ProxyService {
     private void setProxies() {
         List<Proxy> proxyList = instance.proxy.selectFrom(PROXY)
                 .where(PROXY.IS_VALID.eq(true))
-                //.and(PROXY.COMMENT.startsWith("中国"))
                 .fetchInto(Proxy.class);
 
         int totalCount = proxyList.size();
