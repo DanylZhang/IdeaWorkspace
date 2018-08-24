@@ -23,44 +23,76 @@ import javax.annotation.Generated;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Proxy implements Serializable {
 
-    private static final long serialVersionUID = -1157636069;
+    private static final long serialVersionUID = 1361993734;
 
     private String        ip;
     private Integer       port;
-    private Integer       speed;
-    private String        type;
     private Boolean       isValid;
-    private String        comment;
-    private LocalDateTime createTime;
+    private String        anonymity;
+    private Integer       speed;
+    private String        protocol;
+    private LocalDateTime checkedTime;
+    private LocalDateTime createdTime;
+    private String        source;
+    private String        country;
+    private String        city;
+    private String        region;
+    private String        isp;
+    private String        host;
+    private String        via;
 
     public Proxy() {}
 
     public Proxy(Proxy value) {
         this.ip = value.ip;
         this.port = value.port;
-        this.speed = value.speed;
-        this.type = value.type;
         this.isValid = value.isValid;
-        this.comment = value.comment;
-        this.createTime = value.createTime;
+        this.anonymity = value.anonymity;
+        this.speed = value.speed;
+        this.protocol = value.protocol;
+        this.checkedTime = value.checkedTime;
+        this.createdTime = value.createdTime;
+        this.source = value.source;
+        this.country = value.country;
+        this.city = value.city;
+        this.region = value.region;
+        this.isp = value.isp;
+        this.host = value.host;
+        this.via = value.via;
     }
 
     public Proxy(
         String        ip,
         Integer       port,
-        Integer       speed,
-        String        type,
         Boolean       isValid,
-        String        comment,
-        LocalDateTime createTime
+        String        anonymity,
+        Integer       speed,
+        String        protocol,
+        LocalDateTime checkedTime,
+        LocalDateTime createdTime,
+        String        source,
+        String        country,
+        String        city,
+        String        region,
+        String        isp,
+        String        host,
+        String        via
     ) {
         this.ip = ip;
         this.port = port;
-        this.speed = speed;
-        this.type = type;
         this.isValid = isValid;
-        this.comment = comment;
-        this.createTime = createTime;
+        this.anonymity = anonymity;
+        this.speed = speed;
+        this.protocol = protocol;
+        this.checkedTime = checkedTime;
+        this.createdTime = createdTime;
+        this.source = source;
+        this.country = country;
+        this.city = city;
+        this.region = region;
+        this.isp = isp;
+        this.host = host;
+        this.via = via;
     }
 
     public String getIp() {
@@ -81,24 +113,6 @@ public class Proxy implements Serializable {
         return this;
     }
 
-    public Integer getSpeed() {
-        return this.speed;
-    }
-
-    public Proxy setSpeed(Integer speed) {
-        this.speed = speed;
-        return this;
-    }
-
-    public String getType() {
-        return this.type;
-    }
-
-    public Proxy setType(String type) {
-        this.type = type;
-        return this;
-    }
-
     public Boolean getIsValid() {
         return this.isValid;
     }
@@ -108,21 +122,111 @@ public class Proxy implements Serializable {
         return this;
     }
 
-    public String getComment() {
-        return this.comment;
+    public String getAnonymity() {
+        return this.anonymity;
     }
 
-    public Proxy setComment(String comment) {
-        this.comment = comment;
+    public Proxy setAnonymity(String anonymity) {
+        this.anonymity = anonymity;
         return this;
     }
 
-    public LocalDateTime getCreateTime() {
-        return this.createTime;
+    public Integer getSpeed() {
+        return this.speed;
     }
 
-    public Proxy setCreateTime(LocalDateTime createTime) {
-        this.createTime = createTime;
+    public Proxy setSpeed(Integer speed) {
+        this.speed = speed;
+        return this;
+    }
+
+    public String getProtocol() {
+        return this.protocol;
+    }
+
+    public Proxy setProtocol(String protocol) {
+        this.protocol = protocol;
+        return this;
+    }
+
+    public LocalDateTime getCheckedTime() {
+        return this.checkedTime;
+    }
+
+    public Proxy setCheckedTime(LocalDateTime checkedTime) {
+        this.checkedTime = checkedTime;
+        return this;
+    }
+
+    public LocalDateTime getCreatedTime() {
+        return this.createdTime;
+    }
+
+    public Proxy setCreatedTime(LocalDateTime createdTime) {
+        this.createdTime = createdTime;
+        return this;
+    }
+
+    public String getSource() {
+        return this.source;
+    }
+
+    public Proxy setSource(String source) {
+        this.source = source;
+        return this;
+    }
+
+    public String getCountry() {
+        return this.country;
+    }
+
+    public Proxy setCountry(String country) {
+        this.country = country;
+        return this;
+    }
+
+    public String getCity() {
+        return this.city;
+    }
+
+    public Proxy setCity(String city) {
+        this.city = city;
+        return this;
+    }
+
+    public String getRegion() {
+        return this.region;
+    }
+
+    public Proxy setRegion(String region) {
+        this.region = region;
+        return this;
+    }
+
+    public String getIsp() {
+        return this.isp;
+    }
+
+    public Proxy setIsp(String isp) {
+        this.isp = isp;
+        return this;
+    }
+
+    public String getHost() {
+        return this.host;
+    }
+
+    public Proxy setHost(String host) {
+        this.host = host;
+        return this;
+    }
+
+    public String getVia() {
+        return this.via;
+    }
+
+    public Proxy setVia(String via) {
+        this.via = via;
         return this;
     }
 
@@ -147,35 +251,83 @@ public class Proxy implements Serializable {
         }
         else if (!port.equals(other.port))
             return false;
-        if (speed == null) {
-            if (other.speed != null)
-                return false;
-        }
-        else if (!speed.equals(other.speed))
-            return false;
-        if (type == null) {
-            if (other.type != null)
-                return false;
-        }
-        else if (!type.equals(other.type))
-            return false;
         if (isValid == null) {
             if (other.isValid != null)
                 return false;
         }
         else if (!isValid.equals(other.isValid))
             return false;
-        if (comment == null) {
-            if (other.comment != null)
+        if (anonymity == null) {
+            if (other.anonymity != null)
                 return false;
         }
-        else if (!comment.equals(other.comment))
+        else if (!anonymity.equals(other.anonymity))
             return false;
-        if (createTime == null) {
-            if (other.createTime != null)
+        if (speed == null) {
+            if (other.speed != null)
                 return false;
         }
-        else if (!createTime.equals(other.createTime))
+        else if (!speed.equals(other.speed))
+            return false;
+        if (protocol == null) {
+            if (other.protocol != null)
+                return false;
+        }
+        else if (!protocol.equals(other.protocol))
+            return false;
+        if (checkedTime == null) {
+            if (other.checkedTime != null)
+                return false;
+        }
+        else if (!checkedTime.equals(other.checkedTime))
+            return false;
+        if (createdTime == null) {
+            if (other.createdTime != null)
+                return false;
+        }
+        else if (!createdTime.equals(other.createdTime))
+            return false;
+        if (source == null) {
+            if (other.source != null)
+                return false;
+        }
+        else if (!source.equals(other.source))
+            return false;
+        if (country == null) {
+            if (other.country != null)
+                return false;
+        }
+        else if (!country.equals(other.country))
+            return false;
+        if (city == null) {
+            if (other.city != null)
+                return false;
+        }
+        else if (!city.equals(other.city))
+            return false;
+        if (region == null) {
+            if (other.region != null)
+                return false;
+        }
+        else if (!region.equals(other.region))
+            return false;
+        if (isp == null) {
+            if (other.isp != null)
+                return false;
+        }
+        else if (!isp.equals(other.isp))
+            return false;
+        if (host == null) {
+            if (other.host != null)
+                return false;
+        }
+        else if (!host.equals(other.host))
+            return false;
+        if (via == null) {
+            if (other.via != null)
+                return false;
+        }
+        else if (!via.equals(other.via))
             return false;
         return true;
     }
@@ -186,11 +338,19 @@ public class Proxy implements Serializable {
         int result = 1;
         result = prime * result + ((this.ip == null) ? 0 : this.ip.hashCode());
         result = prime * result + ((this.port == null) ? 0 : this.port.hashCode());
-        result = prime * result + ((this.speed == null) ? 0 : this.speed.hashCode());
-        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
         result = prime * result + ((this.isValid == null) ? 0 : this.isValid.hashCode());
-        result = prime * result + ((this.comment == null) ? 0 : this.comment.hashCode());
-        result = prime * result + ((this.createTime == null) ? 0 : this.createTime.hashCode());
+        result = prime * result + ((this.anonymity == null) ? 0 : this.anonymity.hashCode());
+        result = prime * result + ((this.speed == null) ? 0 : this.speed.hashCode());
+        result = prime * result + ((this.protocol == null) ? 0 : this.protocol.hashCode());
+        result = prime * result + ((this.checkedTime == null) ? 0 : this.checkedTime.hashCode());
+        result = prime * result + ((this.createdTime == null) ? 0 : this.createdTime.hashCode());
+        result = prime * result + ((this.source == null) ? 0 : this.source.hashCode());
+        result = prime * result + ((this.country == null) ? 0 : this.country.hashCode());
+        result = prime * result + ((this.city == null) ? 0 : this.city.hashCode());
+        result = prime * result + ((this.region == null) ? 0 : this.region.hashCode());
+        result = prime * result + ((this.isp == null) ? 0 : this.isp.hashCode());
+        result = prime * result + ((this.host == null) ? 0 : this.host.hashCode());
+        result = prime * result + ((this.via == null) ? 0 : this.via.hashCode());
         return result;
     }
 
@@ -200,11 +360,19 @@ public class Proxy implements Serializable {
 
         sb.append(ip);
         sb.append(", ").append(port);
-        sb.append(", ").append(speed);
-        sb.append(", ").append(type);
         sb.append(", ").append(isValid);
-        sb.append(", ").append(comment);
-        sb.append(", ").append(createTime);
+        sb.append(", ").append(anonymity);
+        sb.append(", ").append(speed);
+        sb.append(", ").append(protocol);
+        sb.append(", ").append(checkedTime);
+        sb.append(", ").append(createdTime);
+        sb.append(", ").append(source);
+        sb.append(", ").append(country);
+        sb.append(", ").append(city);
+        sb.append(", ").append(region);
+        sb.append(", ").append(isp);
+        sb.append(", ").append(host);
+        sb.append(", ").append(via);
 
         sb.append(")");
         return sb.toString();

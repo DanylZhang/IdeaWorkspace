@@ -25,7 +25,7 @@ import static com.danyl.spiders.constants.TimeConstants.DAYS;
 import static com.danyl.spiders.jooq.gen.xiaomi.Tables.ITEM_CATEGORY;
 
 @Slf4j
-@Component
+//@Component
 public class XiaoMiCidTask {
 
     @Resource(name = "DSLContextXiaoMi")

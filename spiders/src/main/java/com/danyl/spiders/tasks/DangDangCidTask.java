@@ -24,7 +24,7 @@ import static com.danyl.spiders.constants.TimeConstants.DAYS;
 import static com.danyl.spiders.jooq.gen.dangdang.Tables.ITEM_CATEGORY;
 
 @Slf4j
-@Component
+//@Component
 public class DangDangCidTask {
 
     @Resource(name = "DSLContextDangDang")

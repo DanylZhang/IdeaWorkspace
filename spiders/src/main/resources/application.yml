@@ -1,3 +1,6 @@
+server:
+  port: 33333
+
 spring:
   profiles:
     active: dev
@@ -20,6 +23,11 @@ spring:
       path: /h2-console
       settings:
         web-allow-others: true
+  quartz:
+      job-store-type: jdbc
+      jdbc:
+        initialize-schema: always
+
 management:
   endpoints:
     web:

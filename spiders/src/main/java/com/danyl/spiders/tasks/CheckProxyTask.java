@@ -29,13 +29,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.danyl.spiders.constants.HttpProtocolConstants.HTTPS;
+import static com.danyl.spiders.constants.ProtocolConstants.HTTPS;
 import static com.danyl.spiders.constants.TimeConstants.MINUTES;
 import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
-@Component
+//@Component
 public class CheckProxyTask {
 
     @Resource(name = "DSLContextProxy")
@@ -55,53 +55,58 @@ public class CheckProxyTask {
         log.info("check proxy start {}", new Date());
 
         ExecutorService fixedThreadPool = Executors.newFixedThreadPool(256);
-        proxy.selectFrom(PROXY)
-                .fetch()
-                .stream()
-                .map(proxyRecord -> CompletableFuture.runAsync(() -> {
-                    Pair<Boolean, Integer> validateResultPair = ImmutablePair.of(false, TIMEOUT);
-                    // 经测试发现高质量的代理极其稀少
-                    // 对每个校验Url进行测试，有一个校验成功就算该代理可用
-                    for (Map.Entry<String, String> entry : map.entrySet()) {
-                        String url = entry.getKey();
-                        String regex = entry.getValue();
-                        Pair<Boolean, Integer> tmpPair = doCheckProxy(proxyRecord.getIp(), proxyRecord.getPort(), url, regex, TIMEOUT);
-                        if (tmpPair.getLeft()) {
-                            // 如何tmpPair是校验成功的则赋值给validateResultPair,以便更新代理的speed
-                            validateResultPair = tmpPair;
-                            // 如果当前校验的Url是https协议，则更新代理的type为https
-                            String urlProtocol = ProxyService.getUrlProtocol(url);
-                            if (HTTPS.equals(urlProtocol)) {
-                                proxyRecord.setType(urlProtocol);
+        try {
+            proxy.selectFrom(PROXY)
+                    .fetch()
+                    .stream()
+                    .map(proxyRecord -> CompletableFuture.runAsync(() -> {
+                        Pair<Boolean, Integer> validateResultPair = ImmutablePair.of(false, TIMEOUT);
+                        // 经测试发现高质量的代理极其稀少
+                        // 对每个校验Url进行测试，有一个校验成功就算该代理可用
+                        for (Map.Entry<String, String> entry : map.entrySet()) {
+                            String url = entry.getKey();
+                            String regex = entry.getValue();
+                            Pair<Boolean, Integer> tmpPair = doCheckProxy(proxyRecord.getIp(), proxyRecord.getPort(), url, regex, TIMEOUT);
+                            if (tmpPair.getLeft()) {
+                                // 如何tmpPair是校验成功的则赋值给validateResultPair,以便更新代理的speed
+                                validateResultPair = tmpPair;
+                                // 如果当前校验的Url是https协议，则更新代理的type为https
+                                String urlProtocol = ProxyService.getUrlProtocol(url);
+                                if (HTTPS.equals(urlProtocol)) {
+                                    proxyRecord.setProtocol(urlProtocol);
+                                }
                             }
                         }
-                    }
-                    if (validateResultPair.getLeft()) {
-                        proxyRecord.setIsValid(true);
-                        proxyRecord.setSpeed(validateResultPair.getRight());
+                        if (validateResultPair.getLeft()) {
+                            proxyRecord.setIsValid(true);
+                            proxyRecord.setSpeed(validateResultPair.getRight());
 
-                        String comment = proxyRecord.getComment();
-                        LocalDateTime createTime = proxyRecord.getCreateTime();
-                        // comment是空的，或者昨天以来入库的
-                        if (StringUtils.isBlank(comment) || createTime.isAfter(LocalDateTime.now().plusDays(-1))) {
-                            proxyRecord.setComment(getProxyComment(proxyRecord));
+                            String comment = proxyRecord.getCountry();
+                            LocalDateTime createTime = proxyRecord.getCreatedTime();
+                            // comment是空的，或者昨天以来入库的
+                            if (StringUtils.isBlank(comment) || createTime.isAfter(LocalDateTime.now().plusDays(-1))) {
+                                proxyRecord.setCountry(getProxyComment(proxyRecord));
+                            }
+
+                            proxyRecord.update();
+                        } else {
+                            proxyRecord.setIsValid(false);
+                            proxyRecord.delete();
                         }
+                    }, fixedThreadPool))
+                    .collect(Collectors.toList())
+                    .stream()
+                    // 等待所有校验线程执行完毕
+                    .map(CompletableFuture::join)
+                    .forEach(aVoid -> {
+                    });
+        } catch (Exception e) {
+            log.error("check proxy task exception: {}", e.getMessage());
+        } finally {
+            // 别忘了关闭局部变量的线程池
+            fixedThreadPool.shutdownNow();
+        }
 
-                        proxyRecord.update();
-                    } else {
-                        proxyRecord.setIsValid(false);
-                        proxyRecord.delete();
-                    }
-                }, fixedThreadPool))
-                .collect(Collectors.toList())
-                .stream()
-                // 等待所有校验线程执行完毕
-                .map(CompletableFuture::join)
-                .forEach(aVoid -> {
-                });
-
-        // 别忘了关闭局部变量的线程池
-        fixedThreadPool.shutdownNow();
         log.info("check proxy end {}", new Date());
     }
 
@@ -198,7 +203,7 @@ public class CheckProxyTask {
     }
 
     private static String getProxyCommentTaobao(ProxyRecord proxyRecord) {
-        String result = proxyRecord.getComment();
+        String result = proxyRecord.getCountry();
         try {
             String url = "http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp();
             String regex = "\"ip\":\"" + proxyRecord.getIp() + "\"";
@@ -224,7 +229,7 @@ public class CheckProxyTask {
     }
 
     private static String getProxyCommentBaidu(ProxyRecord proxyRecord) {
-        String result = proxyRecord.getComment();
+        String result = proxyRecord.getCountry();
         try {
             String url = "https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query=" + proxyRecord.getIp() + "&co=&resource_id=6006&t=" + System.currentTimeMillis() + "&ie=utf8&oe=gbk&format=json&tn=baidu&_=" + System.currentTimeMillis();
             String regex = "\"origip\":\"" + proxyRecord.getIp() + "\"";
@@ -241,8 +246,8 @@ public class CheckProxyTask {
         return result;
     }
 
-    private static String getProxyCommentIPcn(ProxyRecord proxyRecord) {
-        String result = proxyRecord.getComment();
+    private static String getProxyCommentIPCN(ProxyRecord proxyRecord) {
+        String result = proxyRecord.getCountry();
         try {
             String url = "https://ip.cn/index.php?ip=" + proxyRecord.getIp();
             String regex = proxyRecord.getIp();

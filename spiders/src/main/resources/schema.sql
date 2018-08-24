@@ -1,10 +1,33 @@
-create table if not exists proxy (
-  ip          varchar(30) default ''                         not null,
-  port        int default 0                                  not null,
-  speed       int default 60000                              not null,
-  type        varchar(15) default 'http',
-  is_valid    boolean default false                          not null,
-  comment     varchar(45) default '',
-  create_time timestamp default current_timestamp()          not null,
-  primary key (ip, port)
+CREATE TABLE IF NOT EXISTS PROXY (
+  IP           VARCHAR(20) DEFAULT ''                NOT NULL
+  COMMENT '代理IP',
+  PORT         INTEGER DEFAULT 0                     NOT NULL
+  COMMENT '端口',
+  IS_VALID     BOOLEAN DEFAULT FALSE                 NOT NULL
+  COMMENT '是否可用',
+  ANONYMITY    VARCHAR(32) DEFAULT ''
+  COMMENT '匿名性',
+  SPEED        INTEGER DEFAULT 15000                 NOT NULL
+  COMMENT '响应耗时',
+  PROTOCOL     VARCHAR(10) DEFAULT 'http'
+  COMMENT '支持协议',
+  CHECKED_TIME TIMESTAMP DEFAULT CURRENT_TIMESTAMP() NOT NULL
+  COMMENT '上次校验',
+  CREATED_TIME TIMESTAMP DEFAULT CURRENT_TIMESTAMP() NOT NULL
+  COMMENT '入库时间',
+  SOURCE       VARCHAR(64) DEFAULT ''
+  COMMENT '来源',
+  COUNTRY      VARCHAR(32) DEFAULT ''
+  COMMENT '国家',
+  CITY         VARCHAR(32) DEFAULT ''
+  COMMENT '省市',
+  REGION       VARCHAR(32) DEFAULT ''
+  COMMENT '县区',
+  ISP          VARCHAR(64) DEFAULT ''
+  COMMENT '运营商',
+  HOST         VARCHAR(64) DEFAULT ''
+  COMMENT '主机名',
+  VIA          VARCHAR(32) DEFAULT ''
+  COMMENT '经由',
+  PRIMARY KEY (IP, PORT)
 );

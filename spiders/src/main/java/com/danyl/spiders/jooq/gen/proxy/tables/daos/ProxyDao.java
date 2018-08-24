@@ -67,20 +67,6 @@ public class ProxyDao extends DAOImpl<ProxyRecord, com.danyl.spiders.jooq.gen.pr
     }
 
     /**
-     * Fetch records that have <code>SPEED IN (values)</code>
-     */
-    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchBySpeed(Integer... values) {
-        return fetch(Proxy.PROXY.SPEED, values);
-    }
-
-    /**
-     * Fetch records that have <code>TYPE IN (values)</code>
-     */
-    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByType(String... values) {
-        return fetch(Proxy.PROXY.TYPE, values);
-    }
-
-    /**
      * Fetch records that have <code>IS_VALID IN (values)</code>
      */
     public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByIsValid(Boolean... values) {
@@ -88,16 +74,86 @@ public class ProxyDao extends DAOImpl<ProxyRecord, com.danyl.spiders.jooq.gen.pr
     }
 
     /**
-     * Fetch records that have <code>COMMENT IN (values)</code>
+     * Fetch records that have <code>ANONYMITY IN (values)</code>
      */
-    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByComment(String... values) {
-        return fetch(Proxy.PROXY.COMMENT, values);
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByAnonymity(String... values) {
+        return fetch(Proxy.PROXY.ANONYMITY, values);
     }
 
     /**
-     * Fetch records that have <code>CREATE_TIME IN (values)</code>
+     * Fetch records that have <code>SPEED IN (values)</code>
      */
-    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByCreateTime(LocalDateTime... values) {
-        return fetch(Proxy.PROXY.CREATE_TIME, values);
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchBySpeed(Integer... values) {
+        return fetch(Proxy.PROXY.SPEED, values);
+    }
+
+    /**
+     * Fetch records that have <code>PROTOCOL IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByProtocol(String... values) {
+        return fetch(Proxy.PROXY.PROTOCOL, values);
+    }
+
+    /**
+     * Fetch records that have <code>CHECKED_TIME IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByCheckedTime(LocalDateTime... values) {
+        return fetch(Proxy.PROXY.CHECKED_TIME, values);
+    }
+
+    /**
+     * Fetch records that have <code>CREATED_TIME IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByCreatedTime(LocalDateTime... values) {
+        return fetch(Proxy.PROXY.CREATED_TIME, values);
+    }
+
+    /**
+     * Fetch records that have <code>SOURCE IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchBySource(String... values) {
+        return fetch(Proxy.PROXY.SOURCE, values);
+    }
+
+    /**
+     * Fetch records that have <code>COUNTRY IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByCountry(String... values) {
+        return fetch(Proxy.PROXY.COUNTRY, values);
+    }
+
+    /**
+     * Fetch records that have <code>CITY IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByCity(String... values) {
+        return fetch(Proxy.PROXY.CITY, values);
+    }
+
+    /**
+     * Fetch records that have <code>REGION IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByRegion(String... values) {
+        return fetch(Proxy.PROXY.REGION, values);
+    }
+
+    /**
+     * Fetch records that have <code>ISP IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByIsp(String... values) {
+        return fetch(Proxy.PROXY.ISP, values);
+    }
+
+    /**
+     * Fetch records that have <code>HOST IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByHost(String... values) {
+        return fetch(Proxy.PROXY.HOST, values);
+    }
+
+    /**
+     * Fetch records that have <code>VIA IN (values)</code>
+     */
+    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByVia(String... values) {
+        return fetch(Proxy.PROXY.VIA, values);
     }
 }

@@ -32,7 +32,7 @@ import static com.danyl.spiders.jooq.gen.vip.Tables.ADS;
 import static com.danyl.spiders.jooq.gen.vip.Tables.ADS_ACTIVITY;
 
 @Slf4j
-@Component
+//@Component
 public class VipAdsTask {
 
     @Resource(name = "DSLContextNewVip")

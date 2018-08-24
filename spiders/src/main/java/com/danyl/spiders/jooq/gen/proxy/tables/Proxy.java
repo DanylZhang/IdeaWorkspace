@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Proxy extends TableImpl<ProxyRecord> {
 
-    private static final long serialVersionUID = -1269427176;
+    private static final long serialVersionUID = -109590088;
 
     /**
      * The reference instance of <code>PUBLIC.PROXY</code>
@@ -55,39 +55,79 @@ public class Proxy extends TableImpl<ProxyRecord> {
     }
 
     /**
-     * The column <code>PUBLIC.PROXY.IP</code>.
+     * The column <code>PUBLIC.PROXY.IP</code>. 代理IP
      */
-    public final TableField<ProxyRecord, String> IP = createField("IP", org.jooq.impl.SQLDataType.VARCHAR(30).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<ProxyRecord, String> IP = createField("IP", org.jooq.impl.SQLDataType.VARCHAR(20).nullable(false).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "代理IP");
 
     /**
-     * The column <code>PUBLIC.PROXY.PORT</code>.
+     * The column <code>PUBLIC.PROXY.PORT</code>. 端口
      */
-    public final TableField<ProxyRecord, Integer> PORT = createField("PORT", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<ProxyRecord, Integer> PORT = createField("PORT", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.INTEGER)), this, "端口");
 
     /**
-     * The column <code>PUBLIC.PROXY.SPEED</code>.
+     * The column <code>PUBLIC.PROXY.IS_VALID</code>. 是否可用
      */
-    public final TableField<ProxyRecord, Integer> SPEED = createField("SPEED", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("60000", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<ProxyRecord, Boolean> IS_VALID = createField("IS_VALID", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("FALSE", org.jooq.impl.SQLDataType.BOOLEAN)), this, "是否可用");
 
     /**
-     * The column <code>PUBLIC.PROXY.TYPE</code>.
+     * The column <code>PUBLIC.PROXY.ANONYMITY</code>. 匿名性
      */
-    public final TableField<ProxyRecord, String> TYPE = createField("TYPE", org.jooq.impl.SQLDataType.VARCHAR(15).defaultValue(org.jooq.impl.DSL.field("'http'", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<ProxyRecord, String> ANONYMITY = createField("ANONYMITY", org.jooq.impl.SQLDataType.VARCHAR(32).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "匿名性");
 
     /**
-     * The column <code>PUBLIC.PROXY.IS_VALID</code>.
+     * The column <code>PUBLIC.PROXY.SPEED</code>. 响应耗时
      */
-    public final TableField<ProxyRecord, Boolean> IS_VALID = createField("IS_VALID", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("FALSE", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
+    public final TableField<ProxyRecord, Integer> SPEED = createField("SPEED", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("15000", org.jooq.impl.SQLDataType.INTEGER)), this, "响应耗时");
 
     /**
-     * The column <code>PUBLIC.PROXY.COMMENT</code>.
+     * The column <code>PUBLIC.PROXY.PROTOCOL</code>. 支持协议
      */
-    public final TableField<ProxyRecord, String> COMMENT = createField("COMMENT", org.jooq.impl.SQLDataType.VARCHAR(45).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<ProxyRecord, String> PROTOCOL = createField("PROTOCOL", org.jooq.impl.SQLDataType.VARCHAR(10).defaultValue(org.jooq.impl.DSL.field("'http'", org.jooq.impl.SQLDataType.VARCHAR)), this, "支持协议");
 
     /**
-     * The column <code>PUBLIC.PROXY.CREATE_TIME</code>.
+     * The column <code>PUBLIC.PROXY.CHECKED_TIME</code>. 上次校验
      */
-    public final TableField<ProxyRecord, LocalDateTime> CREATE_TIME = createField("CREATE_TIME", org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP()", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "");
+    public final TableField<ProxyRecord, LocalDateTime> CHECKED_TIME = createField("CHECKED_TIME", org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP()", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "上次校验");
+
+    /**
+     * The column <code>PUBLIC.PROXY.CREATED_TIME</code>. 入库时间
+     */
+    public final TableField<ProxyRecord, LocalDateTime> CREATED_TIME = createField("CREATED_TIME", org.jooq.impl.SQLDataType.LOCALDATETIME.nullable(false).defaultValue(org.jooq.impl.DSL.field("CURRENT_TIMESTAMP()", org.jooq.impl.SQLDataType.LOCALDATETIME)), this, "入库时间");
+
+    /**
+     * The column <code>PUBLIC.PROXY.SOURCE</code>. 来源
+     */
+    public final TableField<ProxyRecord, String> SOURCE = createField("SOURCE", org.jooq.impl.SQLDataType.VARCHAR(64).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "来源");
+
+    /**
+     * The column <code>PUBLIC.PROXY.COUNTRY</code>. 国家
+     */
+    public final TableField<ProxyRecord, String> COUNTRY = createField("COUNTRY", org.jooq.impl.SQLDataType.VARCHAR(32).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "国家");
+
+    /**
+     * The column <code>PUBLIC.PROXY.CITY</code>. 省市
+     */
+    public final TableField<ProxyRecord, String> CITY = createField("CITY", org.jooq.impl.SQLDataType.VARCHAR(32).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "省市");
+
+    /**
+     * The column <code>PUBLIC.PROXY.REGION</code>. 县区
+     */
+    public final TableField<ProxyRecord, String> REGION = createField("REGION", org.jooq.impl.SQLDataType.VARCHAR(32).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "县区");
+
+    /**
+     * The column <code>PUBLIC.PROXY.ISP</code>. 运营商
+     */
+    public final TableField<ProxyRecord, String> ISP = createField("ISP", org.jooq.impl.SQLDataType.VARCHAR(64).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "运营商");
+
+    /**
+     * The column <code>PUBLIC.PROXY.HOST</code>. 主机名
+     */
+    public final TableField<ProxyRecord, String> HOST = createField("HOST", org.jooq.impl.SQLDataType.VARCHAR(64).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "主机名");
+
+    /**
+     * The column <code>PUBLIC.PROXY.VIA</code>. 经由
+     */
+    public final TableField<ProxyRecord, String> VIA = createField("VIA", org.jooq.impl.SQLDataType.VARCHAR(32).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "经由");
 
     /**
      * Create a <code>PUBLIC.PROXY</code> table reference
@@ -131,7 +171,7 @@ public class Proxy extends TableImpl<ProxyRecord> {
      */
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.PRIMARY_KEY_4);
+        return Arrays.<Index>asList(Indexes.PRIMARY_KEY_13B);
     }
 
     /**
