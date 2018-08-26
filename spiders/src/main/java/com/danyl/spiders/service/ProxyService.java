@@ -293,6 +293,8 @@ public class ProxyService {
     public static Response jsoupExecute(Connection jsoupConnection, String regex, Boolean useProxy) {
         // 获取代理的实例
         final ProxyService instance = getInstance();
+        log.info("proxy service instance: {}", instance);
+
         // 因为followRedirects会改变访问的URL，所以先保存URL
         final String url = jsoupConnection.request().url().toExternalForm();
         // 链接访问正常，但返回未匹配数据时的重试次数
@@ -338,11 +340,14 @@ public class ProxyService {
     public static String chromeExecute(String url, By by, String regex, Boolean useProxy) {
         // 获取代理的实例
         final ProxyService instance = getInstance();
+        log.info("proxy service instance: {}", instance);
+
         // 链接访问正常，但返回未匹配数据时的重试次数
         int count = 3;
         Pattern pattern = Pattern.compile(regex);
         while (true) {
-            System.setProperty("webdriver.chrome.driver", "C:/Users/DELL/AppData/Local/360Chrome/Chrome/Application/chromedriver.exe");
+            System.setProperty("webdriver.chrome.driver", "C:/Users/danyl/AppData/Local/360Chrome/Chrome/Application/chromedriver.exe");
+            System.setProperty("phantomjs.binary.path", "D:/360极速浏览器下载/phantomjs-2.1.1-windows/bin/phantomjs.exe");
             ChromeOptions chromeOptions = new ChromeOptions();
 
             // 从proxies中拿到一个代理，并设置给chromeOptions
