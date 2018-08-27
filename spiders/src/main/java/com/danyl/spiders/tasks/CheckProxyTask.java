@@ -6,10 +6,12 @@ import com.danyl.spiders.utils.ProxyUtil;
 import com.google.common.collect.ImmutableMap;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import io.vertx.core.Vertx;
+import io.vertx.rxjava.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.rxjava.core.buffer.Buffer;
+import io.vertx.rxjava.ext.web.client.HttpResponse;
+import io.vertx.rxjava.ext.web.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -20,6 +22,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import rx.Single;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -58,10 +61,10 @@ public class CheckProxyTask {
     private void checkProxy(Map<String, String> map) {
         log.info("check proxy start {}", new Date());
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(256);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(128);
         try {
             proxy.selectFrom(PROXY).fetch().stream().map(proxyRecord -> CompletableFuture.runAsync(() -> {
-                Pair<Boolean, Integer> validateResultPair = ImmutablePair.of(false, TIMEOUT);
+                Pair<Boolean, Integer> validateResultPair = Pair.of(false, TIMEOUT);
                 // 经测试发现高质量的代理极其稀少
                 // 对每个校验Url进行测试，有一个校验成功就算该代理可用
                 for (Map.Entry<String, String> entry : map.entrySet()) {
@@ -128,63 +131,37 @@ public class CheckProxyTask {
             Result<ProxyRecord> fetch = proxy.selectFrom(PROXY).fetch();
             CountDownLatch countDownLatch = new CountDownLatch(fetch.size());
 
-            fetch.parallelStream().forEach(proxyRecord -> {
-                Pair<Boolean, Integer> validateResultPair = ImmutablePair.of(false, TIMEOUT);
+            fetch.forEach(proxyRecord -> {
+                // 每个代理一个webClient
+                webClientOptions.setProxyOptions(ProxyUtil.getProxyOptions(proxyRecord));
+                WebClient webClient = WebClient.create(vertx, webClientOptions);
+                Pair<Boolean, Integer> validateResultPair = Pair.of(false, TIMEOUT);
+
                 // 经测试发现高质量的代理极其稀少
                 // 对每个校验Url进行测试，有一个校验成功就算该代理可用
                 for (Map.Entry<String, String> entry : map.entrySet()) {
                     String url = entry.getKey();
                     String regex = entry.getValue();
 
-                    webClientOptions.setProxyOptions(ProxyUtil.getProxyOptions(proxyRecord));
-                    WebClient webClient = WebClient.create(vertx, webClientOptions);
                     long start = System.currentTimeMillis();
+                    Single<HttpResponse<Buffer>> rxSend = webClient.getAbs(url).rxSend();
+                    rxSend.subscribe(ar -> {
+                            String body = ar.bodyAsString();
+                            String charset = ProxyUtil.getCharset(body);
+                            body = ar.bodyAsString(charset);
 
-                    webClient.getAbs(url)
-                            .send(ar -> {
-                                if (ar.succeeded()) {
-                                    String body = ar.result().bodyAsString();
-                                    String charset = ProxyUtil.getCharset(body);
-                                    body = ar.result().bodyAsString(charset);
+                            long end = System.currentTimeMillis();
+                            int costTime = (int) (end - start);
 
-                                    long end = System.currentTimeMillis();
-                                    int costTime = (int) (end - start);
-
-                                    if ((costTime < TIMEOUT) && Pattern.compile(regex).matcher(body).find()) {
-                                        // 如果当前校验通过的Url是https协议，并且proxyRecord不是socks类型，则更新代理的protocol为https
-                                        String urlProtocol = ProxyService.getUrlProtocol(url);
-                                        if (HTTPS.equals(urlProtocol) && !proxyRecord.getProtocol().toLowerCase().contains("socks")) {
-                                            proxyRecord.setProtocol(urlProtocol);
-                                        }
-                                        proxyRecord.setIsValid(true);
-                                        proxyRecord.setSpeed(validateResultPair.getRight());
-                                        proxyRecord.setCheckedTime(LocalDateTime.now());
-                                        proxyRecord.update();
-                                    } else {
-                                        proxyRecord.setIsValid(false);
-                                        LocalDateTime checkedTime = proxyRecord.getCheckedTime();
-                                        // 无效代理保留三天
-                                        if (checkedTime.plusDays(3).isAfter(LocalDateTime.now())) {
-                                            proxyRecord.update();
-                                        } else {
-                                            proxyRecord.delete();
-                                        }
-                                    }
-                                    countDownLatch.countDown();
-                                    System.out.println("vertx web client nettty:" + countDownLatch.getCount());
-                                } else {
-                                    proxyRecord.setIsValid(false);
-                                    LocalDateTime checkedTime = proxyRecord.getCheckedTime();
-                                    // 无效代理保留三天
-                                    if (checkedTime.plusDays(3).isAfter(LocalDateTime.now())) {
-                                        proxyRecord.update();
-                                    } else {
-                                        proxyRecord.delete();
-                                    }
-                                    countDownLatch.countDown();
-                                    System.out.println("vertx web client nettty:" + countDownLatch.getCount());
+                            if ((costTime < TIMEOUT) && Pattern.compile(regex).matcher(body).find()) {
+                                validateResultPair = Pair.of(true,costTime);
+                                // 如果当前校验通过的Url是https协议，并且proxyRecord不是socks类型，则更新代理的protocol为https
+                                String urlProtocol = ProxyService.getUrlProtocol(url);
+                                if (HTTPS.equals(urlProtocol) && !proxyRecord.getProtocol().toLowerCase().contains("socks")) {
+                                    proxyRecord.setProtocol(urlProtocol);
                                 }
-                            });
+                            }
+                    });
                 }
             });
             countDownLatch.await();
