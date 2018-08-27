@@ -1,5 +1,6 @@
 package com.danyl.spiders.tasks;
 
+import com.danyl.spiders.downloader.PhantomJSDownloader;
 import com.danyl.spiders.service.ProxyService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -7,6 +8,8 @@ import org.jooq.DSLContext;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.openqa.selenium.By;
+import org.openqa.selenium.phantomjs.PhantomJSDriverService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,11 +27,14 @@ import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
-@Component
+//@Component
 public class CrawlProxyTask {
 
     @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
+
+    @Autowired
+    private PhantomJSDownloader phantomJSDownloader;
 
     @Scheduled(fixedDelay = MINUTES * 30)
     public void crawlProxy() {
@@ -45,7 +51,7 @@ public class CrawlProxyTask {
 
         // shutdown非阻塞，再使用awaitTermination进行阻塞等待
         try {
-            executorService.awaitTermination(30, TimeUnit.MINUTES);
+            executorService.awaitTermination(60, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -194,7 +200,7 @@ public class CrawlProxyTask {
             int offset = i * 15;
             String url = "https://proxydb.net/?offset=" + offset;
             By by = By.cssSelector("body > div > div.table-responsive > table > tbody > tr");
-            String html = ProxyService.chromeExecute(url, by, ".", true);
+            String html = phantomJSDownloader.PhantomJSExecute(url, by, "atob", true);
             if (StringUtils.isBlank(html)) {
                 return;
             }

@@ -2,16 +2,19 @@ package com.danyl.spiders.tasks;
 
 import com.danyl.spiders.jooq.gen.proxy.tables.records.ProxyRecord;
 import com.danyl.spiders.service.ProxyService;
+import com.danyl.spiders.utils.ProxyUtil;
 import com.google.common.collect.ImmutableMap;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.util.Strings;
 import org.jooq.DSLContext;
+import org.jooq.Result;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,13 +22,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.net.Proxy;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -35,7 +38,7 @@ import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
-//@Component
+@Component
 public class CheckProxyTask {
 
     @Resource(name = "DSLContextProxy")
@@ -47,6 +50,7 @@ public class CheckProxyTask {
         ImmutableMap<String, String> validateUrlMap = ImmutableMap.<String, String>builder()
                 .put("http://category.dangdang.com/cid4002389.html", "帆布鞋")
                 .put("https://www.vip.com/", "ADS\\w{5}")
+                .put("https://list.mi.com/0", "所有商品")
                 .build();
         checkProxy(validateUrlMap);
     }
@@ -56,44 +60,40 @@ public class CheckProxyTask {
 
         ExecutorService fixedThreadPool = Executors.newFixedThreadPool(256);
         try {
-            proxy.selectFrom(PROXY)
-                    .fetch()
-                    .stream()
-                    .map(proxyRecord -> CompletableFuture.runAsync(() -> {
-                        Pair<Boolean, Integer> validateResultPair = ImmutablePair.of(false, TIMEOUT);
-                        // 经测试发现高质量的代理极其稀少
-                        // 对每个校验Url进行测试，有一个校验成功就算该代理可用
-                        for (Map.Entry<String, String> entry : map.entrySet()) {
-                            String url = entry.getKey();
-                            String regex = entry.getValue();
-                            Pair<Boolean, Integer> tmpPair = doCheckProxy(proxyRecord.getIp(), proxyRecord.getPort(), url, regex, TIMEOUT);
-                            if (tmpPair.getLeft()) {
-                                // 如何tmpPair是校验成功的则赋值给validateResultPair,以便更新代理的speed
-                                validateResultPair = tmpPair;
-                                // 如果当前校验的Url是https协议，则更新代理的type为https
-                                String urlProtocol = ProxyService.getUrlProtocol(url);
-                                if (HTTPS.equals(urlProtocol)) {
-                                    proxyRecord.setProtocol(urlProtocol);
-                                }
-                            }
+            proxy.selectFrom(PROXY).fetch().stream().map(proxyRecord -> CompletableFuture.runAsync(() -> {
+                Pair<Boolean, Integer> validateResultPair = ImmutablePair.of(false, TIMEOUT);
+                // 经测试发现高质量的代理极其稀少
+                // 对每个校验Url进行测试，有一个校验成功就算该代理可用
+                for (Map.Entry<String, String> entry : map.entrySet()) {
+                    String url = entry.getKey();
+                    String regex = entry.getValue();
+                    Pair<Boolean, Integer> tmpPair = doCheckProxy(proxyRecord.getIp(), proxyRecord.getPort(), proxyRecord.getProtocol(), url, regex, TIMEOUT);
+                    if (tmpPair.getLeft()) {
+                        // 如何tmpPair是校验成功的则赋值给validateResultPair,以便更新代理的speed
+                        validateResultPair = tmpPair;
+                        // 如果当前校验通过的Url是https协议，并且proxyRecord不是socks类型，则更新代理的protocol为https
+                        String urlProtocol = ProxyService.getUrlProtocol(url);
+                        if (HTTPS.equals(urlProtocol) && !proxyRecord.getProtocol().toLowerCase().contains("socks")) {
+                            proxyRecord.setProtocol(urlProtocol);
                         }
-                        if (validateResultPair.getLeft()) {
-                            proxyRecord.setIsValid(true);
-                            proxyRecord.setSpeed(validateResultPair.getRight());
-
-                            String comment = proxyRecord.getCountry();
-                            LocalDateTime createTime = proxyRecord.getCreatedTime();
-                            // comment是空的，或者昨天以来入库的
-                            if (StringUtils.isBlank(comment) || createTime.isAfter(LocalDateTime.now().plusDays(-1))) {
-                                proxyRecord.setCountry(getProxyComment(proxyRecord));
-                            }
-
-                            proxyRecord.update();
-                        } else {
-                            proxyRecord.setIsValid(false);
-                            proxyRecord.delete();
-                        }
-                    }, fixedThreadPool))
+                    }
+                }
+                if (validateResultPair.getLeft()) {
+                    proxyRecord.setIsValid(true);
+                    proxyRecord.setSpeed(validateResultPair.getRight());
+                    proxyRecord.setCheckedTime(LocalDateTime.now());
+                    proxyRecord.update();
+                } else {
+                    proxyRecord.setIsValid(false);
+                    LocalDateTime checkedTime = proxyRecord.getCheckedTime();
+                    // 无效代理保留三天
+                    if (checkedTime.plusDays(3).isAfter(LocalDateTime.now())) {
+                        proxyRecord.update();
+                    } else {
+                        proxyRecord.delete();
+                    }
+                }
+            }, fixedThreadPool))
                     .collect(Collectors.toList())
                     .stream()
                     // 等待所有校验线程执行完毕
@@ -110,19 +110,104 @@ public class CheckProxyTask {
         log.info("check proxy end {}", new Date());
     }
 
+    private void checkProxyNew(Map<String, String> map) {
+        VertxOptions vertxOptions = new VertxOptions();
+        vertxOptions.setWorkerPoolSize(6);
+        Vertx vertx = Vertx.vertx(vertxOptions);
+
+        WebClientOptions webClientOptions = new WebClientOptions();
+        webClientOptions.setConnectTimeout(TIMEOUT);
+        webClientOptions.setFollowRedirects(true);
+        webClientOptions.setKeepAlive(false);
+        webClientOptions.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
+        webClientOptions.setUserAgentEnabled(true);
+
+        log.info("check proxy start {}", new Date());
+
+        try {
+            Result<ProxyRecord> fetch = proxy.selectFrom(PROXY).fetch();
+            CountDownLatch countDownLatch = new CountDownLatch(fetch.size());
+
+            fetch.parallelStream().forEach(proxyRecord -> {
+                Pair<Boolean, Integer> validateResultPair = ImmutablePair.of(false, TIMEOUT);
+                // 经测试发现高质量的代理极其稀少
+                // 对每个校验Url进行测试，有一个校验成功就算该代理可用
+                for (Map.Entry<String, String> entry : map.entrySet()) {
+                    String url = entry.getKey();
+                    String regex = entry.getValue();
+
+                    webClientOptions.setProxyOptions(ProxyUtil.getProxyOptions(proxyRecord));
+                    WebClient webClient = WebClient.create(vertx, webClientOptions);
+                    long start = System.currentTimeMillis();
+
+                    webClient.getAbs(url)
+                            .send(ar -> {
+                                if (ar.succeeded()) {
+                                    String body = ar.result().bodyAsString();
+                                    String charset = ProxyUtil.getCharset(body);
+                                    body = ar.result().bodyAsString(charset);
+
+                                    long end = System.currentTimeMillis();
+                                    int costTime = (int) (end - start);
+
+                                    if ((costTime < TIMEOUT) && Pattern.compile(regex).matcher(body).find()) {
+                                        // 如果当前校验通过的Url是https协议，并且proxyRecord不是socks类型，则更新代理的protocol为https
+                                        String urlProtocol = ProxyService.getUrlProtocol(url);
+                                        if (HTTPS.equals(urlProtocol) && !proxyRecord.getProtocol().toLowerCase().contains("socks")) {
+                                            proxyRecord.setProtocol(urlProtocol);
+                                        }
+                                        proxyRecord.setIsValid(true);
+                                        proxyRecord.setSpeed(validateResultPair.getRight());
+                                        proxyRecord.setCheckedTime(LocalDateTime.now());
+                                        proxyRecord.update();
+                                    } else {
+                                        proxyRecord.setIsValid(false);
+                                        LocalDateTime checkedTime = proxyRecord.getCheckedTime();
+                                        // 无效代理保留三天
+                                        if (checkedTime.plusDays(3).isAfter(LocalDateTime.now())) {
+                                            proxyRecord.update();
+                                        } else {
+                                            proxyRecord.delete();
+                                        }
+                                    }
+                                    countDownLatch.countDown();
+                                    System.out.println("vertx web client nettty:" + countDownLatch.getCount());
+                                } else {
+                                    proxyRecord.setIsValid(false);
+                                    LocalDateTime checkedTime = proxyRecord.getCheckedTime();
+                                    // 无效代理保留三天
+                                    if (checkedTime.plusDays(3).isAfter(LocalDateTime.now())) {
+                                        proxyRecord.update();
+                                    } else {
+                                        proxyRecord.delete();
+                                    }
+                                    countDownLatch.countDown();
+                                    System.out.println("vertx web client nettty:" + countDownLatch.getCount());
+                                }
+                            });
+                }
+            });
+            countDownLatch.await();
+        } catch (Exception e) {
+            log.error("check proxy task exception: {}", e.getMessage());
+        }
+
+        log.info("check proxy end {}", new Date());
+    }
+
     /**
      * @param ip    要检查的代理 ip
      * @param port  要检查的代理 port
      * @param url   通过此Url校验代理连通性
      * @param regex 校验正则表达式
      */
-    public static Pair<Boolean, Integer> doCheckProxy(String ip, Integer port, String url, String regex, Integer timeout) {
+    public static Pair<Boolean, Integer> doCheckProxy(String ip, Integer port, String protocol, String url, String regex, Integer timeout) {
         long start = System.currentTimeMillis();
         try {
             Connection connection = Jsoup.connect(url)
                     .referrer(url)
                     .timeout(timeout)
-                    .proxy(ip, port)
+                    .proxy(ProxyUtil.getProxy(ip, port, protocol))
                     .followRedirects(true)
                     .ignoreContentType(true)
                     .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
@@ -143,121 +228,96 @@ public class CheckProxyTask {
         return Pair.of(false, Integer.MAX_VALUE);
     }
 
-    /**
-     * @param proxy 要检查的代理
-     * @param url   通过此url测试连通性
-     * @param regex 校验正则表达式
-     */
-    @Deprecated
-    private static Pair<Boolean, Integer> doCheckProxyOld(Proxy proxy, String url, String regex) {
-        HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
+    //@Scheduled(fixedDelay = HOURS * 3)
+    public void fillProxyFields() {
+        log.info("fill proxy fields start {}", new Date());
 
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                .connectTimeout(10, TimeUnit.SECONDS)
-                .readTimeout(10, TimeUnit.SECONDS)
-                .writeTimeout(10, TimeUnit.SECONDS)
-                .proxy(proxy)
-                .cookieJar(new CookieJar() {
-                    @Override
-                    public void saveFromResponse(HttpUrl httpUrl, List<Cookie> list) {
-                        cookieStore.put(httpUrl.host(), list);
-                    }
-
-                    @Override
-                    public List<Cookie> loadForRequest(HttpUrl httpUrl) {
-                        List<Cookie> cookies = cookieStore.get(httpUrl.host());
-                        return cookies != null ? cookies : new ArrayList<>();
-                    }
-                })
-                .build();
-        Request request = new Request.Builder().url(url)
-                .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
-                .build();
-        Call call = okHttpClient.newCall(request);
-        long start = System.currentTimeMillis();
-        try (Response response = call.execute()) {
-            long end = System.currentTimeMillis();
-            int costTime = (int) (end - start);
-            // 超过半分钟就算超时
-            if (costTime > TIMEOUT) {
-                return Pair.of(false, costTime);
-            }
-
-            String res = response.body().string();
-            if (Pattern.compile(regex).matcher(res).find()) {
-                return Pair.of(true, costTime);
-            }
-        } catch (Exception ignored) {
-        }
-        return Pair.of(false, Integer.MAX_VALUE);
-    }
-
-    /**
-     * 对有效代理更新地域信息
-     *
-     * @param proxyRecord ProxyRecord
-     * @return proxy's comment
-     */
-    private static String getProxyComment(ProxyRecord proxyRecord) {
-        return getProxyCommentBaidu(proxyRecord);
-    }
-
-    private static String getProxyCommentTaobao(ProxyRecord proxyRecord) {
-        String result = proxyRecord.getCountry();
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
         try {
-            String url = "http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp();
-            String regex = "\"ip\":\"" + proxyRecord.getIp() + "\"";
-            // 如果是返回json字符串，不能用jsoup parse解析，会自动带上html标签
-            String ipJson = ProxyService.jsoupExecute(url, regex).body();
+            proxy.selectFrom(PROXY)
+                    .where(PROXY.IS_VALID.eq(true).and(PROXY.CITY.eq("")))
+                    .fetch()
+                    .stream()
+                    .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
+                        try {
+                            Document document = Jsoup.connect("https://proxydb.net/anon")
+                                    .proxy(ProxyUtil.getProxy(proxyRecord))
+                                    .ignoreContentType(true)
+                                    .followRedirects(true)
+                                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
+                                    .timeout(TIMEOUT * 5)
+                                    .get();
+                            String anonymity = document.select("body > div.container-fluid > dl > dd:nth-child(4)").text();
+                            String country = document.select("body > div.container-fluid > dl > dd:nth-child(6) > img").attr("title");
+                            String city = document.select("body > div.container-fluid > dl > dd:nth-child(8)").text();
+                            String region = document.select("body > div.container-fluid > dl > dd:nth-child(10)").text();
+                            String isp = document.select("body > div.container-fluid > dl > dd:nth-child(12)").text();
 
-            DocumentContext parse = JsonPath.parse(ipJson);
-            String country = parse.read("$.data.country");
-            String region = parse.read("$.data.region");
-            String city = parse.read("$.data.city");
-            String isp = parse.read("$.data.isp");
+                            proxyRecord.setAnonymity(anonymity);
+                            proxyRecord.setCountry(country);
+                            proxyRecord.setCity(city);
+                            proxyRecord.setRegion(region);
+                            proxyRecord.setIsp(isp);
+                            proxyRecord.update();
+                            return true;
+                        } catch (Exception ignored) {
+                        }
+                        return false;
+                    }, fixedThreadPool).thenApplyAsync(success -> {
+                        if (success) {
+                            return true;
+                        }
+                        try {
+                            String url = "http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp();
+                            String regex = "\"ip\":\"" + proxyRecord.getIp() + "\"";
+                            // 如果是返回json字符串，不能用jsoup parse解析，会自动带上html标签
+                            String ipJson = ProxyService.jsoupExecute(url, regex).body();
 
-            String comment = "".concat(country.equals("XX") ? "" : country)
-                    .concat(region.equals("XX") ? "" : region)
-                    .concat(city.equals("XX") ? "" : city)
-                    .concat(isp.equals("XX") ? "" : isp);
-            if (Strings.isNotBlank(comment)) {
-                result = comment;
-            }
-        } catch (Exception ignored) {
+                            DocumentContext parse = JsonPath.parse(ipJson);
+                            String country = parse.read("$.data.country");
+                            String city = parse.read("$.data.city");
+                            String region = parse.read("$.data.region");
+                            String isp = parse.read("$.data.isp");
+
+                            proxyRecord.setCountry(country);
+                            proxyRecord.setCity(city);
+                            proxyRecord.setRegion(region);
+                            proxyRecord.setIsp(isp);
+                            proxyRecord.update();
+                            return true;
+                        } catch (Exception ignored) {
+                        }
+                        return false;
+                    }, fixedThreadPool).thenAcceptAsync(success -> {
+                        if (success) {
+                            return;
+                        }
+                        try {
+                            String url = "https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query=" + proxyRecord.getIp() + "&co=&resource_id=6006&t=" + System.currentTimeMillis() + "&ie=utf8&oe=gbk&format=json&tn=baidu&_=" + System.currentTimeMillis();
+                            String regex = "\"origip\":\"" + proxyRecord.getIp() + "\"";
+                            // 如果是返回json字符串，不能用jsoup parse解析，会自动带上html标签
+                            String ipJson = ProxyService.jsoupExecute(url, regex).body();
+
+                            DocumentContext parse = JsonPath.parse(ipJson);
+                            String country = parse.read("$.data.location");
+                            proxyRecord.setCountry(country);
+                            proxyRecord.update();
+                        } catch (Exception ignored) {
+                        }
+                    }, fixedThreadPool))
+                    .collect(Collectors.toList())
+                    .stream()
+                    // 等待所有校验线程执行完毕
+                    .map(CompletableFuture::join)
+                    .forEach(aVoid -> {
+                    });
+        } catch (Exception e) {
+            log.error("check proxy task exception: {}", e.getMessage());
+        } finally {
+            // 别忘了关闭局部变量的线程池
+            fixedThreadPool.shutdownNow();
         }
-        return result;
-    }
 
-    private static String getProxyCommentBaidu(ProxyRecord proxyRecord) {
-        String result = proxyRecord.getCountry();
-        try {
-            String url = "https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query=" + proxyRecord.getIp() + "&co=&resource_id=6006&t=" + System.currentTimeMillis() + "&ie=utf8&oe=gbk&format=json&tn=baidu&_=" + System.currentTimeMillis();
-            String regex = "\"origip\":\"" + proxyRecord.getIp() + "\"";
-            // 如果是返回json字符串，不能用jsoup parse解析，会自动带上html标签
-            String ipJson = ProxyService.jsoupExecute(url, regex).body();
-
-            DocumentContext parse = JsonPath.parse(ipJson);
-            String comment = parse.read("$.data.location");
-            if (Strings.isNotBlank(comment)) {
-                result = comment;
-            }
-        } catch (Exception ignored) {
-        }
-        return result;
-    }
-
-    private static String getProxyCommentIPCN(ProxyRecord proxyRecord) {
-        String result = proxyRecord.getCountry();
-        try {
-            String url = "https://ip.cn/index.php?ip=" + proxyRecord.getIp();
-            String regex = proxyRecord.getIp();
-            // 如果是返回json字符串，不能用jsoup parse解析，会自动带上html标签
-            Document document = ProxyService.jsoupGet(url, regex);
-            if (document != null) {
-                result = document.select("#result > div > p:nth-child(2) > code").text();
-            }
-        } catch (Exception ignored) {
-        }
-        return result;
+        log.info("fill proxy fields end {}", new Date());
     }
 }

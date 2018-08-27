@@ -124,7 +124,7 @@ public class ProxyController {
                 .fetch()
                 .stream()
                 .forEach(proxy1 -> CompletableFuture.runAsync(() -> {
-                    Pair<Boolean, Integer> pair = CheckProxyTask.doCheckProxy(proxy1.getIp(), proxy1.getPort(), proxySearch.getUrl(), proxySearch.getRegex(), proxySearch.getTimeout() * 1000);
+                    Pair<Boolean, Integer> pair = CheckProxyTask.doCheckProxy(proxy1.getIp(), proxy1.getPort(), proxy1.getProtocol(), proxySearch.getUrl(), proxySearch.getRegex(), proxySearch.getTimeout() * 1000);
                     if (pair.getLeft()) {
                         proxy1.setIsValid(true);
                         proxy1.setSpeed(pair.getRight());

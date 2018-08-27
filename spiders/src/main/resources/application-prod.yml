@@ -19,3 +19,7 @@ spring:
 logging:
   level:
     org.jooq.tools.LoggerListener: info
+
+webdriver:
+  driver-map:
+    phantomjs.binary.path: '/usr/bin/phantomjs'

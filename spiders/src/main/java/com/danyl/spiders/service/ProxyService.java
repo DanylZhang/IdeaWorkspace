@@ -11,9 +11,6 @@ import org.jsoup.Connection;
 import org.jsoup.Connection.Response;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.openqa.selenium.By;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -24,7 +21,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -93,7 +89,7 @@ public class ProxyService {
      *
      * @param url 即将访问的Url
      */
-    private Proxy get(String url) {
+    public Proxy get(String url) {
         Proxy result = null;
         String protocol = getUrlProtocol(url);
 
@@ -132,7 +128,7 @@ public class ProxyService {
         return result;
     }
 
-    private void remove(Proxy proxy) {
+    public void remove(Proxy proxy) {
         if (proxy == null) {
             return;
         }
@@ -293,8 +289,6 @@ public class ProxyService {
     public static Response jsoupExecute(Connection jsoupConnection, String regex, Boolean useProxy) {
         // 获取代理的实例
         final ProxyService instance = getInstance();
-        log.info("proxy service instance: {}", instance);
-
         // 因为followRedirects会改变访问的URL，所以先保存URL
         final String url = jsoupConnection.request().url().toExternalForm();
         // 链接访问正常，但返回未匹配数据时的重试次数
@@ -333,73 +327,6 @@ public class ProxyService {
             } catch (Exception e) {
                 // log.error("jsoupExecute error: {}, url: {}, proxy: {}", e.getMessage(), url, proxy0);
                 instance.remove(proxy0);
-            }
-        }
-    }
-
-    public static String chromeExecute(String url, By by, String regex, Boolean useProxy) {
-        // 获取代理的实例
-        final ProxyService instance = getInstance();
-        log.info("proxy service instance: {}", instance);
-
-        // 链接访问正常，但返回未匹配数据时的重试次数
-        int count = 3;
-        Pattern pattern = Pattern.compile(regex);
-        while (true) {
-            System.setProperty("webdriver.chrome.driver", "C:/Users/danyl/AppData/Local/360Chrome/Chrome/Application/chromedriver.exe");
-            System.setProperty("phantomjs.binary.path", "D:/360极速浏览器下载/phantomjs-2.1.1-windows/bin/phantomjs.exe");
-            ChromeOptions chromeOptions = new ChromeOptions();
-
-            // 从proxies中拿到一个代理，并设置给chromeOptions
-            Proxy proxy0 = null;
-            if (useProxy) {
-                proxy0 = instance.get(url);
-            }
-            if (proxy0 != null) {
-                chromeOptions.setProxy(ProxyUtil.getSeleniumProxy(proxy0));
-            }
-
-            ChromeDriver chromeDriver = null;
-            try {
-                long start = System.currentTimeMillis();
-
-                try {
-                    chromeDriver = new ChromeDriver(chromeOptions);
-                    // selenium bugs
-                    // 当设置了pageLoadTimeout，并且当网络不好时
-                    // 即使页面加载了99%，并不影响后续的findElement操作
-                    // 也会抛出timeout异常
-                    // chromeDriver.manage().timeouts().pageLoadTimeout(TIMEOUT, TimeUnit.MILLISECONDS);
-                    chromeDriver.manage().timeouts().implicitlyWait(TIMEOUT, TimeUnit.MILLISECONDS);
-                } catch (Exception e) {
-                    log.error("chrome execute new ChromeDriver error: {}", e.getMessage());
-                    return null;
-                }
-
-                chromeDriver.get(url);
-                String pageSource = chromeDriver.getPageSource();
-                long end = System.currentTimeMillis();
-                log.info("chrome execute get elapse: {}s", (end - start) / 1000);
-
-                if (pattern.matcher(pageSource).find()) {
-                    return pageSource;
-                } else {
-                    // 此时链接访问正常，但是未返回期望的结果，
-                    // 有可能目标链接包含的内容确实已经发生更改，
-                    // 用户提供的regex未匹配结果是正常情况
-                    // 故跳出死循环
-                    if (count-- <= 0) {
-                        log.error("chromeExecute check selector error, url: {}, by: {}, response: {}", url, by, chromeDriver.getTitle());
-                        return null;
-                    }
-                }
-            } catch (Exception e) {
-                // log.error("jsoupExecute error: {}, url: {}, proxy: {}", e.getMessage(), url, proxy0);
-                instance.remove(proxy0);
-            } finally {
-                if (chromeDriver != null) {
-                    chromeDriver.quit();
-                }
             }
         }
     }
