@@ -1,7 +1,7 @@
 package com.danyl.spiders;
 
+import com.danyl.spiders.downloader.JsoupDownloader;
 import com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy;
-import com.danyl.spiders.service.ProxyService;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.jayway.jsonpath.DocumentContext;
@@ -65,7 +65,7 @@ public class SpidersApplicationTests {
             String url = String.format("https://comment.huodong.mi.com/comment/entry/getSummary?goods_id=%s&v_pid=%s&sstart=0&slen=10&astart=%s&alen=10&_=%s", product_id, product_id, astart, System.currentTimeMillis());
             System.out.println(url);
             Connection connection = Jsoup.connect(url).referrer(String.format("https://item.mi.com/%s.html?cfrom=search", product_id));
-            Connection.Response response = ProxyService.jsoupExecute(connection, "msg", false);
+            Connection.Response response = JsoupDownloader.jsoupExecute(connection, "msg", false);
             String json = response.body();
             System.out.println(json);
             DocumentContext parse = JsonPath.parse(json);

@@ -15,15 +15,13 @@ import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
 
 @Slf4j
 public class ChromeDownloader implements WebDriverDownloader {
-
     private static ProxyService proxyService = ProxyService.getInstance();
 
-    public static String chromeExecute(String url, By by, String regex, Boolean useProxy) {
+    public String download(String url, By by, String regex, Boolean useProxy) {
         // 链接访问正常，但返回未匹配数据时的重试次数
         int count = 3;
         Pattern pattern = Pattern.compile(regex);
         while (true) {
-            System.setProperty("webdriver.chrome.driver", "C:/Users/danyl/AppData/Local/360Chrome/Chrome/Application/chromedriver.exe");
             ChromeOptions chromeOptions = new ChromeOptions();
 
             // 从proxies中拿到一个代理，并设置给chromeOptions

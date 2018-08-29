@@ -4,18 +4,14 @@ import com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy;
 import com.danyl.spiders.utils.ProxyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.util.Pair;
 import org.jooq.DSLContext;
-import org.jsoup.Connection;
-import org.jsoup.Connection.Response;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -24,11 +20,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.danyl.spiders.constants.ProtocolConstants.HTTP;
 import static com.danyl.spiders.constants.ProtocolConstants.HTTPS;
+import static com.danyl.spiders.constants.ProtocolConstants.SOCKS;
 import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
@@ -36,7 +31,7 @@ import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 @Service
 public class ProxyService {
     // 此处顺序不能变
-    private static ProxyService instance = null;
+    private static ProxyService instance;
 
     static {
         instance = new ProxyService();
@@ -73,14 +68,21 @@ public class ProxyService {
 
         int totalCount = proxyList.size();
         long httpsCount = proxyList.stream()
-                .filter(proxy0 -> HTTPS.equals(proxy0.getProtocol()))
+                .filter(proxy0 -> proxy0.getProtocol().contains(HTTPS))
+                .count();
+        long socksCount = proxyList.stream()
+                .filter(proxy0 -> proxy0.getProtocol().contains(SOCKS))
                 .count();
 
         instance.lock.writeLock().lock();
         instance.proxies.clear();
         instance.proxies.addAll(proxyList);
         instance.lock.writeLock().unlock();
-        log.info("ProxyService update proxies success, total proxy: {}, https: {}", totalCount, httpsCount);
+        log.info("ProxyService.setProxies, total proxy: {}, https: {}, socks: {}, StackTrace: {}", totalCount, httpsCount, socksCount, Thread.currentThread().getStackTrace());
+    }
+
+    public Proxy get(String url) {
+        return get(url, null);
     }
 
     /**
@@ -89,9 +91,9 @@ public class ProxyService {
      *
      * @param url 即将访问的Url
      */
-    public Proxy get(String url) {
+    public Proxy get(String url, String anonymity) {
         Proxy result = null;
-        String protocol = getUrlProtocol(url);
+        String protocol = ProxyUtil.getUrlProtocol(url);
 
         instance.lock.readLock().lock();
         // fixed bug# subList是一个引用视图，即原数组的引用，并发写时会引发读抛出ConcurrentModificationException
@@ -99,11 +101,22 @@ public class ProxyService {
         instance.lock.readLock().unlock();
 
         List<Pair<Proxy, Double>> tmpProxyList2 = tmpProxyList1.stream()
-                .filter(proxy0 -> {
+                // 根据爬取的url类型来确定是否支持https
+                .filter(proxy1 -> {
                     if (HTTPS.equals(protocol)) {
-                        return HTTPS.equals(proxy0.getProtocol()) || proxy0.getProtocol().toLowerCase().startsWith("socks");
+                        // 如果待爬取的url是https协议，则返回支持https的代理
+                        return HTTPS.equals(proxy1.getProtocol()) || proxy1.getProtocol().toLowerCase().contains("socks");
                     } else {
+                        // 如果待爬取的url是不是https协议，则返回所有可用代理
                         return true;
+                    }
+                })
+                // 过滤符合指定匿名性的代理
+                .filter(proxy1 -> {
+                    if (StringUtils.isBlank(anonymity)) {
+                        return true;
+                    } else {
+                        return StringUtils.containsIgnoreCase(anonymity, proxy1.getAnonymity());
                     }
                 })
                 // 代理的speed越快，probability就越大
@@ -137,16 +150,6 @@ public class ProxyService {
         instance.lock.writeLock().unlock();
     }
 
-    public static String getUrlProtocol(String url) {
-        String protocol = HTTP;
-        try {
-            protocol = new URL(url).getProtocol();
-        } catch (MalformedURLException e) {
-            log.error("get url protocol error: {}", e.getMessage());
-        }
-        return protocol;
-    }
-
     private static void emptyProxyNeedSleep(String url) {
         // 无可用代理时使用本机直连访问，需要控制访问频次(防封ip)，以域名做精细化访问控制
         final int frequency = 10;
@@ -173,161 +176,6 @@ public class ProxyService {
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
-     *
-     * @param url      目标网址
-     * @param useProxy 是否使用代理爬取
-     */
-    public static Document jsoupGet(String url, Boolean useProxy) {
-        return jsoupGet(url, ".", useProxy);
-    }
-
-    /**
-     * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
-     *
-     * @param url   目标网址
-     * @param regex response 校验正则，不符合预期的将被循环执行
-     */
-    public static Document jsoupGet(String url, String regex) {
-        return jsoupGet(url, regex, true);
-    }
-
-    /**
-     * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
-     *
-     * @param url      目标网址
-     * @param regex    response 校验正则，不符合预期的将被循环执行
-     * @param useProxy 是否使用代理爬取
-     */
-    public static Document jsoupGet(String url, String regex, Boolean useProxy) {
-        Connection connect = Jsoup.connect(url);
-        return jsoupGet(connect, regex, useProxy);
-    }
-
-    /**
-     * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
-     *
-     * @param connection 指定了url以及一些参数的 jsoup Connection
-     * @param regex      response 校验正则，不符合预期的将被循环执行
-     */
-    public static Document jsoupGet(Connection connection, String regex) {
-        return jsoupGet(connection, regex, true);
-    }
-
-    /**
-     * 提供一个便捷的静态方法获取使用代理的 Jsoup Get
-     *
-     * @param connection 指定了url以及一些参数的 jsoup Connection
-     * @param regex      response 校验正则，不符合预期的将被循环执行
-     * @param useProxy   是否使用代理爬取
-     */
-    public static Document jsoupGet(Connection connection, String regex, Boolean useProxy) {
-        Response response = jsoupExecute(connection, regex, useProxy);
-        if (response == null) {
-            return null;
-        }
-
-        Document document = null;
-        try {
-            document = response.parse();
-        } catch (IOException e) {
-            log.error("jsoupGet error: {}", e.getMessage());
-        }
-        return document;
-    }
-
-    /**
-     * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
-     *
-     * @param url      目标网址
-     * @param useProxy 是否使用代理爬取
-     */
-    public static Response jsoupExecute(String url, Boolean useProxy) {
-        Connection connect = Jsoup.connect(url);
-        return jsoupExecute(connect, ".", useProxy);
-    }
-
-    /**
-     * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
-     *
-     * @param url   目标网址
-     * @param regex response 校验正则，不符合预期的将被循环执行
-     */
-    public static Response jsoupExecute(String url, String regex) {
-        Connection connect = Jsoup.connect(url);
-        return jsoupExecute(connect, regex, true);
-    }
-
-    /**
-     * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
-     *
-     * @param url      目标网址
-     * @param regex    response 校验正则，不符合预期的将被循环执行
-     * @param useProxy 是否使用代理爬取
-     */
-    public static Response jsoupExecute(String url, String regex, Boolean useProxy) {
-        Connection connect = Jsoup.connect(url);
-        return jsoupExecute(connect, regex, useProxy);
-    }
-
-    public static Response jsoupExecute(Connection jsoupConnection, String regex) {
-        return jsoupExecute(jsoupConnection, regex, true);
-    }
-
-    /**
-     * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
-     *
-     * @param jsoupConnection 指定了url以及一些参数的 jsoup Connection
-     * @param regex           response 校验正则，不符合预期的将被循环执行
-     * @param useProxy        是否使用代理爬取
-     * @return the jsoup execute response, maybe null when regex don't match
-     */
-    public static Response jsoupExecute(Connection jsoupConnection, String regex, Boolean useProxy) {
-        // 获取代理的实例
-        final ProxyService instance = getInstance();
-        // 因为followRedirects会改变访问的URL，所以先保存URL
-        final String url = jsoupConnection.request().url().toExternalForm();
-        // 链接访问正常，但返回未匹配数据时的重试次数
-        int count = 20;
-        Pattern pattern = Pattern.compile(regex);
-        while (true) {
-            jsoupConnection
-                    .url(url)
-                    .timeout(TIMEOUT)
-                    .followRedirects(true)
-                    .ignoreContentType(true)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
-
-            // 从proxies中拿到一个代理，并设置给jsoupConnection
-            Proxy proxy0 = null;
-            if (useProxy) {
-                proxy0 = instance.get(url);
-            }
-            if (proxy0 != null) {
-                jsoupConnection.proxy(ProxyUtil.getProxy(proxy0));
-            }
-            try {
-                Response execute = jsoupConnection.execute();
-                if (pattern.matcher(execute.body()).find()) {
-                    return execute;
-                } else {
-                    // 此时链接访问正常，但是未返回期望的结果，
-                    // 有可能目标链接包含的内容确实已经发生更改，
-                    // 用户提供的regex未匹配结果是正常情况
-                    // 故跳出死循环
-                    if (count-- <= 0) {
-                        log.error("jsoupExecute check regex error, url: {}, regex: {}, response: {}", url, regex, execute.body());
-                        return null;
-                    }
-                }
-            } catch (Exception e) {
-                // log.error("jsoupExecute error: {}, url: {}, proxy: {}", e.getMessage(), url, proxy0);
-                instance.remove(proxy0);
-            }
         }
     }
 }

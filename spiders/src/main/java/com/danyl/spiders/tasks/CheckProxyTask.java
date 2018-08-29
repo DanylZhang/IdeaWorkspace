@@ -1,19 +1,17 @@
 package com.danyl.spiders.tasks;
 
+import com.danyl.spiders.downloader.JsoupDownloader;
 import com.danyl.spiders.jooq.gen.proxy.tables.records.ProxyRecord;
-import com.danyl.spiders.service.ProxyService;
 import com.danyl.spiders.utils.ProxyUtil;
 import com.google.common.collect.ImmutableMap;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import io.vertx.rxjava.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.rxjava.core.buffer.Buffer;
-import io.vertx.rxjava.ext.web.client.HttpResponse;
+import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.ext.web.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
 import org.jooq.Result;
@@ -22,22 +20,18 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import rx.Single;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.danyl.spiders.constants.ProtocolConstants.HTTPS;
-import static com.danyl.spiders.constants.TimeConstants.MINUTES;
-import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
+import static com.danyl.spiders.constants.TimeConstants.*;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
@@ -48,7 +42,7 @@ public class CheckProxyTask {
     private DSLContext proxy;
 
     // 校验可用的代理
-    @Scheduled(fixedDelay = MINUTES * 30)
+    @Scheduled(fixedDelay = HOURS * 3)
     public void validateProxy() {
         ImmutableMap<String, String> validateUrlMap = ImmutableMap.<String, String>builder()
                 .put("http://category.dangdang.com/cid4002389.html", "帆布鞋")
@@ -75,7 +69,7 @@ public class CheckProxyTask {
                         // 如何tmpPair是校验成功的则赋值给validateResultPair,以便更新代理的speed
                         validateResultPair = tmpPair;
                         // 如果当前校验通过的Url是https协议，并且proxyRecord不是socks类型，则更新代理的protocol为https
-                        String urlProtocol = ProxyService.getUrlProtocol(url);
+                        String urlProtocol = ProxyUtil.getUrlProtocol(url);
                         if (HTTPS.equals(urlProtocol) && !proxyRecord.getProtocol().toLowerCase().contains("socks")) {
                             proxyRecord.setProtocol(urlProtocol);
                         }
@@ -107,15 +101,20 @@ public class CheckProxyTask {
             log.error("check proxy task exception: {}", e.getMessage());
         } finally {
             // 别忘了关闭局部变量的线程池
-            fixedThreadPool.shutdownNow();
+            fixedThreadPool.shutdown();
         }
 
         log.info("check proxy end {}", new Date());
     }
 
+    // 使用了vertx框架，底层是netty
+    // 非阻塞回调式编程，但是大量并发请求导致网络阻塞从而引发大量的网络连接异常，不稳定
     private void checkProxyNew(Map<String, String> map) {
+        log.info("check proxy start {}", new Date());
+
+        // init vertx
         VertxOptions vertxOptions = new VertxOptions();
-        vertxOptions.setWorkerPoolSize(6);
+        vertxOptions.setWorkerPoolSize(4);
         Vertx vertx = Vertx.vertx(vertxOptions);
 
         WebClientOptions webClientOptions = new WebClientOptions();
@@ -125,48 +124,77 @@ public class CheckProxyTask {
         webClientOptions.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
         webClientOptions.setUserAgentEnabled(true);
 
-        log.info("check proxy start {}", new Date());
-
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(8);
         try {
             Result<ProxyRecord> fetch = proxy.selectFrom(PROXY).fetch();
-            CountDownLatch countDownLatch = new CountDownLatch(fetch.size());
+            CountDownLatch latch = new CountDownLatch(fetch.size());
 
             fetch.forEach(proxyRecord -> {
                 // 每个代理一个webClient
                 webClientOptions.setProxyOptions(ProxyUtil.getProxyOptions(proxyRecord));
                 WebClient webClient = WebClient.create(vertx, webClientOptions);
-                Pair<Boolean, Integer> validateResultPair = Pair.of(false, TIMEOUT);
+                final AtomicReference<Pair<Boolean, Integer>> pairAtomicReference = new AtomicReference<>(Pair.of(false, TIMEOUT));
 
                 // 经测试发现高质量的代理极其稀少
                 // 对每个校验Url进行测试，有一个校验成功就算该代理可用
-                for (Map.Entry<String, String> entry : map.entrySet()) {
-                    String url = entry.getKey();
-                    String regex = entry.getValue();
-
+                CountDownLatch urlMapLatch = new CountDownLatch(map.size());
+                map.forEach((url, regex) -> {
                     long start = System.currentTimeMillis();
-                    Single<HttpResponse<Buffer>> rxSend = webClient.getAbs(url).rxSend();
-                    rxSend.subscribe(ar -> {
-                            String body = ar.bodyAsString();
-                            String charset = ProxyUtil.getCharset(body);
-                            body = ar.bodyAsString(charset);
-
+                    // getAbs按绝对路径来，自动根据http(s)判断是否开启ssl(true)
+                    webClient.getAbs(url).timeout(TIMEOUT).rxSend().subscribe(response -> {
+                        String body = ProxyUtil.decodeBody(response);
+                        if (StringUtils.isNotBlank(body)) {
                             long end = System.currentTimeMillis();
                             int costTime = (int) (end - start);
-
                             if ((costTime < TIMEOUT) && Pattern.compile(regex).matcher(body).find()) {
-                                validateResultPair = Pair.of(true,costTime);
                                 // 如果当前校验通过的Url是https协议，并且proxyRecord不是socks类型，则更新代理的protocol为https
-                                String urlProtocol = ProxyService.getUrlProtocol(url);
+                                String urlProtocol = ProxyUtil.getUrlProtocol(url);
                                 if (HTTPS.equals(urlProtocol) && !proxyRecord.getProtocol().toLowerCase().contains("socks")) {
                                     proxyRecord.setProtocol(urlProtocol);
                                 }
+                                // 如何tmpPair是校验成功的则赋值给validateResultPair,以便更新代理的speed
+                                pairAtomicReference.set(Pair.of(true, costTime));
                             }
-                    });
-                }
+                        }
+                        urlMapLatch.countDown();
+                    }, error -> urlMapLatch.countDown());
+                });
+                fixedThreadPool.submit(() -> {
+                    try {
+                        // 等待validateMap里的校验项一一通过
+                        urlMapLatch.await(MINUTES, TimeUnit.MILLISECONDS);
+                        webClient.close();
+
+                        Pair<Boolean, Integer> pair = pairAtomicReference.get();
+                        if (pair.getLeft()) {
+                            proxyRecord.setIsValid(true);
+                            proxyRecord.setSpeed(pair.getRight());
+                            proxyRecord.setCheckedTime(LocalDateTime.now());
+                            proxyRecord.update();
+                        } else {
+                            proxyRecord.setIsValid(false);
+                            LocalDateTime checkedTime = proxyRecord.getCheckedTime();
+                            // 无效代理保留三天
+                            if (checkedTime.plusDays(3).isAfter(LocalDateTime.now())) {
+                                proxyRecord.update();
+                            } else {
+                                proxyRecord.delete();
+                            }
+                        }
+
+                        latch.countDown();
+                        log.info("validate proxy queue size: {}", latch.getCount());
+                    } catch (InterruptedException e) {
+                        log.error("任务被中断!");
+                    }
+                });
             });
-            countDownLatch.await();
+            latch.await();
         } catch (Exception e) {
             log.error("check proxy task exception: {}", e.getMessage());
+        } finally {
+            fixedThreadPool.shutdownNow();
+            vertx.close();
         }
 
         log.info("check proxy end {}", new Date());
@@ -205,24 +233,24 @@ public class CheckProxyTask {
         return Pair.of(false, Integer.MAX_VALUE);
     }
 
-    //@Scheduled(fixedDelay = HOURS * 3)
+    @Scheduled(fixedDelay = HOURS * 12)
     public void fillProxyFields() {
         log.info("fill proxy fields start {}", new Date());
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(32);
         try {
             proxy.selectFrom(PROXY)
-                    .where(PROXY.IS_VALID.eq(true).and(PROXY.CITY.eq("")))
+                    .where(PROXY.IS_VALID.eq(true).and(PROXY.CITY.eq("").or(PROXY.CITY.eq("XX"))))
                     .fetch()
                     .stream()
                     .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
                         try {
-                            Document document = Jsoup.connect("https://proxydb.net/anon")
+                            Document document = Jsoup.connect("http://proxydb.net/anon")
                                     .proxy(ProxyUtil.getProxy(proxyRecord))
                                     .ignoreContentType(true)
                                     .followRedirects(true)
                                     .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
-                                    .timeout(TIMEOUT * 5)
+                                    .timeout(TIMEOUT * 2)
                                     .get();
                             String anonymity = document.select("body > div.container-fluid > dl > dd:nth-child(4)").text();
                             String country = document.select("body > div.container-fluid > dl > dd:nth-child(6) > img").attr("title");
@@ -248,7 +276,7 @@ public class CheckProxyTask {
                             String url = "http://ip.taobao.com/service/getIpInfo.php?ip=" + proxyRecord.getIp();
                             String regex = "\"ip\":\"" + proxyRecord.getIp() + "\"";
                             // 如果是返回json字符串，不能用jsoup parse解析，会自动带上html标签
-                            String ipJson = ProxyService.jsoupExecute(url, regex).body();
+                            String ipJson = JsoupDownloader.jsoupExecute(url, regex).body();
 
                             DocumentContext parse = JsonPath.parse(ipJson);
                             String country = parse.read("$.data.country");
@@ -270,10 +298,10 @@ public class CheckProxyTask {
                             return;
                         }
                         try {
-                            String url = "https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query=" + proxyRecord.getIp() + "&co=&resource_id=6006&t=" + System.currentTimeMillis() + "&ie=utf8&oe=gbk&format=json&tn=baidu&_=" + System.currentTimeMillis();
+                            String url = "http://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query=" + proxyRecord.getIp() + "&co=&resource_id=6006&t=" + System.currentTimeMillis() + "&ie=utf8&oe=gbk&format=json&tn=baidu&_=" + System.currentTimeMillis();
                             String regex = "\"origip\":\"" + proxyRecord.getIp() + "\"";
                             // 如果是返回json字符串，不能用jsoup parse解析，会自动带上html标签
-                            String ipJson = ProxyService.jsoupExecute(url, regex).body();
+                            String ipJson = JsoupDownloader.jsoupExecute(url, regex).body();
 
                             DocumentContext parse = JsonPath.parse(ipJson);
                             String country = parse.read("$.data.location");
@@ -292,7 +320,7 @@ public class CheckProxyTask {
             log.error("check proxy task exception: {}", e.getMessage());
         } finally {
             // 别忘了关闭局部变量的线程池
-            fixedThreadPool.shutdownNow();
+            fixedThreadPool.shutdown();
         }
 
         log.info("fill proxy fields end {}", new Date());

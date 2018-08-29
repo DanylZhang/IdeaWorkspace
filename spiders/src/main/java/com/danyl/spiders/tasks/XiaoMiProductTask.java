@@ -1,9 +1,9 @@
 package com.danyl.spiders.tasks;
 
+import com.danyl.spiders.downloader.JsoupDownloader;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.pojos.Item;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.pojos.ItemCategory;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.records.ItemRecord;
-import com.danyl.spiders.service.ProxyService;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +13,7 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.net.URL;
@@ -34,7 +35,7 @@ import static com.danyl.spiders.jooq.gen.xiaomi.Tables.ITEM;
 import static com.danyl.spiders.jooq.gen.xiaomi.Tables.ITEM_CATEGORY;
 
 @Slf4j
-//@Component
+@Component
 public class XiaoMiProductTask {
 
     @Resource(name = "DSLContextXiaoMi")
@@ -67,7 +68,7 @@ public class XiaoMiProductTask {
                     .map(cidUrlPair -> CompletableFuture.runAsync(() -> {
                         Integer cid = cidUrlPair.getLeft();
                         String url = cidUrlPair.getRight();
-                        Document document = ProxyService.jsoupGet(url, "所有商品");
+                        Document document = JsoupDownloader.jsoupGet(url, "所有商品");
                         if (document == null) {
                             return;
                         }
@@ -106,7 +107,7 @@ public class XiaoMiProductTask {
                                         // 有些li中gid为0，可能确实为0，也可能有二级属性
                                         if (goodsId == 0) {
                                             String url1 = "https://item.mi.com/{}.html?cfrom=list".replace("{}", commodityId.toString());
-                                            Document document1 = ProxyService.jsoupGet(url1, "小米商城");
+                                            Document document1 = JsoupDownloader.jsoupGet(url1, "小米商城");
                                             if (document1 == null) {
                                                 return;
                                             }
@@ -191,7 +192,7 @@ public class XiaoMiProductTask {
                         String regex4 = "view\\?product_id=(\\d+)";
 
                         String url = "https://item.mi.com/{}.html?cfrom=list".replace("{}", commodityId.toString());
-                        Document document = ProxyService.jsoupGet(url, "小米商城");
+                        Document document = JsoupDownloader.jsoupGet(url, "小米商城");
 
                         String html;
                         if (document == null) {
@@ -218,8 +219,6 @@ public class XiaoMiProductTask {
                         }
 
                         if (productId <= 0L) {
-                            log.error("get xiaomi productId error, commodityId: {}, url: {}", commodityId, url);
-
                             String location = document.location();
                             Matcher locationMatcher = Pattern.compile("https://item\\.mi\\.com/product/(\\d+)\\.html").matcher(location);
                             if (locationMatcher.find()) {
@@ -238,7 +237,7 @@ public class XiaoMiProductTask {
                                             .append("&_=")
                                             .append(System.currentTimeMillis()).toString();
                                     Connection connection = Jsoup.connect(url).header("Referer", targetUrl).ignoreContentType(true);
-                                    Document document1 = ProxyService.jsoupGet(connection, "\"msg\":\"ok\"");
+                                    Document document1 = JsoupDownloader.jsoupGet(connection, "\"msg\":\"ok\"");
                                     if (document1 == null) {
                                         log.error("get xiaomi productId error, commodityId: {}, url: {}", commodityId, url);
                                         return productId;
@@ -273,7 +272,7 @@ public class XiaoMiProductTask {
                                 .append("&_=")
                                 .append(System.currentTimeMillis()).toString();
                         Connection connection = Jsoup.connect(url).header("Referer", referer).ignoreContentType(true);
-                        Document document = ProxyService.jsoupGet(connection, "\"msg\":\"ok\"");
+                        Document document = JsoupDownloader.jsoupGet(connection, "\"msg\":\"ok\"");
                         if (document == null) {
                             return;
                         }

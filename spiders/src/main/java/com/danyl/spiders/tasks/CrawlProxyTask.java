@@ -1,14 +1,10 @@
 package com.danyl.spiders.tasks;
 
+import com.danyl.spiders.downloader.JsoupDownloader;
 import com.danyl.spiders.downloader.PhantomJSDownloader;
-import com.danyl.spiders.service.ProxyService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.openqa.selenium.By;
-import org.openqa.selenium.phantomjs.PhantomJSDriverService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -22,12 +18,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.danyl.spiders.constants.ProtocolConstants.*;
-import static com.danyl.spiders.constants.TimeConstants.MINUTES;
-import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
+import static com.danyl.spiders.constants.TimeConstants.*;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
-//@Component
+@Component
 public class CrawlProxyTask {
 
     @Resource(name = "DSLContextProxy")
@@ -36,7 +31,7 @@ public class CrawlProxyTask {
     @Autowired
     private PhantomJSDownloader phantomJSDownloader;
 
-    @Scheduled(fixedDelay = MINUTES * 30)
+    @Scheduled(fixedDelay = HOURS * 6)
     public void crawlProxy() {
         log.info("crawl proxy start {}", new Date());
 
@@ -47,7 +42,6 @@ public class CrawlProxyTask {
         executorService.execute(this::getxicidaili);
         executorService.execute(this::getFreeProxyList);
         executorService.execute(this::getFreeProxyListSocks);
-        executorService.execute(this::getProxyDB);
 
         // shutdown非阻塞，再使用awaitTermination进行阻塞等待
         try {
@@ -55,6 +49,7 @@ public class CrawlProxyTask {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        // 立即关闭线程池，不等待已开始执行的线程执行完毕
         executorService.shutdownNow();
         log.info("crawl proxy end {}", new Date());
     }
@@ -63,7 +58,7 @@ public class CrawlProxyTask {
     private void get66ip() {
         for (int i = 0; i < 100; i++) {
             String url = "http://www.66ip.cn/nmtq.php?getnum=100&isp=0&anonymoustype=0&start=&ports=&export=&ipaddress=&area=0&proxytype=2&api=66ip";
-            String html = ProxyService.jsoupGet(url, "www\\.66daili\\.cn").html();
+            String html = JsoupDownloader.jsoupGet(url, "www\\.66daili\\.cn").html();
             Matcher matcher = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)").matcher(html);
             while (matcher.find()) {
                 String ip = matcher.group(1);
@@ -81,7 +76,7 @@ public class CrawlProxyTask {
         for (int i = 1; i <= 4; i++) {
             for (int j = 1; j <= 10; j++) {
                 String url = "http://www.ip3366.net/?stype=" + i + "&page=" + j;
-                Document document = ProxyService.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+                Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
                 document.select("#list > table > tbody > tr")
                         .forEach(element -> {
                             String ip = element.select("td:nth-child(1)").text().trim();
@@ -103,7 +98,7 @@ public class CrawlProxyTask {
     private void getkuaidaili() {
         for (int i = 1; i < 25; i++) {
             String url = "https://www.kuaidaili.com/free/inha/" + i + "/";
-            Document document = ProxyService.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+            Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
             document.select("#list > table > tbody > tr")
                     .forEach(element -> {
                         String ip = element.select("td:nth-child(1)").text().trim();
@@ -124,7 +119,7 @@ public class CrawlProxyTask {
     private void getxicidaili() {
         for (int i = 1; i <= 300; i++) {
             String url = "http://www.xicidaili.com/nn/" + i;
-            Document document = ProxyService.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+            Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
             document.select("#ip_list > tbody > tr")
                     .stream()
                     .skip(1)
@@ -154,7 +149,7 @@ public class CrawlProxyTask {
     // free-proxy-list
     private void getFreeProxyList() {
         String url = "https://free-proxy-list.net/";
-        Document document = ProxyService.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+        Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
         document.select("#proxylisttable > tbody > tr")
                 .forEach(element -> {
                     String ip = element.select("td:nth-child(1)").text();
@@ -178,7 +173,7 @@ public class CrawlProxyTask {
     // www.socks-proxy.net
     private void getFreeProxyListSocks() {
         String url = "https://www.socks-proxy.net/";
-        Document document = ProxyService.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+        Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
         document.select("#proxylisttable > tbody > tr")
                 .forEach(element -> {
                     String ip = element.select("td:nth-child(1)").text();
@@ -195,16 +190,17 @@ public class CrawlProxyTask {
     }
 
     // proxydb.net
-    private void getProxyDB() {
-        for (int i = 0; i <= 300; i++) {
+    @Scheduled(fixedDelay = DAYS)
+    public void getProxyDB() {
+        log.info("crawl proxy db use phantomjs start {}", new Date());
+
+        for (int i = 0; i <= 500; i++) {
             int offset = i * 15;
-            String url = "https://proxydb.net/?offset=" + offset;
-            By by = By.cssSelector("body > div > div.table-responsive > table > tbody > tr");
-            String html = phantomJSDownloader.PhantomJSExecute(url, by, "atob", true);
-            if (StringUtils.isBlank(html)) {
+            String url = "http://proxydb.net/?offset=" + offset;
+            Document document = phantomJSDownloader.getDocument(url, "atob");
+            if (document == null) {
                 return;
             }
-            Document document = Jsoup.parse(html);
 
             document.select("body > div > div.table-responsive > table > tbody > tr")
                     .forEach(element -> {
@@ -224,5 +220,7 @@ public class CrawlProxyTask {
                                 .execute();
                     });
         }
+
+        log.info("crawl proxy db use phantomjs end {}", new Date());
     }
 }

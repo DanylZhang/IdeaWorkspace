@@ -122,7 +122,6 @@ public class ProxyController {
         proxy.selectFrom(PROXY)
                 .where(PROXY.IS_VALID.eq(true))
                 .fetch()
-                .stream()
                 .forEach(proxy1 -> CompletableFuture.runAsync(() -> {
                     Pair<Boolean, Integer> pair = CheckProxyTask.doCheckProxy(proxy1.getIp(), proxy1.getPort(), proxy1.getProtocol(), proxySearch.getUrl(), proxySearch.getRegex(), proxySearch.getTimeout() * 1000);
                     if (pair.getLeft()) {
@@ -137,7 +136,11 @@ public class ProxyController {
         } catch (InterruptedException e) {
             log.error("countDown await error: {}", e.getMessage());
         } finally {
-            fixedThreadPool.shutdownNow().clear();
+            try {
+                // 立即关闭，不等待
+                fixedThreadPool.shutdownNow();
+            } catch (Exception ignored) {
+            }
         }
         List<ProxyRecord> proxies = proxiesMap.values().stream().sorted(Comparator.comparingInt(ProxyRecord::getSpeed)).collect(Collectors.toList());
 

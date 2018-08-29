@@ -4,25 +4,43 @@ import com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy;
 import com.danyl.spiders.jooq.gen.proxy.tables.records.ProxyRecord;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
+import io.vertx.rxjava.core.buffer.Buffer;
+import io.vertx.rxjava.ext.web.client.HttpResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.danyl.spiders.constants.ProtocolConstants.HTTP;
+
+@Slf4j
 public class ProxyUtil {
-    public static final Pattern charsetPattern = Pattern.compile("(?i)\\bcharset=\\s*(?:[\"'])?([^\\s,;\"']*)");
+    public static final Pattern charsetPattern = Pattern.compile("(?i)\\bcharset=\\s*(?:[\"'])?([^\\s,;\"'>]*)");
+
+    public static String getUrlProtocol(String url) {
+        String protocol = HTTP;
+        try {
+            protocol = new URL(url).getProtocol();
+        } catch (MalformedURLException e) {
+            log.error("get url protocol error: {}, url: {}", e.getMessage(), url);
+        }
+        return protocol;
+    }
 
     private static java.net.Proxy.Type getProxyType(String protocol) {
         if (StringUtils.isBlank(protocol)) {
             return java.net.Proxy.Type.HTTP;
         }
 
-        if (protocol.toLowerCase().startsWith("http")) {
+        if (protocol.toLowerCase().contains("http")) {
             return java.net.Proxy.Type.HTTP;
-        } else if (protocol.toLowerCase().startsWith("socks")) {
+        } else if (protocol.toLowerCase().contains("socks")) {
             return java.net.Proxy.Type.SOCKS;
         } else {
             return java.net.Proxy.Type.HTTP;
@@ -46,26 +64,27 @@ public class ProxyUtil {
 
     private static org.openqa.selenium.Proxy getChromeProxy(String ip, Integer port, String protocol) {
         String _proxy = ip + ":" + port;
-        org.openqa.selenium.Proxy proxy1 = new org.openqa.selenium.Proxy();
+        org.openqa.selenium.Proxy proxy = new org.openqa.selenium.Proxy();
+        protocol = protocol.toLowerCase();
 
-        if (protocol.toLowerCase().startsWith("https")) {
-            proxy1.setHttpProxy(_proxy);
-            proxy1.setFtpProxy(_proxy);
-            proxy1.setSslProxy(_proxy);
-        } else if (protocol.toLowerCase().startsWith("socks5")) {
-            proxy1.setSslProxy(_proxy);
-            proxy1.setSocksProxy(_proxy);
-            proxy1.setSocksVersion(5);
-        } else if (protocol.toLowerCase().startsWith("socks4")) {
-            proxy1.setSslProxy(_proxy);
-            proxy1.setSocksProxy(_proxy);
-            proxy1.setSocksVersion(4);
+        if (protocol.contains("https")) {
+            proxy.setHttpProxy(_proxy);
+            proxy.setFtpProxy(_proxy);
+            proxy.setSslProxy(_proxy);
+        } else if (protocol.contains("socks5")) {
+            proxy.setSslProxy(_proxy);
+            proxy.setSocksProxy(_proxy);
+            proxy.setSocksVersion(5);
+        } else if (protocol.contains("socks")) {
+            proxy.setSslProxy(_proxy);
+            proxy.setSocksProxy(_proxy);
+            proxy.setSocksVersion(4);
         } else {
-            proxy1.setHttpProxy(_proxy);
-            proxy1.setFtpProxy(_proxy);
+            proxy.setHttpProxy(_proxy);
+            proxy.setFtpProxy(_proxy);
         }
 
-        return proxy1;
+        return proxy;
     }
 
     public static org.openqa.selenium.Proxy getChromeProxy(Proxy proxy) {
@@ -80,11 +99,12 @@ public class ProxyUtil {
     private static List<String> getPhantomJSProxy(String ip, Integer port, String protocol) {
         String _proxy = "--proxy=" + ip + ":" + port;
         List<String> cliArgsCap = new ArrayList<>();
+        protocol = protocol.toLowerCase();
 
-        if (protocol.toLowerCase().startsWith("http")) {
+        if (protocol.contains("http")) {
             cliArgsCap.add(_proxy);
             cliArgsCap.add("--proxy-type=http");
-        } else if (protocol.toLowerCase().startsWith("socks")) {
+        } else if (protocol.contains("socks")) {
             cliArgsCap.add(_proxy);
             cliArgsCap.add("--proxy-type=socks5");
         } else {
@@ -105,12 +125,13 @@ public class ProxyUtil {
     }
 
     private static ProxyOptions getProxyOptions(String ip, Integer port, String protocol) {
+        protocol = protocol.toLowerCase();
         ProxyOptions proxyOptions = new ProxyOptions();
         proxyOptions.setHost(ip);
         proxyOptions.setPort(port);
-        if (protocol.toLowerCase().startsWith("http")) {
+        if (protocol.contains("http")) {
             proxyOptions.setType(ProxyType.HTTP);
-        } else if (protocol.toLowerCase().startsWith("socks5")) {
+        } else if (protocol.contains("socks5")) {
             proxyOptions.setType(ProxyType.SOCKS5);
         } else {
             proxyOptions.setType(ProxyType.SOCKS4);
@@ -129,13 +150,29 @@ public class ProxyUtil {
     }
 
     public static String getCharset(String content) {
+        String charset = "UTF-8";
+        if (StringUtils.isBlank(content)) {
+            return charset;
+        }
+
         Matcher m = charsetPattern.matcher(content);
         if (m.find()) {
-            String charset = m.group(1).trim();
+            charset = m.group(1).trim();
             charset = charset.replace("charset=", "");
             return charset;
         } else {
-            return "UTF-8";
+            return charset;
         }
+    }
+
+    public static String decodeBody(HttpResponse<Buffer> response) {
+        String charset = getCharset(response.bodyAsString());
+        String body = "";
+        try {
+            body = response.bodyAsString(charset);
+        } catch (Exception e) {
+            log.error("decodeBody error: {}, charset: {}", e.getMessage(), charset);
+        }
+        return body;
     }
 }

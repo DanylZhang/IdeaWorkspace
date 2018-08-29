@@ -18,9 +18,9 @@ spring:
         password: QqHVMhmN*8
 logging:
   level:
-    org.jooq.tools.LoggerListener: info
+    org.jooq.tools.LoggerListener: debug
 
 webdriver:
   driver-map:
-    webdriver.chrome.driver: 'C:/Users/danyl/AppData/Local/360Chrome/Chrome/Application/chromedriver.exe'
+    webdriver.chrome.driver: 'C:/Users/DELL/AppData/Local/360Chrome/Chrome/Application/chromedriver.exe'
     phantomjs.binary.path: 'D:/360极速浏览器下载/phantomjs-2.1.1-windows/bin/phantomjs.exe'

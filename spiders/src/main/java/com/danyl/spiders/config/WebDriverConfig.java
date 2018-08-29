@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.Map;
 
 @Data
@@ -11,4 +12,9 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "webdriver")
 public class WebDriverConfig {
     private Map<String, String> driverMap;
+
+    @PostConstruct
+    public void init() {
+        driverMap.forEach(System::setProperty);
+    }
 }

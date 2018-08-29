@@ -33,7 +33,7 @@ public class HomeController {
     public String test() {
         Result<ProxyRecord> fetch = proxy.selectFrom(PROXY).fetch();
         fetch.parallelStream().forEach(proxyRecord -> {
-            String url = "https://proxydb.net/anon";
+            String url = "http://proxydb.net/anon";
             try {
                 Connection.Response execute = Jsoup.connect(url)
                         .proxy(proxyRecord.getIp(), proxyRecord.getPort())

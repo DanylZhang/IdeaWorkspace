@@ -1,8 +1,8 @@
 package com.danyl.spiders.tasks;
 
+import com.danyl.spiders.downloader.JsoupDownloader;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.pojos.ItemCategory;
 import com.danyl.spiders.jooq.gen.xiaomi.tables.records.ItemCategoryRecord;
-import com.danyl.spiders.service.ProxyService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.jooq.DSLContext;
@@ -25,36 +25,32 @@ import static com.danyl.spiders.constants.TimeConstants.DAYS;
 import static com.danyl.spiders.jooq.gen.xiaomi.Tables.ITEM_CATEGORY;
 
 @Slf4j
-//@Component
+@Component
 public class XiaoMiCidTask {
 
     @Resource(name = "DSLContextXiaoMi")
     private DSLContext xm;
 
     // 测试节流用
-    private int limit = 3; // Integer.MAX_VALUE
+    private int limit = Integer.MAX_VALUE; // 3;
 
     // 符合这个模式的都会被挑选出来 ^https://list.mi.com/1$
     private Pattern pattern = Pattern.compile("^https?://list\\.mi\\.com/([1-9]\\d*)$");
 
-    @Scheduled(fixedDelay = DAYS * 3)
+    @Scheduled(fixedDelay = DAYS * 7)
     public void crawlXiaoMiCid() {
         log.info("crawl xiaomi cid start {}", new Date());
-
-        limit = Integer.MAX_VALUE;
-
         lv1Cid();
         lv2Cid();
         lv3Cid();
         lv4Cid();
         lv5Cid();
-
         log.info("crawl xiaomi cid end {}", new Date());
     }
 
     private void lv1Cid() {
         String startUrl = "https://list.mi.com/0";
-        Document document = ProxyService.jsoupGet(startUrl, "所有商品");
+        Document document = JsoupDownloader.jsoupGet(startUrl, "所有商品");
 
         if (document == null) {
             log.error("lv1Cid document is null!");
@@ -78,7 +74,7 @@ public class XiaoMiCidTask {
                     }
 
                     log.info("crawl url: {}", lv1link);
-                    Document document1 = ProxyService.jsoupGet(lv1link, "所有商品");
+                    Document document1 = JsoupDownloader.jsoupGet(lv1link, "所有商品");
                     Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
                     if (Objects.isNull(span)) {
                         return;
@@ -126,7 +122,7 @@ public class XiaoMiCidTask {
                 .flatMap(lv1Category -> {
                     Integer lv1CategoryCid = lv1Category.getCid();
                     String url = "https://list.mi.com/{}".replace("{}", lv1CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url, "所有商品");
+                    Document document = JsoupDownloader.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
                         return getCidATag(document)
                                 .map(a -> new MutablePair<>(a.attr("abs:href"), lv1Category));
@@ -156,7 +152,7 @@ public class XiaoMiCidTask {
                     }
 
                     log.info("crawl url: {}", lv2link);
-                    Document document1 = ProxyService.jsoupGet(lv2link, "所有商品");
+                    Document document1 = JsoupDownloader.jsoupGet(lv2link, "所有商品");
                     Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
                     if (Objects.isNull(span)) {
                         return;
@@ -205,7 +201,7 @@ public class XiaoMiCidTask {
                 .flatMap(lv2Category -> {
                     Integer lv2CategoryCid = lv2Category.getCid();
                     String url = "https://list.mi.com/{}".replace("{}", lv2CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url, "所有商品");
+                    Document document = JsoupDownloader.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
                         return getCidATag(document)
                                 .map(a -> new MutablePair<>(a.attr("abs:href"), lv2Category));
@@ -236,7 +232,7 @@ public class XiaoMiCidTask {
                     }
 
                     log.info("crawl url: {}", lv3link);
-                    Document document1 = ProxyService.jsoupGet(lv3link, "所有商品");
+                    Document document1 = JsoupDownloader.jsoupGet(lv3link, "所有商品");
                     Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
                     if (Objects.isNull(span)) {
                         return;
@@ -286,7 +282,7 @@ public class XiaoMiCidTask {
                 .flatMap(lv3Category -> {
                     Integer lv3CategoryCid = lv3Category.getCid();
                     String url = "https://list.mi.com/{}".replace("{}", lv3CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url, "所有商品");
+                    Document document = JsoupDownloader.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
                         return getCidATag(document)
                                 .map(a -> new MutablePair<>(a.attr("abs:href"), lv3Category));
@@ -318,7 +314,7 @@ public class XiaoMiCidTask {
                     }
 
                     log.info("crawl url: {}", lv4link);
-                    Document document1 = ProxyService.jsoupGet(lv4link, "所有商品");
+                    Document document1 = JsoupDownloader.jsoupGet(lv4link, "所有商品");
                     Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
                     if (Objects.isNull(span)) {
                         return;
@@ -369,7 +365,7 @@ public class XiaoMiCidTask {
                 .flatMap(lv4Category -> {
                     Integer lv4CategoryCid = lv4Category.getCid();
                     String url = "https://list.mi.com/{}".replace("{}", lv4CategoryCid.toString());
-                    Document document = ProxyService.jsoupGet(url, "所有商品");
+                    Document document = JsoupDownloader.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
                         return getCidATag(document)
                                 .map(a -> new MutablePair<>(a.attr("abs:href"), lv4Category));
@@ -402,7 +398,7 @@ public class XiaoMiCidTask {
                     }
 
                     log.info("crawl url: {}", lv5link);
-                    Document document1 = ProxyService.jsoupGet(lv5link, "所有商品");
+                    Document document1 = JsoupDownloader.jsoupGet(lv5link, "所有商品");
                     Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
                     if (Objects.isNull(span)) {
                         return;
