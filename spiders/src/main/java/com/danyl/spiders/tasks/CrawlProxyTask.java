@@ -18,7 +18,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.danyl.spiders.constants.ProtocolConstants.*;
-import static com.danyl.spiders.constants.TimeConstants.*;
+import static com.danyl.spiders.constants.TimeConstants.HOURS;
+import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
 
 @Slf4j
@@ -31,7 +32,7 @@ public class CrawlProxyTask {
     @Autowired
     private PhantomJSDownloader phantomJSDownloader;
 
-    @Scheduled(fixedDelay = HOURS * 6)
+    @Scheduled(fixedDelay = HOURS)
     public void crawlProxy() {
         log.info("crawl proxy start {}", new Date());
 
@@ -45,12 +46,12 @@ public class CrawlProxyTask {
 
         // shutdown非阻塞，再使用awaitTermination进行阻塞等待
         try {
-            executorService.awaitTermination(60, TimeUnit.MINUTES);
+            executorService.awaitTermination(90, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         // 立即关闭线程池，不等待已开始执行的线程执行完毕
-        executorService.shutdownNow();
+        executorService.shutdown();
         log.info("crawl proxy end {}", new Date());
     }
 
@@ -190,7 +191,7 @@ public class CrawlProxyTask {
     }
 
     // proxydb.net
-    @Scheduled(fixedDelay = DAYS)
+    @Scheduled(fixedDelay = HOURS * 6)
     public void getProxyDB() {
         log.info("crawl proxy db use phantomjs start {}", new Date());
 

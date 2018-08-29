@@ -37,7 +37,7 @@ public class XiaoMiCidTask {
     // 符合这个模式的都会被挑选出来 ^https://list.mi.com/1$
     private Pattern pattern = Pattern.compile("^https?://list\\.mi\\.com/([1-9]\\d*)$");
 
-    @Scheduled(fixedDelay = DAYS * 7)
+    @Scheduled(fixedDelay = DAYS * 3)
     public void crawlXiaoMiCid() {
         log.info("crawl xiaomi cid start {}", new Date());
         lv1Cid();

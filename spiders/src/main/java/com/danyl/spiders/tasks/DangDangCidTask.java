@@ -36,7 +36,7 @@ public class DangDangCidTask {
     // 符合这个模式的都会被挑选出来 http://category.dangdang.com/cid4003471.html
     private Pattern pattern = Pattern.compile("https?://category\\.dangdang\\.com/cid(\\d+)\\.html");
 
-    @Scheduled(fixedDelay = DAYS * 7)
+    @Scheduled(fixedDelay = DAYS * 3)
     public void crawlDangDangCid() {
         log.info("crawl dangdang cid start {}", new Date());
         lv1Cid();
@@ -65,8 +65,8 @@ public class DangDangCidTask {
                 })
                 .distinct()
                 .limit(limit)
-                .flatMap((href) -> {
-                    Document document1 = JsoupDownloader.jsoupGet(href, "全部商品分类");
+                .flatMap(href -> {
+                    Document document1 = JsoupDownloader.jsoupGet(href, "id=\"breadcrumb\"");
                     if (document1 == null) {
                         log.error("lv1Cid foreach jsoupGet document is null, url: {}", href);
                         return Stream.empty();
