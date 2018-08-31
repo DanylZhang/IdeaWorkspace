@@ -146,12 +146,15 @@ public class PhantomJSDownloader implements WebDriverDownloader {
         }
     }
 
-    public static String download(String url, String regex, Boolean useProxy) {
+    public static String download(String url, String regex, DownloaderOptions options) {
         ProxyService proxyService = ProxyService.getInstance();
+        Pattern pattern = Pattern.compile(regex);
+        if (options == null) {
+            options = new DownloaderOptions(true, "L2");
+        }
 
         // 链接访问正常，但返回未匹配数据时的重试次数
-        int count = 3;
-        Pattern pattern = Pattern.compile(regex);
+        int retry = 3;
         while (true) {
             DesiredCapabilities capabilities = new DesiredCapabilities();
             capabilities.setBrowserName("chrome");
@@ -164,8 +167,8 @@ public class PhantomJSDownloader implements WebDriverDownloader {
 
             // 从proxies中拿到一个代理，并设置给capabilities
             Proxy proxy0 = null;
-            if (useProxy) {
-                proxy0 = proxyService.get(url);
+            if (options.getUseProxy()) {
+                proxy0 = proxyService.get(url, options.getAnonymity());
             }
             if (proxy0 != null) {
                 capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ProxyUtil.getPhantomJSProxy(proxy0));
@@ -178,7 +181,7 @@ public class PhantomJSDownloader implements WebDriverDownloader {
                 try {
                     webDriver = new PhantomJSDriver(capabilities);
                     webDriver.manage().window().setSize(new Dimension(1366, 768));
-                    webDriver.manage().timeouts().pageLoadTimeout(MINUTES, TimeUnit.MILLISECONDS);
+                    webDriver.manage().timeouts().pageLoadTimeout(MINUTES * 5, TimeUnit.MILLISECONDS);
                 } catch (Exception e) {
                     log.error("new PhantomJSDriver error: {}", e.getMessage());
                     return null;
@@ -196,7 +199,7 @@ public class PhantomJSDownloader implements WebDriverDownloader {
                     // 有可能目标链接包含的内容确实已经发生更改，
                     // 用户提供的regex未匹配结果是正常情况
                     // 故跳出死循环
-                    if (count-- <= 0) {
+                    if (retry-- <= 0) {
                         log.error("PhantomJSDownloader check regex error, url: {}, response: {}", url, webDriver.getTitle());
                         return null;
                     }
@@ -212,12 +215,15 @@ public class PhantomJSDownloader implements WebDriverDownloader {
         }
     }
 
-    public static String screenShot(String url, String path, By by, String regex, Boolean useProxy) {
+    public static String screenShot(String url, String path, By by, String regex, DownloaderOptions options) {
         ProxyService proxyService = ProxyService.getInstance();
+        Pattern pattern = Pattern.compile(regex);
+        if (options == null) {
+            options = new DownloaderOptions(true, "L2");
+        }
 
         // 链接访问正常，但返回未匹配数据时的重试次数
-        int count = 3;
-        Pattern pattern = Pattern.compile(regex);
+        int retry = 3;
         while (true) {
             DesiredCapabilities capabilities = new DesiredCapabilities();
             capabilities.setBrowserName("chrome");
@@ -231,8 +237,8 @@ public class PhantomJSDownloader implements WebDriverDownloader {
 
             // 从proxies中拿到一个代理，并设置给chromeOptions
             Proxy proxy0 = null;
-            if (useProxy) {
-                proxy0 = proxyService.get(url);
+            if (options.getUseProxy()) {
+                proxy0 = proxyService.get(url, options.getAnonymity());
             }
             if (proxy0 != null) {
                 capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_CLI_ARGS, ProxyUtil.getPhantomJSProxy(proxy0));
@@ -245,7 +251,7 @@ public class PhantomJSDownloader implements WebDriverDownloader {
                 try {
                     webDriver = new PhantomJSDriver(capabilities);
                     webDriver.manage().window().setSize(new Dimension(1366, 768));
-                    webDriver.manage().timeouts().pageLoadTimeout(MINUTES, TimeUnit.MILLISECONDS);
+                    webDriver.manage().timeouts().pageLoadTimeout(MINUTES * 5, TimeUnit.MILLISECONDS);
                 } catch (Exception e) {
                     log.error("new PhantomJSDriver error: {}", e.getMessage());
                     return null;
@@ -296,7 +302,7 @@ public class PhantomJSDownloader implements WebDriverDownloader {
                     // 有可能目标链接包含的内容确实已经发生更改，
                     // 用户提供的regex未匹配结果是正常情况
                     // 故跳出死循环
-                    if (count-- <= 0) {
+                    if (retry-- <= 0) {
                         log.error("PhantomJSDownloader check selector error, url: {}, by: {}, response: {}", url, by, webDriver.getTitle());
                         return null;
                     }
@@ -312,7 +318,7 @@ public class PhantomJSDownloader implements WebDriverDownloader {
     }
 
     public static Document getDocument(String url, String regex) {
-        String html = download(url, regex, true);
+        String html = download(url, regex, null);
         if (StringUtils.isNotBlank(html)) {
             try {
                 return Jsoup.parse(html, url);
