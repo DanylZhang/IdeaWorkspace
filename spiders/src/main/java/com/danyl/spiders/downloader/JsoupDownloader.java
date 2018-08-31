@@ -12,7 +12,6 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -53,6 +52,8 @@ public class JsoupDownloader {
                 .add("logoSophosFooter")
                 .add("The proxy server received")
                 .add("Panel Komunikacyjny")
+                .add("the server does not have a DNS entry")
+                .add("a padding to disable MSIE and Chrome friendly error page")
                 .build();
         String str = String.join("|", blockFeatures);
         return Pattern.compile("(?i)" + str).matcher(body).find();
@@ -251,7 +252,7 @@ public class JsoupDownloader {
      */
     public static Document jsoupGet(String url, String regex) {
         long start = System.currentTimeMillis();
-        if (RandomUtils.nextInt(1, 4) < 3) {
+        if (true) {
             Document document = jsoupGet(Jsoup.connect(url), regex);
             long end = System.currentTimeMillis();
             log.info("JsoupDownloader.download elapse: {}s, url: {}", (end - start) / 1000, url);

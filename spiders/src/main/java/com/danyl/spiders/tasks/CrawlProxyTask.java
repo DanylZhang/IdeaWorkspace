@@ -200,7 +200,7 @@ public class CrawlProxyTask {
             String url = "http://proxydb.net/?offset=" + offset;
             Document document = phantomJSDownloader.getDocument(url, "atob");
             if (document == null) {
-                return;
+                continue;
             }
 
             document.select("body > div > div.table-responsive > table > tbody > tr")
