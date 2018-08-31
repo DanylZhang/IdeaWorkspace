@@ -142,7 +142,7 @@ public class CheckProxyTask {
         ExecutorService fixedThreadPool = Executors.newFixedThreadPool(16);
         try {
             proxy.selectFrom(PROXY)
-                    .where(PROXY.IS_VALID.eq(true).and(PROXY.CITY.eq("").or(PROXY.CITY.eq("XX"))))
+                    .where(PROXY.IS_VALID.eq(true).and(PROXY.ANONYMITY.notLikeRegex("L1|L2|L3|L4")))
                     .fetch()
                     .stream()
                     .map(proxyRecord -> CompletableFuture.supplyAsync(() -> {
