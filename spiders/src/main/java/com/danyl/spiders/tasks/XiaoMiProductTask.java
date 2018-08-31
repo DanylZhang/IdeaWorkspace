@@ -53,14 +53,14 @@ public class XiaoMiProductTask {
 
         List<ItemCategory> itemCategories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.IS_PARENT.eq(0)).fetchInto(ItemCategory.class);
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(16);
         try {
             itemCategories.stream()
                     .flatMap(itemCategory -> {
                         Integer itemCount = itemCategory.getItemCount();
                         int pageNum = new Double(Math.ceil(itemCount * 1.0 / XIAOMI_PAGESIZE)).intValue();
                         return IntStream.rangeClosed(1, pageNum).mapToObj(PageIndex -> {
-                            String url = String.format("https://list.mi.com/%d-0-0-0-0-0-0-0-%d", itemCategory.getCid(), PageIndex);
+                            String url = String.format("http://list.mi.com/%d-0-0-0-0-0-0-0-%d", itemCategory.getCid(), PageIndex);
                             return Pair.of(itemCategory.getCid(), url);
                         });
                     })
@@ -106,7 +106,7 @@ public class XiaoMiProductTask {
 
                                         // 有些li中gid为0，可能确实为0，也可能有二级属性
                                         if (goodsId == 0) {
-                                            String url1 = "https://item.mi.com/{}.html?cfrom=list".replace("{}", commodityId.toString());
+                                            String url1 = "http://item.mi.com/{}.html?cfrom=list".replace("{}", commodityId.toString());
                                             Document document1 = JsoupDownloader.jsoupGet(url1, "小米商城");
                                             if (document1 == null) {
                                                 return;
@@ -176,7 +176,7 @@ public class XiaoMiProductTask {
                 .from(ITEM)
                 .fetch(ITEM.COMMODITY_ID);
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(16);
         try {
             commodityIds.stream()
                     .limit(limit)
@@ -191,7 +191,7 @@ public class XiaoMiProductTask {
                         // 小米商城推广商品，有独立宣传页，其他格式
                         String regex4 = "view\\?product_id=(\\d+)";
 
-                        String url = "https://item.mi.com/{}.html?cfrom=list".replace("{}", commodityId.toString());
+                        String url = "http://item.mi.com/{}.html?cfrom=list".replace("{}", commodityId.toString());
                         Document document = JsoupDownloader.jsoupGet(url, "小米商城");
 
                         String html;
@@ -220,7 +220,7 @@ public class XiaoMiProductTask {
 
                         if (productId <= 0L) {
                             String location = document.location();
-                            Matcher locationMatcher = Pattern.compile("https://item\\.mi\\.com/product/(\\d+)\\.html").matcher(location);
+                            Matcher locationMatcher = Pattern.compile("https?://item\\.mi\\.com/product/(\\d+)\\.html").matcher(location);
                             if (locationMatcher.find()) {
                                 productId = Long.parseLong(locationMatcher.group(1));
                             } else {
@@ -262,7 +262,7 @@ public class XiaoMiProductTask {
                         if (productId == 0) {
                             return;
                         }
-                        String referer = "https://item.mi.com/comment/{}.html".replace("{}", "" + productId);
+                        String referer = "http://item.mi.com/comment/{}.html".replace("{}", "" + productId);
                         String url = new StringBuilder().append("https://comment.huodong.mi.com/comment/entry/getSummary?goods_id=")
                                 .append(productId)
                                 .append("&v_pid=")

@@ -2,10 +2,10 @@ package com.danyl.spiders.utils;
 
 import com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy;
 import com.danyl.spiders.jooq.gen.proxy.tables.records.ProxyRecord;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
-import io.vertx.rxjava.core.buffer.Buffer;
-import io.vertx.rxjava.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -159,6 +159,11 @@ public class ProxyUtil {
         if (m.find()) {
             charset = m.group(1).trim();
             charset = charset.replace("charset=", "");
+
+            if (charset.contains("gbk2312")) {
+                charset = "gbk";
+            }
+
             return charset;
         } else {
             return charset;
@@ -171,7 +176,7 @@ public class ProxyUtil {
         try {
             body = response.bodyAsString(charset);
         } catch (Exception e) {
-            log.error("decodeBody error: {}, charset: {}", e.getMessage(), charset);
+            log.error("decodeBody error: {}, charset: {}, response: {}", e.getMessage(), charset, response.bodyAsString());
         }
         return body;
     }

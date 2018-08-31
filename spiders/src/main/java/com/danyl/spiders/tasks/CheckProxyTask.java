@@ -1,20 +1,13 @@
 package com.danyl.spiders.tasks;
 
 import com.danyl.spiders.downloader.JsoupDownloader;
-import com.danyl.spiders.jooq.gen.proxy.tables.records.ProxyRecord;
 import com.danyl.spiders.utils.ProxyUtil;
 import com.google.common.collect.ImmutableMap;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import io.vertx.core.VertxOptions;
-import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.rxjava.core.Vertx;
-import io.vertx.rxjava.ext.web.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
-import org.jooq.Result;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,11 +18,13 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.danyl.spiders.constants.Constants.USERAGENT;
 import static com.danyl.spiders.constants.ProtocolConstants.HTTPS;
 import static com.danyl.spiders.constants.TimeConstants.*;
 import static com.danyl.spiders.jooq.gen.proxy.tables.Proxy.PROXY;
@@ -42,7 +37,7 @@ public class CheckProxyTask {
     private DSLContext proxy;
 
     // 校验可用的代理
-    @Scheduled(fixedDelay = HOURS)
+    @Scheduled(fixedDelay = MINUTES * 30)
     public void validateProxy() {
         ImmutableMap<String, String> validateUrlMap = ImmutableMap.<String, String>builder()
                 .put("http://category.dangdang.com/cid4002389.html", "帆布鞋")
@@ -55,7 +50,7 @@ public class CheckProxyTask {
     private void checkProxy(Map<String, String> map) {
         log.info("check proxy start {}", new Date());
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(128);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
         try {
             proxy.selectFrom(PROXY).fetch().stream().map(proxyRecord -> CompletableFuture.runAsync(() -> {
                 Pair<Boolean, Integer> validateResultPair = Pair.of(false, TIMEOUT);
@@ -107,99 +102,6 @@ public class CheckProxyTask {
         log.info("check proxy end {}", new Date());
     }
 
-    // 使用了vertx框架，底层是netty
-    // 非阻塞回调式编程，但是大量并发请求导致网络阻塞从而引发大量的网络连接异常，不稳定
-    private void checkProxyNew(Map<String, String> map) {
-        log.info("check proxy start {}", new Date());
-
-        // init vertx
-        VertxOptions vertxOptions = new VertxOptions();
-        vertxOptions.setWorkerPoolSize(4);
-        Vertx vertx = Vertx.vertx(vertxOptions);
-
-        WebClientOptions webClientOptions = new WebClientOptions();
-        webClientOptions.setConnectTimeout(TIMEOUT);
-        webClientOptions.setFollowRedirects(true);
-        webClientOptions.setKeepAlive(false);
-        webClientOptions.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
-        webClientOptions.setUserAgentEnabled(true);
-
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(8);
-        try {
-            Result<ProxyRecord> fetch = proxy.selectFrom(PROXY).fetch();
-            CountDownLatch latch = new CountDownLatch(fetch.size());
-
-            fetch.forEach(proxyRecord -> {
-                // 每个代理一个webClient
-                webClientOptions.setProxyOptions(ProxyUtil.getProxyOptions(proxyRecord));
-                WebClient webClient = WebClient.create(vertx, webClientOptions);
-                final AtomicReference<Pair<Boolean, Integer>> pairAtomicReference = new AtomicReference<>(Pair.of(false, TIMEOUT));
-
-                // 经测试发现高质量的代理极其稀少
-                // 对每个校验Url进行测试，有一个校验成功就算该代理可用
-                CountDownLatch urlMapLatch = new CountDownLatch(map.size());
-                map.forEach((url, regex) -> {
-                    long start = System.currentTimeMillis();
-                    // getAbs按绝对路径来，自动根据http(s)判断是否开启ssl(true)
-                    webClient.getAbs(url).timeout(TIMEOUT).rxSend().subscribe(response -> {
-                        String body = ProxyUtil.decodeBody(response);
-                        if (StringUtils.isNotBlank(body)) {
-                            long end = System.currentTimeMillis();
-                            int costTime = (int) (end - start);
-                            if ((costTime < TIMEOUT) && Pattern.compile(regex).matcher(body).find()) {
-                                // 如果当前校验通过的Url是https协议，并且proxyRecord不是socks类型，则更新代理的protocol为https
-                                String urlProtocol = ProxyUtil.getUrlProtocol(url);
-                                if (HTTPS.equals(urlProtocol) && !proxyRecord.getProtocol().toLowerCase().contains("socks")) {
-                                    proxyRecord.setProtocol(urlProtocol);
-                                }
-                                // 如何tmpPair是校验成功的则赋值给validateResultPair,以便更新代理的speed
-                                pairAtomicReference.set(Pair.of(true, costTime));
-                            }
-                        }
-                        urlMapLatch.countDown();
-                    }, error -> urlMapLatch.countDown());
-                });
-                fixedThreadPool.submit(() -> {
-                    try {
-                        // 等待validateMap里的校验项一一通过
-                        urlMapLatch.await(MINUTES, TimeUnit.MILLISECONDS);
-                        webClient.close();
-
-                        Pair<Boolean, Integer> pair = pairAtomicReference.get();
-                        if (pair.getLeft()) {
-                            proxyRecord.setIsValid(true);
-                            proxyRecord.setSpeed(pair.getRight());
-                            proxyRecord.setCheckedTime(LocalDateTime.now());
-                            proxyRecord.update();
-                        } else {
-                            proxyRecord.setIsValid(false);
-                            LocalDateTime checkedTime = proxyRecord.getCheckedTime();
-                            // 无效代理保留三天
-                            if (checkedTime.plusDays(3).isAfter(LocalDateTime.now())) {
-                                proxyRecord.update();
-                            } else {
-                                proxyRecord.delete();
-                            }
-                        }
-
-                        latch.countDown();
-                        log.info("validate proxy queue size: {}", latch.getCount());
-                    } catch (InterruptedException e) {
-                        log.error("任务被中断!");
-                    }
-                });
-            });
-            latch.await();
-        } catch (Exception e) {
-            log.error("check proxy task exception: {}", e.getMessage());
-        } finally {
-            fixedThreadPool.shutdownNow();
-            vertx.close();
-        }
-
-        log.info("check proxy end {}", new Date());
-    }
-
     /**
      * @param ip    要检查的代理 ip
      * @param port  要检查的代理 port
@@ -215,7 +117,7 @@ public class CheckProxyTask {
                     .proxy(ProxyUtil.getProxy(ip, port, protocol))
                     .followRedirects(true)
                     .ignoreContentType(true)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
+                    .userAgent(USERAGENT);
             Connection.Response response = connection.execute();
             long end = System.currentTimeMillis();
             int costTime = (int) (end - start);
@@ -237,7 +139,7 @@ public class CheckProxyTask {
     public void fillProxyFields() {
         log.info("fill proxy fields start {}", new Date());
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(32);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(16);
         try {
             proxy.selectFrom(PROXY)
                     .where(PROXY.IS_VALID.eq(true).and(PROXY.CITY.eq("").or(PROXY.CITY.eq("XX"))))
@@ -249,7 +151,7 @@ public class CheckProxyTask {
                                     .proxy(ProxyUtil.getProxy(proxyRecord))
                                     .ignoreContentType(true)
                                     .followRedirects(true)
-                                    .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
+                                    .userAgent(USERAGENT)
                                     .timeout(TIMEOUT * 2)
                                     .get();
                             String anonymity = document.select("body > div.container-fluid > dl > dd:nth-child(4)").text();

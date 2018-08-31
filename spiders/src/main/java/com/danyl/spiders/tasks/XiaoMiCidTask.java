@@ -121,7 +121,7 @@ public class XiaoMiCidTask {
                 .limit(limit)
                 .flatMap(lv1Category -> {
                     Integer lv1CategoryCid = lv1Category.getCid();
-                    String url = "https://list.mi.com/{}".replace("{}", lv1CategoryCid.toString());
+                    String url = "http://list.mi.com/{}".replace("{}", lv1CategoryCid.toString());
                     Document document = JsoupDownloader.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
                         return getCidATag(document)
@@ -200,7 +200,7 @@ public class XiaoMiCidTask {
                 .limit(limit)
                 .flatMap(lv2Category -> {
                     Integer lv2CategoryCid = lv2Category.getCid();
-                    String url = "https://list.mi.com/{}".replace("{}", lv2CategoryCid.toString());
+                    String url = "http://list.mi.com/{}".replace("{}", lv2CategoryCid.toString());
                     Document document = JsoupDownloader.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
                         return getCidATag(document)
@@ -281,7 +281,7 @@ public class XiaoMiCidTask {
                 .limit(limit)
                 .flatMap(lv3Category -> {
                     Integer lv3CategoryCid = lv3Category.getCid();
-                    String url = "https://list.mi.com/{}".replace("{}", lv3CategoryCid.toString());
+                    String url = "http://list.mi.com/{}".replace("{}", lv3CategoryCid.toString());
                     Document document = JsoupDownloader.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
                         return getCidATag(document)
@@ -364,7 +364,7 @@ public class XiaoMiCidTask {
                 .limit(limit)
                 .flatMap(lv4Category -> {
                     Integer lv4CategoryCid = lv4Category.getCid();
-                    String url = "https://list.mi.com/{}".replace("{}", lv4CategoryCid.toString());
+                    String url = "http://list.mi.com/{}".replace("{}", lv4CategoryCid.toString());
                     Document document = JsoupDownloader.jsoupGet(url, "所有商品");
                     if (hasChild(document)) {
                         return getCidATag(document)

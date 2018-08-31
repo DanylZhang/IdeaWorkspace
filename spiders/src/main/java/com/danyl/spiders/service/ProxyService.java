@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.danyl.spiders.constants.ProtocolConstants.HTTPS;
@@ -68,17 +69,20 @@ public class ProxyService {
 
         int totalCount = proxyList.size();
         long httpsCount = proxyList.stream()
-                .filter(proxy0 -> proxy0.getProtocol().contains(HTTPS))
+                .filter(proxy1 -> proxy1.getProtocol().contains(HTTPS))
                 .count();
         long socksCount = proxyList.stream()
-                .filter(proxy0 -> proxy0.getProtocol().contains(SOCKS))
+                .filter(proxy1 -> proxy1.getProtocol().contains(SOCKS))
+                .count();
+        long anonymousCount = proxyList.stream()
+                .filter(proxy1 -> Pattern.compile("(?i)L2|L3|L4|Anonymous|匿名|高匿").matcher(proxy1.getAnonymity()).find())
                 .count();
 
         instance.lock.writeLock().lock();
         instance.proxies.clear();
         instance.proxies.addAll(proxyList);
         instance.lock.writeLock().unlock();
-        log.info("ProxyService.setProxies, total proxy: {}, https: {}, socks: {}, StackTrace: {}", totalCount, httpsCount, socksCount, Thread.currentThread().getStackTrace());
+        log.info("ProxyService.setProxies, total proxy: {}, https: {}, socks: {}, anonymous: {}, StackTrace: {}", totalCount, httpsCount, socksCount, anonymousCount, Thread.currentThread().getStackTrace());
     }
 
     public Proxy get(String url) {
@@ -115,12 +119,23 @@ public class ProxyService {
                 .filter(proxy1 -> {
                     if (StringUtils.isBlank(anonymity)) {
                         return true;
+                    } else if (StringUtils.containsIgnoreCase(anonymity, "L1")) {
+                        return true;
+                    } else if (StringUtils.containsIgnoreCase(anonymity, "L2")) {
+                        return StringUtils.containsIgnoreCase(proxy1.getAnonymity(), anonymity)
+                                || StringUtils.containsIgnoreCase(proxy1.getAnonymity(), "L3")
+                                || StringUtils.containsIgnoreCase(proxy1.getAnonymity(), "L4");
+                    } else if (StringUtils.containsIgnoreCase(anonymity, "L3")) {
+                        return StringUtils.containsIgnoreCase(proxy1.getAnonymity(), anonymity)
+                                || StringUtils.containsIgnoreCase(proxy1.getAnonymity(), "L4");
+                    } else if (StringUtils.containsIgnoreCase(anonymity, "L4")) {
+                        return StringUtils.containsIgnoreCase(proxy1.getAnonymity(), anonymity);
                     } else {
-                        return StringUtils.containsIgnoreCase(anonymity, proxy1.getAnonymity());
+                        return StringUtils.containsIgnoreCase(proxy1.getAnonymity(), anonymity);
                     }
                 })
                 // 代理的speed越快，probability就越大
-                .map(proxy0 -> new Pair<>(proxy0, (double) (TIMEOUT - proxy0.getSpeed())))
+                .map(proxy1 -> new Pair<>(proxy1, (double) (TIMEOUT - proxy1.getSpeed())))
                 .collect(Collectors.toList());
 
         // 此时判断可用的https或http类型代理的数量

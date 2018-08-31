@@ -21,7 +21,7 @@ public class SchedulerConfig implements SchedulingConfigurer {
     public TaskScheduler poolScheduler() {
         ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
         scheduler.setThreadNamePrefix("MyPoolScheduler");
-        scheduler.setPoolSize(64);
+        scheduler.setPoolSize(32);
         return scheduler;
     }
 }

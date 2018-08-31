@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
+import static com.danyl.spiders.constants.Constants.USERAGENT;
 import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
 
 @Slf4j
@@ -52,7 +53,7 @@ public class OkHttpDownloader {
         fixedThreadPool.submit(() -> {
             Request request = new Request.Builder()
                     .url(url)
-                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
+                    .addHeader("User-Agent", USERAGENT)
                     .build();
             Call call = okHttpClient.newCall(request);
             try (Response response = call.execute()) {

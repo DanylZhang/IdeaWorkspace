@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.annotation.Resource;
 import java.util.Map;
 
+import static com.danyl.spiders.constants.Constants.USERAGENT;
 import static com.danyl.spiders.jooq.gen.proxy.Tables.PROXY;
 
 @Slf4j
@@ -40,7 +41,7 @@ public class HomeController {
                         .timeout(5 * 1000)
                         .ignoreContentType(true)
                         .followRedirects(true)
-                        .userAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
+                        .userAgent(USERAGENT)
                         .execute();
                 Map<String, String> cookies = execute.cookies();
                 Map<String, String> headers = execute.headers();

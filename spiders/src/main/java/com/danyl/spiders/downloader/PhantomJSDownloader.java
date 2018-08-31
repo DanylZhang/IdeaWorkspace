@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
+import static com.danyl.spiders.constants.Constants.USERAGENT;
 import static com.danyl.spiders.constants.TimeConstants.MINUTES;
 
 @Slf4j
@@ -49,7 +50,7 @@ public class PhantomJSDownloader implements WebDriverDownloader {
         capabilities.setJavascriptEnabled(true);
         capabilities.setAcceptInsecureCerts(true);
         capabilities.setCapability("takesScreenshot", true);
-        capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_PAGE_SETTINGS_PREFIX + "userAgent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
+        capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_PAGE_SETTINGS_PREFIX + "userAgent", USERAGENT);
         capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_PAGE_SETTINGS_PREFIX + "loadImages", true);
 
         if (proxy != null) {
@@ -158,7 +159,7 @@ public class PhantomJSDownloader implements WebDriverDownloader {
             capabilities.setPlatform(Platform.WIN10);
             capabilities.setJavascriptEnabled(true);
             capabilities.setAcceptInsecureCerts(true);
-            capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_PAGE_SETTINGS_PREFIX + "userAgent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
+            capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_PAGE_SETTINGS_PREFIX + "userAgent", USERAGENT);
             capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_PAGE_SETTINGS_PREFIX + "loadImages", false);
 
             // 从proxies中拿到一个代理，并设置给capabilities
@@ -225,7 +226,7 @@ public class PhantomJSDownloader implements WebDriverDownloader {
             capabilities.setJavascriptEnabled(true);
             capabilities.setAcceptInsecureCerts(true);
             capabilities.setCapability("takesScreenshot", true);
-            capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_PAGE_SETTINGS_PREFIX + "userAgent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36");
+            capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_PAGE_SETTINGS_PREFIX + "userAgent", USERAGENT);
             capabilities.setCapability(PhantomJSDriverService.PHANTOMJS_PAGE_SETTINGS_PREFIX + "loadImages", true);
 
             // 从proxies中拿到一个代理，并设置给chromeOptions
