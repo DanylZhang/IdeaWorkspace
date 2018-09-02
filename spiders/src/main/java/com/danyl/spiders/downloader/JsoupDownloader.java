@@ -45,6 +45,7 @@ public class JsoupDownloader {
     private static Boolean hasBlocked(String body) {
         ImmutableSet<String> blockFeatures = ImmutableSet.<String>builder()
                 .add("<title>网站防火墙</title>")
+                .add("<title>System Error</title>")
                 .add("safedog.cn")
                 .add("url.fortinet.net")
                 .add("Squid Error pages")
@@ -52,8 +53,10 @@ public class JsoupDownloader {
                 .add("logoSophosFooter")
                 .add("The proxy server received")
                 .add("Panel Komunikacyjny")
+                .add("404 - Recurso no encontrado")
                 .add("the server does not have a DNS entry")
                 .add("a padding to disable MSIE and Chrome friendly error page")
+                .add("错误：您所请求的网址（URL）无法获取")
                 .build();
         String str = String.join("|", blockFeatures);
         return Pattern.compile("(?i)" + str).matcher(body).find();
