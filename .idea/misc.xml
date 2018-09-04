@@ -17,6 +17,7 @@
         <option value="$PROJECT_DIR$/lscj-sz-concurrency/pom.xml" />
         <option value="$PROJECT_DIR$/mybatis-generator-plus/pom.xml" />
         <option value="$PROJECT_DIR$/dubbo-demo/pom.xml" />
+        <option value="$PROJECT_DIR$/zookeeper-demo/pom.xml" />
       </list>
     </option>
   </component>

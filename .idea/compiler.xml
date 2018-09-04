@@ -20,7 +20,11 @@
         <module name="spiders" />
         <module name="springbootsell" />
         <module name="xunwu" />
+        <module name="zookeeper-demo" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="maven-archiver" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
 </project>
