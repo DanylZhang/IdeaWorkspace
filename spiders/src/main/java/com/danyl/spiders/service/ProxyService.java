@@ -82,7 +82,7 @@ public class ProxyService {
         instance.proxies.clear();
         instance.proxies.addAll(proxyList);
         instance.lock.writeLock().unlock();
-        log.info("ProxyService.setProxies, total proxy: {}, https: {}, socks: {}, anonymous: {}, StackTrace: {}", totalCount, httpsCount, socksCount, anonymousCount, Thread.currentThread().getStackTrace());
+        log.info("ProxyService.setProxies, total proxy: {}, https: {}, socks: {}, anonymous: {}, instance: {}, StackTrace: {}", totalCount, httpsCount, socksCount, anonymousCount, instance, Thread.currentThread().getStackTrace());
     }
 
     public Proxy get(String url) {
