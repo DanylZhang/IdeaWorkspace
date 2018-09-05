@@ -14,12 +14,11 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -41,11 +40,11 @@ public class ProxyService {
     @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
 
-    private List<Proxy> proxies = new ArrayList<>();
-    private final ReadWriteLock lock = new ReentrantReadWriteLock(true); // 防止高并发下写锁拿不到
+    private Map<Proxy, Integer> proxies = new ConcurrentHashMap<>();
+    private final ReentrantLock lock = new ReentrantLock();
 
     // 无可用代理时使用本机直连访问，需要控制访问频次(防封ip)，以域名做精细化访问控制
-    private static ConcurrentHashMap<String, AtomicInteger> accessControlCounterMap = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, AtomicInteger> aclCounterMap = new ConcurrentHashMap<>();
 
     private ProxyService() {
     }
@@ -66,6 +65,7 @@ public class ProxyService {
         List<Proxy> proxyList = instance.proxy.selectFrom(PROXY)
                 .where(PROXY.IS_VALID.eq(true))
                 .fetchInto(Proxy.class);
+        proxyList.forEach(proxy1 -> instance.proxies.put(proxy1, 2));
 
         int totalCount = proxyList.size();
         long httpsCount = proxyList.stream()
@@ -77,12 +77,7 @@ public class ProxyService {
         long anonymousCount = proxyList.stream()
                 .filter(proxy1 -> Pattern.compile("(?i)L2|L3|L4|Anonymous|高匿").matcher(proxy1.getAnonymity()).find())
                 .count();
-
-        instance.lock.writeLock().lock();
-        instance.proxies.clear();
-        instance.proxies.addAll(proxyList);
-        instance.lock.writeLock().unlock();
-        log.info("ProxyService.setProxies, total proxy: {}, https: {}, socks: {}, anonymous: {}, instance: {}, StackTrace: {}", totalCount, httpsCount, socksCount, anonymousCount, instance, Thread.currentThread().getStackTrace());
+        log.info("ProxyService.setProxies, total proxy: {}, https: {}, socks: {}, anonymous: {}, StackTrace: {}", totalCount, httpsCount, socksCount, anonymousCount, Thread.currentThread().getStackTrace());
     }
 
     public Proxy get(String url) {
@@ -99,12 +94,7 @@ public class ProxyService {
         Proxy result = null;
         String protocol = ProxyUtil.getUrlProtocol(url);
 
-        instance.lock.readLock().lock();
-        // fixed bug# subList是一个引用视图，即原数组的引用，并发写时会引发读抛出ConcurrentModificationException
-        List<Proxy> tmpProxyList1 = new ArrayList<>(instance.proxies);
-        instance.lock.readLock().unlock();
-
-        List<Pair<Proxy, Double>> tmpProxyList2 = tmpProxyList1.stream()
+        List<Pair<Proxy, Double>> tmpProxyList = instance.proxies.entrySet().stream().map(Map.Entry::getKey)
                 // 根据爬取的url类型来确定是否支持https
                 .filter(proxy1 -> {
                     if (HTTPS.equals(protocol)) {
@@ -139,14 +129,17 @@ public class ProxyService {
                 .collect(Collectors.toList());
 
         // 此时判断可用的https或http类型代理的数量
-        if (tmpProxyList2.size() > 0) {
+        if (tmpProxyList.size() > 0) {
             try {
-                EnumeratedDistribution<Proxy> proxyList = new EnumeratedDistribution<>(tmpProxyList2);
+                EnumeratedDistribution<Proxy> proxyList = new EnumeratedDistribution<>(tmpProxyList);
                 result = proxyList.sample();
             } catch (Exception ignored) {
             }
         } else {
-            instance.setProxies();
+            if (lock.tryLock()) {
+                instance.setProxies();
+                lock.unlock();
+            }
         }
 
         // 此处对无可用代理时进行节流处理
@@ -160,15 +153,13 @@ public class ProxyService {
         if (proxy == null) {
             return;
         }
-        instance.lock.writeLock().lock();
         instance.proxies.remove(proxy);
-        instance.lock.writeLock().unlock();
     }
 
     private static void emptyProxyNeedSleep(String url) {
         // 无可用代理时使用本机直连访问，需要控制访问频次(防封ip)，以域名做精细化访问控制
         final int frequency = 10;
-        final ConcurrentHashMap<String, AtomicInteger> counter = ProxyService.accessControlCounterMap;
+        final ConcurrentHashMap<String, AtomicInteger> counter = ProxyService.aclCounterMap;
         try {
             String host = new URL(url).getHost();
             AtomicInteger count = counter.get(host);
