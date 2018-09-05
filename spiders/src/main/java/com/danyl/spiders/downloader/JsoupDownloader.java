@@ -57,6 +57,7 @@ public class JsoupDownloader {
                 .add("the server does not have a DNS entry")
                 .add("a padding to disable MSIE and Chrome friendly error page")
                 .add("<div id=x><div id=g>广告</div>")
+                .add("Blocked because of DoS Attack")
                 .add("错误：您所请求的网址（URL）无法获取")
                 .build();
         String str = String.join("|", blockFeatures);
