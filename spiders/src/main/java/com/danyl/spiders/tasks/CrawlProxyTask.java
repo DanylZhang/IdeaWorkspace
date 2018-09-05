@@ -5,17 +5,17 @@ import com.danyl.spiders.downloader.PhantomJSDownloader;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Date;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.danyl.spiders.constants.ProtocolConstants.*;
 import static com.danyl.spiders.constants.TimeConstants.HOURS;
@@ -29,29 +29,27 @@ public class CrawlProxyTask {
     @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
 
-    @Autowired
-    private PhantomJSDownloader phantomJSDownloader;
+    private CountDownLatch latch = new CountDownLatch(5);
+    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(32);
 
     @Scheduled(fixedDelay = HOURS)
     public void crawlProxy() {
         log.info("crawl proxy start {}", new Date());
 
-        ExecutorService executorService = Executors.newCachedThreadPool();
-        executorService.execute(this::get66ip);
-        executorService.execute(this::getip3366);
-        executorService.execute(this::getkuaidaili);
-        executorService.execute(this::getxicidaili);
-        executorService.execute(this::getFreeProxyList);
-        executorService.execute(this::getFreeProxyListSocks);
+        fixedThreadPool.execute(this::get66ip);
+        fixedThreadPool.execute(this::getip3366);
+        fixedThreadPool.execute(this::getkuaidaili);
+        fixedThreadPool.execute(this::getxicidaili);
+        fixedThreadPool.execute(this::getFreeProxyList);
+        fixedThreadPool.execute(this::getFreeProxyListSocks);
 
-        // shutdown非阻塞，再使用awaitTermination进行阻塞等待
         try {
-            executorService.awaitTermination(90, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            latch.await(1, TimeUnit.DAYS);
+        } catch (Exception e) {
+            log.error("crawlProxy countDownLatch await 1 day cause error: {}", e.getMessage());
         }
         // 立即关闭线程池，不等待已开始执行的线程执行完毕
-        executorService.shutdown();
+        fixedThreadPool.shutdown();
         log.info("crawl proxy end {}", new Date());
     }
 
@@ -70,36 +68,49 @@ public class CrawlProxyTask {
                         .execute();
             }
         }
+        log.info("crawl 66免费代理网 proxy end {}", new Date());
+        latch.countDown();
     }
 
     // 云代理
     private void getip3366() {
-        for (int i = 1; i <= 4; i++) {
-            for (int j = 1; j <= 10; j++) {
-                String url = "http://www.ip3366.net/?stype=" + i + "&page=" + j;
-                Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
-                document.select("#list > table > tbody > tr")
-                        .forEach(element -> {
-                            String ip = element.select("td:nth-child(1)").text().trim();
-                            int port = Integer.parseInt(element.select("td:nth-child(2)").text());
-                            String anonymity = element.select("td:nth-child(3)").text();
-                            String protocol = element.select("td:nth-child(4)").text().toLowerCase();
-                            String country = element.select("td:nth-child(5)").text();
-
-                            proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.ANONYMITY, PROXY.SPEED, PROXY.PROTOCOL, PROXY.SOURCE, PROXY.COUNTRY)
-                                    .values(ip, port, false, anonymity, TIMEOUT, protocol, "http://www.ip3366.net", country)
-                                    .onDuplicateKeyIgnore()
-                                    .execute();
-                        });
+        IntStream.rangeClosed(1, 4).boxed().flatMap(i -> IntStream.rangeClosed(1, 10).boxed().map(j -> CompletableFuture.runAsync(() -> {
+            String url = "http://www.ip3366.net/?stype=" + i + "&page=" + j;
+            Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+            if (document == null) {
+                return;
             }
-        }
+            document.select("#list > table > tbody > tr")
+                    .forEach(element -> {
+                        String ip = element.select("td:nth-child(1)").text().trim();
+                        int port = Integer.parseInt(element.select("td:nth-child(2)").text());
+                        String anonymity = element.select("td:nth-child(3)").text();
+                        String protocol = element.select("td:nth-child(4)").text().toLowerCase();
+                        String country = element.select("td:nth-child(5)").text();
+
+                        proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.ANONYMITY, PROXY.SPEED, PROXY.PROTOCOL, PROXY.SOURCE, PROXY.COUNTRY)
+                                .values(ip, port, false, anonymity, TIMEOUT, protocol, "http://www.ip3366.net", country)
+                                .onDuplicateKeyIgnore()
+                                .execute();
+                    });
+        }, fixedThreadPool)))
+                .collect(Collectors.toList())
+                .stream()
+                .map((Function<CompletableFuture<Void>, Object>) CompletableFuture::join)
+                .forEach(aVoid -> {
+                });
+        log.info("crawl 云代理 proxy end {}", new Date());
+        latch.countDown();
     }
 
     // 快代理
     private void getkuaidaili() {
-        for (int i = 1; i < 25; i++) {
+        IntStream.rangeClosed(1, 25).boxed().map(i -> CompletableFuture.runAsync(() -> {
             String url = "https://www.kuaidaili.com/free/inha/" + i + "/";
             Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+            if (document == null) {
+                return;
+            }
             document.select("#list > table > tbody > tr")
                     .forEach(element -> {
                         String ip = element.select("td:nth-child(1)").text().trim();
@@ -113,14 +124,24 @@ public class CrawlProxyTask {
                                 .onDuplicateKeyIgnore()
                                 .execute();
                     });
-        }
+        }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map((Function<CompletableFuture<Void>, Object>) CompletableFuture::join)
+                .forEach(aVoid -> {
+                });
+        log.info("crawl 快代理 proxy end {}", new Date());
+        latch.countDown();
     }
 
     // 西刺代理
     private void getxicidaili() {
-        for (int i = 1; i <= 300; i++) {
+        IntStream.rangeClosed(1, 300).boxed().map(i -> CompletableFuture.runAsync(() -> {
             String url = "http://www.xicidaili.com/nn/" + i;
             Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+            if (document == null) {
+                return;
+            }
             document.select("#ip_list > tbody > tr")
                     .stream()
                     .skip(1)
@@ -144,13 +165,23 @@ public class CrawlProxyTask {
                                 .onDuplicateKeyIgnore()
                                 .execute();
                     });
-        }
+        }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map((Function<CompletableFuture<Void>, Object>) CompletableFuture::join)
+                .forEach(aVoid -> {
+                });
+        log.info("crawl 西刺代理 proxy end {}", new Date());
+        latch.countDown();
     }
 
     // free-proxy-list
     private void getFreeProxyList() {
         String url = "https://free-proxy-list.net/";
         Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+        if (document == null) {
+            return;
+        }
         document.select("#proxylisttable > tbody > tr")
                 .forEach(element -> {
                     String ip = element.select("td:nth-child(1)").text();
@@ -169,12 +200,17 @@ public class CrawlProxyTask {
                             .onDuplicateKeyIgnore()
                             .execute();
                 });
+        log.info("crawl free-proxy-list proxy end {}", new Date());
+        latch.countDown();
     }
 
     // www.socks-proxy.net
     private void getFreeProxyListSocks() {
         String url = "https://www.socks-proxy.net/";
         Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
+        if (document == null) {
+            return;
+        }
         document.select("#proxylisttable > tbody > tr")
                 .forEach(element -> {
                     String ip = element.select("td:nth-child(1)").text();
@@ -188,17 +224,19 @@ public class CrawlProxyTask {
                             .onDuplicateKeyIgnore()
                             .execute();
                 });
+        log.info("crawl www.socks-proxy.net proxy end {}", new Date());
+        latch.countDown();
     }
 
     // proxydb.net
-    @Scheduled(fixedDelay = HOURS * 6)
+    @Scheduled(fixedDelay = HOURS)
     public void getProxyDB() {
-        log.info("crawl proxy db use phantomjs start {}", new Date());
+        log.info("crawl proxydb.net start {}", new Date());
 
         for (int i = 0; i <= 500; i++) {
             int offset = i * 15;
             String url = "http://proxydb.net/?offset=" + offset;
-            Document document = phantomJSDownloader.getDocument(url, "atob");
+            Document document = PhantomJSDownloader.getDocument(url, "atob");
             if (document == null) {
                 continue;
             }
@@ -222,6 +260,6 @@ public class CrawlProxyTask {
                     });
         }
 
-        log.info("crawl proxy db use phantomjs end {}", new Date());
+        log.info("crawl proxydb.net end {}", new Date());
     }
 }

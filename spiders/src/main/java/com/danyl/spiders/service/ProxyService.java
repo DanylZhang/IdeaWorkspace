@@ -75,7 +75,7 @@ public class ProxyService {
                 .filter(proxy1 -> proxy1.getProtocol().contains(SOCKS))
                 .count();
         long anonymousCount = proxyList.stream()
-                .filter(proxy1 -> Pattern.compile("(?i)L2|L3|L4|Anonymous|匿名|高匿").matcher(proxy1.getAnonymity()).find())
+                .filter(proxy1 -> Pattern.compile("(?i)L2|L3|L4|Anonymous|高匿").matcher(proxy1.getAnonymity()).find())
                 .count();
 
         instance.lock.writeLock().lock();

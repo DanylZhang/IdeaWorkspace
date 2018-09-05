@@ -40,8 +40,7 @@ public class CheckProxyTask {
     @Scheduled(fixedDelay = MINUTES * 30)
     public void validateProxy() {
         ImmutableMap<String, String> validateUrlMap = ImmutableMap.<String, String>builder()
-                .put("http://category.dangdang.com/cid4002389.html", "帆布鞋")
-                .put("https://www.vip.com/", "ADS\\w{5}")
+                .put("http://category.dangdang.com/cid4002129.html", "防晒隔离")
                 .put("https://list.mi.com/0", "所有商品")
                 .build();
         checkProxy(validateUrlMap);

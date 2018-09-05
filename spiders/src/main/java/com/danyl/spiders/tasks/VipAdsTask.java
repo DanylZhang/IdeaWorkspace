@@ -123,23 +123,26 @@ public class VipAdsTask {
                                     .header("X-Requested-With", "XMLHttpRequest")
                                     .header("Cookie", "cps=%3A5c5jp4tz%3Aed2c07a7%3A57139_168_0__1%3Af58df3bbf8714762a83259d697c1fd03; mars_pid=0; vip_wh=VIP_SH; vip_address=%257B%2522pid%2522%253A%2522103101%2522%252C%2522pname%2522%253A%2522%255Cu4e0a%255Cu6d77%255Cu5e02%2522%252C%2522cid%2522%253A%2522103101101%2522%252C%2522cname%2522%253A%2522%255Cu4e0a%255Cu6d77%255Cu5e02%2522%257D; vip_province=103101; vip_province_name=%E4%B8%8A%E6%B5%B7%E5%B8%82; vip_city_name=%E4%B8%8A%E6%B5%B7%E5%B8%82; vip_city_code=103101101; oversea_jump=cn; _smt_uid=5b4465ef.e448e84; VipUINFO=luc%3Aa%7Csuc%3Aa%7Cbct%3Ac_new%7Chct%3Ac_new%7Cbdts%3A0%7Cbcts%3A0%7Ckfts%3A0%7Cc10%3A0%7Crcabt%3A0%7Cp2%3A0%7Cp3%3A0%7Cp4%3A0%7Cp5%3A1; user_class=a; mst_csrf_key=0fde403d13dd1b1eb3fe29c60f860d6b; mars_sid=54d10491f4b8b9e397a1e2cc0172bb8f; visit_id=57286B1E75CE438934DBD3EA99468632; m_vip_province=103101; _jzqco=%7C%7C%7C%7C%7C1.62199142.1531209199750.1531818871732.1531818893240.1531818871732.1531818893240.0.0.0.21.21; mstRedirect_0=%7B%22guide%22%3A%7B%225535476%22%3A%5B1531818872%2C5535486%5D%2C%225603998%22%3A%5B1531818893%2C5604002%5D%7D%2C%22cdi%22%3A%7B%225535486%22%3A%5B1531818872%2C5535486%5D%2C%225604002%22%3A%5B1531818893%2C5604002%5D%7D%7D; mst_consumer=A; vipte_viewed_=575943922%2C563946147; mars_cid=1531201314264_96255128480bf8133042a3e3dcaafabb");
                             String json = JsoupDownloader.jsoupExecute(connection, "code").body();
-                            log.info("getPurchases json: {}", json);
-                            DocumentContext parse2 = JsonPath.parse(json);
-                            List<Map<String, Object>> itemList = parse2.read("$.data[?(@.v_spu_id)]");
-                            itemList.forEach(stringObjectMap -> {
-                                Ads ads = new Ads();
-                                ads.setItemId(Integer.parseInt(stringObjectMap.get("product_id").toString()));
-                                ads.setListId(Integer.parseInt(stringObjectMap.get("brand_id").toString()));
-                                ads.setSpuid(Long.parseLong(stringObjectMap.get("v_spu_id").toString()));
-                                ads.setActId(adsActivity.getId());
-                                ads.setDate(LocalDate.now());
+                            try {
+                                DocumentContext parse2 = JsonPath.parse(json);
+                                List<Map<String, Object>> itemList = parse2.read("$.data[?(@.v_spu_id)]");
+                                itemList.forEach(stringObjectMap -> {
+                                    Ads ads = new Ads();
+                                    ads.setItemId(Integer.parseInt(stringObjectMap.get("product_id").toString()));
+                                    ads.setListId(Integer.parseInt(stringObjectMap.get("brand_id").toString()));
+                                    ads.setSpuid(Long.parseLong(stringObjectMap.get("v_spu_id").toString()));
+                                    ads.setActId(adsActivity.getId());
+                                    ads.setDate(LocalDate.now());
 
-                                // 这一步将广告商品插入 ads表
-                                create.insertInto(ADS, ADS.ITEM_ID, ADS.LIST_ID, ADS.SPUID, ADS.ACT_ID, ADS.DATE)
-                                        .values(ads.getItemId(), ads.getListId(), ads.getSpuid(), ads.getActId(), ads.getDate())
-                                        .onDuplicateKeyIgnore()
-                                        .execute();
-                            });
+                                    // 这一步将广告商品插入 ads表
+                                    create.insertInto(ADS, ADS.ITEM_ID, ADS.LIST_ID, ADS.SPUID, ADS.ACT_ID, ADS.DATE)
+                                            .values(ads.getItemId(), ads.getListId(), ads.getSpuid(), ads.getActId(), ads.getDate())
+                                            .onDuplicateKeyIgnore()
+                                            .execute();
+                                });
+                            } catch (Exception e) {
+                                log.error("vip ads getPurchases json error: {}, json: {}", e.getMessage(), json);
+                            }
                         }
                     }
                 });
