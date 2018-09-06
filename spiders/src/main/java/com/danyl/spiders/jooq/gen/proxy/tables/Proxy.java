@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Proxy extends TableImpl<ProxyRecord> {
 
-    private static final long serialVersionUID = -1009994417;
+    private static final long serialVersionUID = -1389319410;
 
     /**
      * The reference instance of <code>PUBLIC.PROXY</code>
@@ -100,9 +100,9 @@ public class Proxy extends TableImpl<ProxyRecord> {
     public final TableField<ProxyRecord, String> SOURCE = createField("SOURCE", org.jooq.impl.SQLDataType.VARCHAR(64).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "来源");
 
     /**
-     * The column <code>PUBLIC.PROXY.COUNTRY</code>.
+     * The column <code>PUBLIC.PROXY.COUNTRY</code>. 国家
      */
-    public final TableField<ProxyRecord, String> COUNTRY = createField("COUNTRY", org.jooq.impl.SQLDataType.VARCHAR(128).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<ProxyRecord, String> COUNTRY = createField("COUNTRY", org.jooq.impl.SQLDataType.VARCHAR(128).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "国家");
 
     /**
      * The column <code>PUBLIC.PROXY.CITY</code>. 省市
@@ -115,19 +115,9 @@ public class Proxy extends TableImpl<ProxyRecord> {
     public final TableField<ProxyRecord, String> REGION = createField("REGION", org.jooq.impl.SQLDataType.VARCHAR(32).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "县区");
 
     /**
-     * The column <code>PUBLIC.PROXY.ISP</code>.
+     * The column <code>PUBLIC.PROXY.ISP</code>. 运营商
      */
-    public final TableField<ProxyRecord, String> ISP = createField("ISP", org.jooq.impl.SQLDataType.VARCHAR(256).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
-
-    /**
-     * The column <code>PUBLIC.PROXY.HOST</code>. 主机名
-     */
-    public final TableField<ProxyRecord, String> HOST = createField("HOST", org.jooq.impl.SQLDataType.VARCHAR(64).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "主机名");
-
-    /**
-     * The column <code>PUBLIC.PROXY.VIA</code>. 经由
-     */
-    public final TableField<ProxyRecord, String> VIA = createField("VIA", org.jooq.impl.SQLDataType.VARCHAR(32).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "经由");
+    public final TableField<ProxyRecord, String> ISP = createField("ISP", org.jooq.impl.SQLDataType.VARCHAR(256).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "运营商");
 
     /**
      * Create a <code>PUBLIC.PROXY</code> table reference
@@ -171,7 +161,7 @@ public class Proxy extends TableImpl<ProxyRecord> {
      */
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.PRIMARY_KEY_8);
+        return Arrays.<Index>asList(Indexes.PRIMARY_KEY_4);
     }
 
     /**
@@ -179,7 +169,7 @@ public class Proxy extends TableImpl<ProxyRecord> {
      */
     @Override
     public UniqueKey<ProxyRecord> getPrimaryKey() {
-        return Keys.CONSTRAINT_4;
+        return Keys.CONSTRAINT_48;
     }
 
     /**
@@ -187,7 +177,7 @@ public class Proxy extends TableImpl<ProxyRecord> {
      */
     @Override
     public List<UniqueKey<ProxyRecord>> getKeys() {
-        return Arrays.<UniqueKey<ProxyRecord>>asList(Keys.CONSTRAINT_4);
+        return Arrays.<UniqueKey<ProxyRecord>>asList(Keys.CONSTRAINT_48);
     }
 
     /**

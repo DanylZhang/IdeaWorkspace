@@ -36,7 +36,7 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<ProxyRecord> CONSTRAINT_4 = UniqueKeys0.CONSTRAINT_4;
+    public static final UniqueKey<ProxyRecord> CONSTRAINT_48 = UniqueKeys0.CONSTRAINT_48;
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions
@@ -48,6 +48,6 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     private static class UniqueKeys0 {
-        public static final UniqueKey<ProxyRecord> CONSTRAINT_4 = Internal.createUniqueKey(Proxy.PROXY, "CONSTRAINT_4", Proxy.PROXY.IP, Proxy.PROXY.PORT);
+        public static final UniqueKey<ProxyRecord> CONSTRAINT_48 = Internal.createUniqueKey(Proxy.PROXY, "CONSTRAINT_48", Proxy.PROXY.IP, Proxy.PROXY.PORT);
     }
 }

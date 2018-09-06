@@ -142,18 +142,4 @@ public class ProxyDao extends DAOImpl<ProxyRecord, com.danyl.spiders.jooq.gen.pr
     public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByIsp(String... values) {
         return fetch(Proxy.PROXY.ISP, values);
     }
-
-    /**
-     * Fetch records that have <code>HOST IN (values)</code>
-     */
-    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByHost(String... values) {
-        return fetch(Proxy.PROXY.HOST, values);
-    }
-
-    /**
-     * Fetch records that have <code>VIA IN (values)</code>
-     */
-    public List<com.danyl.spiders.jooq.gen.proxy.tables.pojos.Proxy> fetchByVia(String... values) {
-        return fetch(Proxy.PROXY.VIA, values);
-    }
 }

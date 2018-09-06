@@ -23,7 +23,7 @@ import javax.annotation.Generated;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Proxy implements Serializable {
 
-    private static final long serialVersionUID = 1361993734;
+    private static final long serialVersionUID = -1429539430;
 
     private String        ip;
     private Integer       port;
@@ -38,8 +38,6 @@ public class Proxy implements Serializable {
     private String        city;
     private String        region;
     private String        isp;
-    private String        host;
-    private String        via;
 
     public Proxy() {}
 
@@ -57,8 +55,6 @@ public class Proxy implements Serializable {
         this.city = value.city;
         this.region = value.region;
         this.isp = value.isp;
-        this.host = value.host;
-        this.via = value.via;
     }
 
     public Proxy(
@@ -74,9 +70,7 @@ public class Proxy implements Serializable {
         String        country,
         String        city,
         String        region,
-        String        isp,
-        String        host,
-        String        via
+        String        isp
     ) {
         this.ip = ip;
         this.port = port;
@@ -91,8 +85,6 @@ public class Proxy implements Serializable {
         this.city = city;
         this.region = region;
         this.isp = isp;
-        this.host = host;
-        this.via = via;
     }
 
     public String getIp() {
@@ -212,24 +204,6 @@ public class Proxy implements Serializable {
         return this;
     }
 
-    public String getHost() {
-        return this.host;
-    }
-
-    public Proxy setHost(String host) {
-        this.host = host;
-        return this;
-    }
-
-    public String getVia() {
-        return this.via;
-    }
-
-    public Proxy setVia(String via) {
-        this.via = via;
-        return this;
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -317,18 +291,6 @@ public class Proxy implements Serializable {
         }
         else if (!isp.equals(other.isp))
             return false;
-        if (host == null) {
-            if (other.host != null)
-                return false;
-        }
-        else if (!host.equals(other.host))
-            return false;
-        if (via == null) {
-            if (other.via != null)
-                return false;
-        }
-        else if (!via.equals(other.via))
-            return false;
         return true;
     }
 
@@ -349,8 +311,6 @@ public class Proxy implements Serializable {
         result = prime * result + ((this.city == null) ? 0 : this.city.hashCode());
         result = prime * result + ((this.region == null) ? 0 : this.region.hashCode());
         result = prime * result + ((this.isp == null) ? 0 : this.isp.hashCode());
-        result = prime * result + ((this.host == null) ? 0 : this.host.hashCode());
-        result = prime * result + ((this.via == null) ? 0 : this.via.hashCode());
         return result;
     }
 
@@ -371,8 +331,6 @@ public class Proxy implements Serializable {
         sb.append(", ").append(city);
         sb.append(", ").append(region);
         sb.append(", ").append(isp);
-        sb.append(", ").append(host);
-        sb.append(", ").append(via);
 
         sb.append(")");
         return sb.toString();

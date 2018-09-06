@@ -79,7 +79,7 @@ public class CrawlProxyTask {
 
     // 云代理
     private void getip3366() {
-        IntStream.of(1,3).boxed().flatMap(i -> IntStream.rangeClosed(1, 7).boxed().map(j -> CompletableFuture.runAsync(() -> {
+        IntStream.of(1, 3).boxed().flatMap(i -> IntStream.rangeClosed(1, 7).boxed().map(j -> CompletableFuture.runAsync(() -> {
             String url = "http://www.ip3366.net/?stype=" + i + "&page=" + j;
             Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
             if (document == null) {
@@ -251,15 +251,13 @@ public class CrawlProxyTask {
                         String _proxy = element.select("td:nth-child(1) > a").text().trim();
                         String ip = _proxy.split(":")[0];
                         int port = Integer.parseInt(_proxy.split(":")[1]);
-                        String host = element.select("td:nth-child(2) > div").text();
                         String country = element.select("td:nth-child(3) > img").attr("title");
                         String isp = element.select("td:nth-child(4) > div").text();
                         String protocol = element.select("td:nth-child(5)").text().trim().toLowerCase();
                         String anonymity = element.select("td:nth-child(6) > span").text().trim();
-                        String via = element.select("td:nth-child(9) > div").text().trim();
 
-                        proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.ANONYMITY, PROXY.SPEED, PROXY.PROTOCOL, PROXY.SOURCE, PROXY.COUNTRY, PROXY.ISP, PROXY.HOST, PROXY.VIA)
-                                .values(ip, port, false, anonymity, TIMEOUT, protocol, "https://proxydb.net", country, isp, host, via)
+                        proxy.insertInto(PROXY, PROXY.IP, PROXY.PORT, PROXY.IS_VALID, PROXY.ANONYMITY, PROXY.SPEED, PROXY.PROTOCOL, PROXY.SOURCE, PROXY.COUNTRY, PROXY.ISP)
+                                .values(ip, port, false, anonymity, TIMEOUT, protocol, "https://proxydb.net", country, isp)
                                 .onDuplicateKeyIgnore()
                                 .execute();
                     });
