@@ -58,6 +58,9 @@ public class JsoupDownloader {
                 .add("a padding to disable MSIE and Chrome friendly error page")
                 .add("<div id=x><div id=g>广告</div>")
                 .add("Blocked because of DoS Attack")
+                .add("<title>Сервис Интернет!</title>")
+                .add("aviso.noroestenet.com.br")
+                .add("<title>Box configuration</title>")
                 .add("错误：您所请求的网址（URL）无法获取")
                 .build();
         String str = String.join("|", blockFeatures);
@@ -119,7 +122,7 @@ public class JsoupDownloader {
         // 因为followRedirects会改变访问的URL，所以先保存URL
         String url = jsoupConnection.request().url().toExternalForm();
         // 返回未期望的结果时重试次数
-        int retry = 3;
+        int retry = 5;
 
         while (true) {
             jsoupConnection.url(url)
@@ -192,7 +195,7 @@ public class JsoupDownloader {
         final URL url = request.url();
 
         // 链接访问正常，但返回未匹配数据时的重试次数
-        final AtomicInteger retry = new AtomicInteger(3);
+        final AtomicInteger retry = new AtomicInteger(5);
         final AtomicReference<String> html = new AtomicReference<>(null);
         final CountDownLatch latch = new CountDownLatch(1);
         while (true) {

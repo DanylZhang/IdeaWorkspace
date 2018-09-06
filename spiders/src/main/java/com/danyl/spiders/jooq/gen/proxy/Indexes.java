@@ -30,13 +30,13 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
-    public static final Index PRIMARY_KEY_13B = Indexes0.PRIMARY_KEY_13B;
+    public static final Index PRIMARY_KEY_8 = Indexes0.PRIMARY_KEY_8;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
     // -------------------------------------------------------------------------
 
     private static class Indexes0 {
-        public static Index PRIMARY_KEY_13B = Internal.createIndex("PRIMARY_KEY_13B", Proxy.PROXY, new OrderField[] { Proxy.PROXY.IP, Proxy.PROXY.PORT }, true);
+        public static Index PRIMARY_KEY_8 = Internal.createIndex("PRIMARY_KEY_8", Proxy.PROXY, new OrderField[] { Proxy.PROXY.IP, Proxy.PROXY.PORT }, true);
     }
 }

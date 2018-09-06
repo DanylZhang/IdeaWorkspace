@@ -30,11 +30,16 @@ public class CrawlProxyTask {
     private DSLContext proxy;
 
     private CountDownLatch latch = new CountDownLatch(5);
-    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(32);
+    private ExecutorService fixedThreadPool = null;
 
     @Scheduled(fixedDelay = HOURS)
     public void crawlProxy() {
         log.info("crawl proxy start {}", new Date());
+
+        if (fixedThreadPool != null) {
+            fixedThreadPool.shutdown();
+        }
+        fixedThreadPool = Executors.newFixedThreadPool(16);
 
         fixedThreadPool.execute(this::get66ip);
         fixedThreadPool.execute(this::getip3366);
@@ -48,7 +53,7 @@ public class CrawlProxyTask {
         } catch (Exception e) {
             log.error("crawlProxy countDownLatch await 1 day cause error: {}", e.getMessage());
         }
-        // 立即关闭线程池，不等待已开始执行的线程执行完毕
+        // 以关闭线程池的方式终结此次爬取
         fixedThreadPool.shutdown();
         log.info("crawl proxy end {}", new Date());
     }
@@ -74,7 +79,7 @@ public class CrawlProxyTask {
 
     // 云代理
     private void getip3366() {
-        IntStream.rangeClosed(1, 4).boxed().flatMap(i -> IntStream.rangeClosed(1, 10).boxed().map(j -> CompletableFuture.runAsync(() -> {
+        IntStream.of(1,3).boxed().flatMap(i -> IntStream.rangeClosed(1, 7).boxed().map(j -> CompletableFuture.runAsync(() -> {
             String url = "http://www.ip3366.net/?stype=" + i + "&page=" + j;
             Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
             if (document == null) {

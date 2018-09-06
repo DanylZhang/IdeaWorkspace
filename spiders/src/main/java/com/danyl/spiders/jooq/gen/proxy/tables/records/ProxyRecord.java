@@ -30,7 +30,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Record15<String, Integer, Boolean, String, Integer, String, LocalDateTime, LocalDateTime, String, String, String, String, String, String, String> {
 
-    private static final long serialVersionUID = -573532680;
+    private static final long serialVersionUID = 283237436;
 
     /**
      * Setter for <code>PUBLIC.PROXY.IP</code>. 代理IP
@@ -168,7 +168,7 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Setter for <code>PUBLIC.PROXY.COUNTRY</code>. 国家
+     * Setter for <code>PUBLIC.PROXY.COUNTRY</code>.
      */
     public ProxyRecord setCountry(String value) {
         set(9, value);
@@ -176,7 +176,7 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Getter for <code>PUBLIC.PROXY.COUNTRY</code>. 国家
+     * Getter for <code>PUBLIC.PROXY.COUNTRY</code>.
      */
     public String getCountry() {
         return (String) get(9);
@@ -213,7 +213,7 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Setter for <code>PUBLIC.PROXY.ISP</code>. 运营商
+     * Setter for <code>PUBLIC.PROXY.ISP</code>.
      */
     public ProxyRecord setIsp(String value) {
         set(12, value);
@@ -221,7 +221,7 @@ public class ProxyRecord extends UpdatableRecordImpl<ProxyRecord> implements Rec
     }
 
     /**
-     * Getter for <code>PUBLIC.PROXY.ISP</code>. 运营商
+     * Getter for <code>PUBLIC.PROXY.ISP</code>.
      */
     public String getIsp() {
         return (String) get(12);

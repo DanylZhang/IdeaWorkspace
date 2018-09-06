@@ -75,7 +75,7 @@ public class ProxyService {
                 .filter(proxy1 -> proxy1.getProtocol().contains(SOCKS))
                 .count();
         long anonymousCount = proxyList.stream()
-                .filter(proxy1 -> Pattern.compile("(?i)L2|L3|L4|Anonymous|高匿").matcher(proxy1.getAnonymity()).find())
+                .filter(proxy1 -> Pattern.compile("(?i)L2|L3|L4|Anonymous|elite|高匿").matcher(proxy1.getAnonymity()).find())
                 .count();
         log.info("ProxyService.setProxies, total proxy: {}, https: {}, socks: {}, anonymous: {}, StackTrace: {}", totalCount, httpsCount, socksCount, anonymousCount, Thread.currentThread().getStackTrace());
     }
@@ -114,7 +114,10 @@ public class ProxyService {
                     } else if (StringUtils.containsIgnoreCase(anonymity, "L2")) {
                         return StringUtils.containsIgnoreCase(proxy1.getAnonymity(), anonymity)
                                 || StringUtils.containsIgnoreCase(proxy1.getAnonymity(), "L3")
-                                || StringUtils.containsIgnoreCase(proxy1.getAnonymity(), "L4");
+                                || StringUtils.containsIgnoreCase(proxy1.getAnonymity(), "L4")
+                                || StringUtils.containsIgnoreCase(proxy1.getAnonymity(), "Anonymous")
+                                || StringUtils.containsIgnoreCase(proxy1.getAnonymity(), "elite")
+                                || StringUtils.containsIgnoreCase(proxy1.getAnonymity(), "高匿");
                     } else if (StringUtils.containsIgnoreCase(anonymity, "L3")) {
                         return StringUtils.containsIgnoreCase(proxy1.getAnonymity(), anonymity)
                                 || StringUtils.containsIgnoreCase(proxy1.getAnonymity(), "L4");
@@ -153,7 +156,17 @@ public class ProxyService {
         if (proxy == null) {
             return;
         }
-        instance.proxies.remove(proxy);
+        synchronized (proxy) {
+            Integer count = instance.proxies.get(proxy);
+            if (count != null) {
+                count--;
+                if (count <= 0) {
+                    instance.proxies.remove(proxy);
+                } else {
+                    instance.proxies.put(proxy, count);
+                }
+            }
+        }
     }
 
     private static void emptyProxyNeedSleep(String url) {

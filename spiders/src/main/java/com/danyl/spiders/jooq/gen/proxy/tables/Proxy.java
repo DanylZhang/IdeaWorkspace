@@ -39,7 +39,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Proxy extends TableImpl<ProxyRecord> {
 
-    private static final long serialVersionUID = -109590088;
+    private static final long serialVersionUID = -1009994417;
 
     /**
      * The reference instance of <code>PUBLIC.PROXY</code>
@@ -100,9 +100,9 @@ public class Proxy extends TableImpl<ProxyRecord> {
     public final TableField<ProxyRecord, String> SOURCE = createField("SOURCE", org.jooq.impl.SQLDataType.VARCHAR(64).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "来源");
 
     /**
-     * The column <code>PUBLIC.PROXY.COUNTRY</code>. 国家
+     * The column <code>PUBLIC.PROXY.COUNTRY</code>.
      */
-    public final TableField<ProxyRecord, String> COUNTRY = createField("COUNTRY", org.jooq.impl.SQLDataType.VARCHAR(32).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "国家");
+    public final TableField<ProxyRecord, String> COUNTRY = createField("COUNTRY", org.jooq.impl.SQLDataType.VARCHAR(128).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>PUBLIC.PROXY.CITY</code>. 省市
@@ -115,9 +115,9 @@ public class Proxy extends TableImpl<ProxyRecord> {
     public final TableField<ProxyRecord, String> REGION = createField("REGION", org.jooq.impl.SQLDataType.VARCHAR(32).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "县区");
 
     /**
-     * The column <code>PUBLIC.PROXY.ISP</code>. 运营商
+     * The column <code>PUBLIC.PROXY.ISP</code>.
      */
-    public final TableField<ProxyRecord, String> ISP = createField("ISP", org.jooq.impl.SQLDataType.VARCHAR(64).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "运营商");
+    public final TableField<ProxyRecord, String> ISP = createField("ISP", org.jooq.impl.SQLDataType.VARCHAR(256).defaultValue(org.jooq.impl.DSL.field("''", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>PUBLIC.PROXY.HOST</code>. 主机名
@@ -171,7 +171,7 @@ public class Proxy extends TableImpl<ProxyRecord> {
      */
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.PRIMARY_KEY_13B);
+        return Arrays.<Index>asList(Indexes.PRIMARY_KEY_8);
     }
 
     /**
