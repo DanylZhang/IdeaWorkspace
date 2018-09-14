@@ -37,7 +37,7 @@ public class CrawlProxyTask {
         log.info("crawl proxy start {}", new Date());
 
         if (fixedThreadPool != null) {
-            fixedThreadPool.shutdown();
+            fixedThreadPool.shutdownNow();
         }
         fixedThreadPool = Executors.newFixedThreadPool(16);
 
@@ -54,7 +54,7 @@ public class CrawlProxyTask {
             log.error("crawlProxy countDownLatch await 1 day cause error: {}", e.getMessage());
         }
         // 以关闭线程池的方式终结此次爬取
-        fixedThreadPool.shutdown();
+        fixedThreadPool.shutdownNow();
         log.info("crawl proxy end {}", new Date());
     }
 

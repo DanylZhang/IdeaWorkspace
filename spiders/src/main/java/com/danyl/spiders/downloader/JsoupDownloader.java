@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
+import static com.danyl.spiders.constants.Constants.URL_RETRY;
 import static com.danyl.spiders.constants.Constants.USERAGENT;
 import static com.danyl.spiders.constants.TimeConstants.TIMEOUT;
 
@@ -122,14 +123,13 @@ public class JsoupDownloader {
         // 因为followRedirects会改变访问的URL，所以先保存URL
         String url = jsoupConnection.request().url().toExternalForm();
         // 返回未期望的结果时重试次数
-        int retry = 5;
+        int retry = URL_RETRY;
 
         while (true) {
             jsoupConnection.url(url)
                     .timeout(TIMEOUT)
                     .followRedirects(true)
                     .ignoreContentType(true)
-                    // .validateTLSCertificates(false)
                     .userAgent(USERAGENT);
 
             // 从proxies中拿到一个代理，并设置给jsoupConnection
@@ -144,6 +144,7 @@ public class JsoupDownloader {
                 Connection.Response execute = jsoupConnection.execute();
                 String body = execute.body();
                 if (pattern.matcher(body).find()) {
+                    proxyService.takeDecr(proxy1);
                     return execute;
                 } else {
                     if (hasBlocked(body)) {
@@ -195,15 +196,19 @@ public class JsoupDownloader {
         final URL url = request.url();
 
         // 链接访问正常，但返回未匹配数据时的重试次数
-        final AtomicInteger retry = new AtomicInteger(5);
+        final AtomicInteger retry = new AtomicInteger(URL_RETRY);
         final AtomicReference<String> html = new AtomicReference<>(null);
         final CountDownLatch latch = new CountDownLatch(1);
         while (true) {
             List<WebClient> shouldCloseWebClient = new ArrayList<>();
+            List<Proxy> usingProxy = new ArrayList<>();
             // 先一轮并发3个
             for (int i = 0; i < 3; i++) {
                 // 从proxies中拿到一个代理，并设置给jsoupConnection
                 final Proxy proxy1 = options.getUseProxy() ? proxyService.get(url.toExternalForm(), options.getAnonymity()) : null;
+                if (proxy1 != null) {
+                    usingProxy.add(proxy1);
+                }
                 WebClient webClient = newWebClient(proxy1);
                 shouldCloseWebClient.add(webClient);
                 try {
@@ -240,6 +245,10 @@ public class JsoupDownloader {
                 // close webClient then can release pool connections
                 shouldCloseWebClient.forEach(WebClient::close);
                 shouldCloseWebClient.clear();
+                // takeDecr usingProxy
+                usingProxy.forEach(proxy1 -> proxyService.takeDecr(proxy1));
+                usingProxy.clear();
+
                 if (html.get() != null) {
                     return html.get();
                 }
