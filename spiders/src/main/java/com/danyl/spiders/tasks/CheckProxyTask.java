@@ -37,7 +37,7 @@ public class CheckProxyTask {
     private DSLContext proxy;
 
     // 校验可用的代理
-    @Scheduled(fixedDelay = MINUTES * 30)
+    @Scheduled(fixedDelay=HOURS)
     public void validateProxy() {
         ImmutableMap<String, String> validateUrlMap = ImmutableMap.<String, String>builder()
                 .put("http://category.dangdang.com/cid4002129.html", "防晒隔离")
@@ -49,7 +49,7 @@ public class CheckProxyTask {
     private void checkProxy(Map<String, String> map) {
         log.info("check proxy start {}", new Date());
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(64);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(16);
         try {
             proxy.selectFrom(PROXY).fetch().stream().map(proxyRecord -> CompletableFuture.runAsync(() -> {
                 Pair<Boolean, Integer> validateResultPair = Pair.of(false, TIMEOUT);
@@ -134,11 +134,11 @@ public class CheckProxyTask {
         return Pair.of(false, Integer.MAX_VALUE);
     }
 
-    @Scheduled(fixedDelay = HOURS * 6)
+    @Scheduled(fixedDelay = DAYS)
     public void fillProxyFields() {
         log.info("fill proxy fields start {}", new Date());
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(16);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(8);
         try {
             proxy.selectFrom(PROXY)
                     .where(PROXY.IS_VALID.eq(true).and(PROXY.ANONYMITY.notLikeRegex("L1|L2|L3|L4")))

@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -63,19 +64,20 @@ public class ProxyService {
     }
 
     private void setProxies() {
-        List<Proxy> proxyList = instance.proxy.selectFrom(PROXY)
+        instance.proxy.selectFrom(PROXY)
                 .where(PROXY.IS_VALID.eq(true))
-                .fetchInto(Proxy.class);
-        proxyList.forEach(proxy1 -> instance.proxies.put(proxy1, 0));
+                .fetchInto(Proxy.class)
+                .forEach(proxy1 -> instance.proxies.putIfAbsent(proxy1, 0));
 
-        int totalCount = proxyList.size();
-        long httpsCount = proxyList.stream()
+        Set<Proxy> proxies = instance.proxies.keySet();
+        int totalCount = proxies.size();
+        long httpsCount = proxies.stream()
                 .filter(proxy1 -> proxy1.getProtocol().contains(HTTPS))
                 .count();
-        long socksCount = proxyList.stream()
+        long socksCount = proxies.stream()
                 .filter(proxy1 -> proxy1.getProtocol().contains(SOCKS))
                 .count();
-        long anonymousCount = proxyList.stream()
+        long anonymousCount = proxies.stream()
                 .filter(proxy1 -> Pattern.compile("(?i)L2|L3|L4|Anonymous|elite|高匿").matcher(proxy1.getAnonymity()).find())
                 .count();
         log.info("ProxyService.setProxies, total proxy: {}, https: {}, socks: {}, anonymous: {}, StackTrace: {}", totalCount, httpsCount, socksCount, anonymousCount, Thread.currentThread().getStackTrace());

@@ -16,8 +16,12 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.danyl.spiders.constants.Constants.XIAOMI_PAGESIZE;
@@ -30,6 +34,7 @@ public class XiaoMiCidTask {
 
     @Resource(name = "DSLContextXiaoMi")
     private DSLContext xm;
+    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(8);
 
     // 测试节流用
     private int limit = Integer.MAX_VALUE; // 3;
@@ -61,7 +66,7 @@ public class XiaoMiCidTask {
                 .map(a -> a.attr("abs:href"))
                 .distinct()
                 .limit(limit)
-                .forEach((lv1link) -> {
+                .map(lv1link -> CompletableFuture.runAsync(() -> {
                     ItemCategory itemCategory = new ItemCategory();
                     // lv1cid
                     Matcher matcher = pattern.matcher(lv1link);
@@ -73,7 +78,6 @@ public class XiaoMiCidTask {
                         itemCategory.setLv1cid(lv1cid);
                     }
 
-                    log.info("crawl url: {}", lv1link);
                     Document document1 = JsoupDownloader.jsoupGet(lv1link, "所有商品");
                     Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
                     if (Objects.isNull(span)) {
@@ -112,6 +116,11 @@ public class XiaoMiCidTask {
                     } else {
                         xm.executeInsert(xm.newRecord(ITEM_CATEGORY, itemCategory));
                     }
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
     }
 
@@ -131,7 +140,7 @@ public class XiaoMiCidTask {
                 })
                 .distinct()
                 .limit(limit)
-                .forEach((lv2link_lv1Category) -> {
+                .map(lv2link_lv1Category -> CompletableFuture.runAsync(() -> {
                     String lv2link = lv2link_lv1Category.getLeft();
                     ItemCategory lv1Category = lv2link_lv1Category.getRight();
 
@@ -151,7 +160,6 @@ public class XiaoMiCidTask {
                         itemCategory.setLv2cid(lv2cid);
                     }
 
-                    log.info("crawl url: {}", lv2link);
                     Document document1 = JsoupDownloader.jsoupGet(lv2link, "所有商品");
                     Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
                     if (Objects.isNull(span)) {
@@ -191,6 +199,11 @@ public class XiaoMiCidTask {
                     } else {
                         xm.executeInsert(xm.newRecord(ITEM_CATEGORY, itemCategory));
                     }
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
     }
 
@@ -210,7 +223,7 @@ public class XiaoMiCidTask {
                 })
                 .distinct()
                 .limit(limit)
-                .forEach((lv3link_lv2Category) -> {
+                .map(lv3link_lv2Category -> CompletableFuture.runAsync(() -> {
                     String lv3link = lv3link_lv2Category.getLeft();
                     ItemCategory lv2Category = lv3link_lv2Category.getRight();
 
@@ -231,7 +244,6 @@ public class XiaoMiCidTask {
                         itemCategory.setLv3cid(lv3cid);
                     }
 
-                    log.info("crawl url: {}", lv3link);
                     Document document1 = JsoupDownloader.jsoupGet(lv3link, "所有商品");
                     Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
                     if (Objects.isNull(span)) {
@@ -272,6 +284,11 @@ public class XiaoMiCidTask {
                     } else {
                         xm.executeInsert(xm.newRecord(ITEM_CATEGORY, itemCategory));
                     }
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
     }
 
@@ -291,7 +308,7 @@ public class XiaoMiCidTask {
                 })
                 .distinct()
                 .limit(limit)
-                .forEach((lv4link_lv3Category) -> {
+                .map(lv4link_lv3Category -> CompletableFuture.runAsync(() -> {
                     String lv4link = lv4link_lv3Category.getLeft();
                     ItemCategory lv3Category = lv4link_lv3Category.getRight();
 
@@ -313,7 +330,6 @@ public class XiaoMiCidTask {
                         itemCategory.setLv4cid(lv4cid);
                     }
 
-                    log.info("crawl url: {}", lv4link);
                     Document document1 = JsoupDownloader.jsoupGet(lv4link, "所有商品");
                     Element span = document1.select("div.breadcrumbs > div.container > span:last-child").first();
                     if (Objects.isNull(span)) {
@@ -355,6 +371,11 @@ public class XiaoMiCidTask {
                     } else {
                         xm.executeInsert(xm.newRecord(ITEM_CATEGORY, itemCategory));
                     }
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
     }
 
@@ -374,7 +395,7 @@ public class XiaoMiCidTask {
                 })
                 .distinct()
                 .limit(limit)
-                .forEach((lv5link_lv4Category) -> {
+                .map(lv5link_lv4Category -> CompletableFuture.runAsync(() -> {
                     String lv5link = lv5link_lv4Category.getLeft();
                     ItemCategory lv4Category = lv5link_lv4Category.getRight();
 
@@ -440,6 +461,11 @@ public class XiaoMiCidTask {
                     } else {
                         xm.executeInsert(xm.newRecord(ITEM_CATEGORY, itemCategory));
                     }
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
     }
 

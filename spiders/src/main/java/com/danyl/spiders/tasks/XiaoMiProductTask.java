@@ -53,7 +53,7 @@ public class XiaoMiProductTask {
 
         List<ItemCategory> itemCategories = xm.selectFrom(ITEM_CATEGORY).where(ITEM_CATEGORY.IS_PARENT.eq(0)).fetchInto(ItemCategory.class);
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(16);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(8);
         try {
             itemCategories.stream()
                     .flatMap(itemCategory -> {
@@ -176,7 +176,7 @@ public class XiaoMiProductTask {
                 .from(ITEM)
                 .fetch(ITEM.COMMODITY_ID);
 
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(16);
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(8);
         try {
             commodityIds.stream()
                     .limit(limit)

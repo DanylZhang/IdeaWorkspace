@@ -5,12 +5,17 @@ import com.danyl.spiders.downloader.PhantomJSDownloader;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jsoup.nodes.Document;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Date;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,37 +33,10 @@ public class CrawlProxyTask {
 
     @Resource(name = "DSLContextProxy")
     private DSLContext proxy;
-
-    private CountDownLatch latch = new CountDownLatch(5);
-    private ExecutorService fixedThreadPool = null;
-
-    @Scheduled(fixedDelay = HOURS)
-    public void crawlProxy() {
-        log.info("crawl proxy start {}", new Date());
-
-        if (fixedThreadPool != null) {
-            fixedThreadPool.shutdownNow();
-        }
-        fixedThreadPool = Executors.newFixedThreadPool(16);
-
-        fixedThreadPool.execute(this::get66ip);
-        fixedThreadPool.execute(this::getip3366);
-        fixedThreadPool.execute(this::getkuaidaili);
-        fixedThreadPool.execute(this::getxicidaili);
-        fixedThreadPool.execute(this::getFreeProxyList);
-        fixedThreadPool.execute(this::getFreeProxyListSocks);
-
-        try {
-            latch.await(1, TimeUnit.DAYS);
-        } catch (Exception e) {
-            log.error("crawlProxy countDownLatch await 1 day cause error: {}", e.getMessage());
-        }
-        // 以关闭线程池的方式终结此次爬取
-        fixedThreadPool.shutdownNow();
-        log.info("crawl proxy end {}", new Date());
-    }
+    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(8);
 
     // 66免费代理网
+    @Scheduled(fixedDelay = HOURS)
     private void get66ip() {
         for (int i = 0; i < 100; i++) {
             String url = "http://www.66ip.cn/nmtq.php?getnum=100&isp=0&anonymoustype=0&start=&ports=&export=&ipaddress=&area=0&proxytype=2&api=66ip";
@@ -74,10 +52,10 @@ public class CrawlProxyTask {
             }
         }
         log.info("crawl 66免费代理网 proxy end {}", new Date());
-        latch.countDown();
     }
 
     // 云代理
+    @Scheduled(fixedDelay = HOURS)
     private void getip3366() {
         IntStream.of(1, 3).boxed().flatMap(i -> IntStream.rangeClosed(1, 7).boxed().map(j -> CompletableFuture.runAsync(() -> {
             String url = "http://www.ip3366.net/?stype=" + i + "&page=" + j;
@@ -105,10 +83,10 @@ public class CrawlProxyTask {
                 .forEach(aVoid -> {
                 });
         log.info("crawl 云代理 proxy end {}", new Date());
-        latch.countDown();
     }
 
     // 快代理
+    @Scheduled(fixedDelay = HOURS)
     private void getkuaidaili() {
         IntStream.rangeClosed(1, 25).boxed().map(i -> CompletableFuture.runAsync(() -> {
             String url = "https://www.kuaidaili.com/free/inha/" + i + "/";
@@ -136,10 +114,10 @@ public class CrawlProxyTask {
                 .forEach(aVoid -> {
                 });
         log.info("crawl 快代理 proxy end {}", new Date());
-        latch.countDown();
     }
 
     // 西刺代理
+    @Scheduled(fixedDelay = HOURS)
     private void getxicidaili() {
         IntStream.rangeClosed(1, 300).boxed().map(i -> CompletableFuture.runAsync(() -> {
             String url = "http://www.xicidaili.com/nn/" + i;
@@ -177,10 +155,10 @@ public class CrawlProxyTask {
                 .forEach(aVoid -> {
                 });
         log.info("crawl 西刺代理 proxy end {}", new Date());
-        latch.countDown();
     }
 
     // free-proxy-list
+    @Scheduled(fixedDelay = HOURS)
     private void getFreeProxyList() {
         String url = "https://free-proxy-list.net/";
         Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
@@ -206,10 +184,10 @@ public class CrawlProxyTask {
                             .execute();
                 });
         log.info("crawl free-proxy-list proxy end {}", new Date());
-        latch.countDown();
     }
 
     // www.socks-proxy.net
+    @Scheduled(fixedDelay = HOURS)
     private void getFreeProxyListSocks() {
         String url = "https://www.socks-proxy.net/";
         Document document = JsoupDownloader.jsoupGet(url, "(\\d+\\.\\d+\\.\\d+\\.\\d+)");
@@ -230,7 +208,6 @@ public class CrawlProxyTask {
                             .execute();
                 });
         log.info("crawl www.socks-proxy.net proxy end {}", new Date());
-        latch.countDown();
     }
 
     // proxydb.net

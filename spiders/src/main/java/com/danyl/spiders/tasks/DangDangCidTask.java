@@ -16,8 +16,12 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.danyl.spiders.constants.TimeConstants.DAYS;
@@ -29,6 +33,7 @@ public class DangDangCidTask {
 
     @Resource(name = "DSLContextDangDang")
     private DSLContext dd;
+    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(8);
 
     // 测试节流用
     private int limit = Integer.MAX_VALUE; // 3;
@@ -81,12 +86,13 @@ public class DangDangCidTask {
                     }
                 })
                 .distinct()
-                .forEach((lv1link) -> {
-                    log.info("crawl url: {}", lv1link);
-
+                .map(lv1link -> CompletableFuture.runAsync(() -> {
                     ItemCategory itemCategory = new ItemCategory();
 
                     Document document2 = JsoupDownloader.jsoupGet(lv1link, "全部商品分类");
+                    if (document2 == null) {
+                        return;
+                    }
                     Element a = document2.select("#breadcrumb > div > a.a.diff").first();
                     if (Objects.isNull(a)) {
                         return;
@@ -126,6 +132,11 @@ public class DangDangCidTask {
                     } else {
                         dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
                     }
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
     }
 
@@ -144,10 +155,9 @@ public class DangDangCidTask {
                 })
                 .distinct()
                 .limit(limit)
-                .forEach((lv2link_lv1Category) -> {
+                .map(lv2link_lv1Category -> CompletableFuture.runAsync(() -> {
                     String lv2link = lv2link_lv1Category.getLeft();
                     ItemCategory lv1Category = lv2link_lv1Category.getRight();
-                    log.info("crawl url: {}", lv2link);
 
                     if (!pattern.matcher(lv2link).find()) {
                         return;
@@ -156,6 +166,9 @@ public class DangDangCidTask {
                     ItemCategory itemCategory = new ItemCategory();
 
                     Document document2 = JsoupDownloader.jsoupGet(lv2link, "全部商品分类");
+                    if (document2 == null) {
+                        return;
+                    }
                     Element a = document2.select("#breadcrumb > div > div > a").first();
                     if (Objects.isNull(a)) {
                         return;
@@ -197,6 +210,11 @@ public class DangDangCidTask {
                     } else {
                         dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
                     }
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
     }
 
@@ -215,10 +233,9 @@ public class DangDangCidTask {
                 })
                 .distinct()
                 .limit(limit)
-                .forEach((lv3link_lv2Category) -> {
+                .map(lv3link_lv2Category -> CompletableFuture.runAsync(() -> {
                     String lv3link = lv3link_lv2Category.getLeft();
                     ItemCategory lv2Category = lv3link_lv2Category.getRight();
-                    log.info("crawl url: {}", lv3link);
 
                     if (!pattern.matcher(lv3link).find()) {
                         return;
@@ -227,6 +244,9 @@ public class DangDangCidTask {
                     ItemCategory itemCategory = new ItemCategory();
 
                     Document document2 = JsoupDownloader.jsoupGet(lv3link, "全部商品分类");
+                    if (document2 == null) {
+                        return;
+                    }
                     Element a = document2.select("#breadcrumb > div > div:nth-child(7) > a").first();
                     if (Objects.isNull(a)) {
                         return;
@@ -270,6 +290,11 @@ public class DangDangCidTask {
                     } else {
                         dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
                     }
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
     }
 
@@ -288,10 +313,9 @@ public class DangDangCidTask {
                 })
                 .distinct()
                 .limit(limit)
-                .forEach((lv4link_lv3Category) -> {
+                .map(lv4link_lv3Category -> CompletableFuture.runAsync(() -> {
                     String lv4link = lv4link_lv3Category.getLeft();
                     ItemCategory lv3Category = lv4link_lv3Category.getRight();
-                    log.info("crawl url: {}", lv4link);
 
                     // 对伪分类进行过滤 http://category.dangdang.com/cid4010390-a1000367%3A2.html
                     if (!pattern.matcher(lv4link).find()) {
@@ -300,6 +324,9 @@ public class DangDangCidTask {
                     ItemCategory itemCategory = new ItemCategory();
 
                     Document document2 = JsoupDownloader.jsoupGet(lv4link, "全部商品分类");
+                    if (document2 == null) {
+                        return;
+                    }
                     Element a = document2.select("#breadcrumb > div > div:nth-child(9) > a").first();
                     if (Objects.isNull(a)) {
                         return;
@@ -345,6 +372,11 @@ public class DangDangCidTask {
                     } else {
                         dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
                     }
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
     }
 
@@ -363,10 +395,9 @@ public class DangDangCidTask {
                 })
                 .distinct()
                 .limit(limit)
-                .forEach((lv5link_lv4Category) -> {
+                .map(lv5link_lv4Category -> CompletableFuture.runAsync(() -> {
                     String lv5link = lv5link_lv4Category.getLeft();
                     ItemCategory lv4Category = lv5link_lv4Category.getRight();
-                    log.info("crawl url: {}", lv5link);
 
                     if (!pattern.matcher(lv5link).find()) {
                         return;
@@ -375,6 +406,9 @@ public class DangDangCidTask {
                     ItemCategory itemCategory = new ItemCategory();
 
                     Document document2 = JsoupDownloader.jsoupGet(lv5link, "全部商品分类");
+                    if (document2 == null) {
+                        return;
+                    }
                     Element a = document2.select("#breadcrumb > div > div:nth-child(11) > a").first();
                     if (Objects.isNull(a)) {
                         return;
@@ -422,6 +456,11 @@ public class DangDangCidTask {
                     } else {
                         dd.executeInsert(dd.newRecord(ITEM_CATEGORY, itemCategory));
                     }
+                }, fixedThreadPool))
+                .collect(Collectors.toList())
+                .stream()
+                .map(CompletableFuture::join)
+                .forEach(aVoid -> {
                 });
     }
 
