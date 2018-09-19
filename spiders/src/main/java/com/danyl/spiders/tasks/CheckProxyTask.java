@@ -37,7 +37,7 @@ public class CheckProxyTask {
     private DSLContext proxy;
 
     // 校验可用的代理
-    @Scheduled(fixedDelay=HOURS)
+    @Scheduled(fixedDelay = HOURS)
     public void validateProxy() {
         ImmutableMap<String, String> validateUrlMap = ImmutableMap.<String, String>builder()
                 .put("http://category.dangdang.com/cid4002129.html", "防晒隔离")

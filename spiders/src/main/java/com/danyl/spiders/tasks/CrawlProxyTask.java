@@ -5,15 +5,12 @@ import com.danyl.spiders.downloader.PhantomJSDownloader;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -40,8 +37,11 @@ public class CrawlProxyTask {
     private void get66ip() {
         for (int i = 0; i < 100; i++) {
             String url = "http://www.66ip.cn/nmtq.php?getnum=100&isp=0&anonymoustype=0&start=&ports=&export=&ipaddress=&area=0&proxytype=2&api=66ip";
-            String html = JsoupDownloader.jsoupGet(url, "www\\.66daili\\.cn").html();
-            Matcher matcher = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)").matcher(html);
+            Document document = JsoupDownloader.jsoupGet(url, "www\\.66daili\\.cn");
+            if (document == null) {
+                continue;
+            }
+            Matcher matcher = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)").matcher(document.html());
             while (matcher.find()) {
                 String ip = matcher.group(1);
                 int port = Integer.parseInt(matcher.group(2));

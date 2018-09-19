@@ -17,7 +17,6 @@ import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,68 +42,31 @@ public class JsoupDownloader {
         return Vertx.vertx(vertxOptions);
     }
 
-    private static Boolean hasBlocked(String body) {
-        ImmutableSet<String> blockFeatures = ImmutableSet.<String>builder()
-                .add("<title>网站防火墙</title>")
-                .add("<title>System Error</title>")
-                .add("safedog.cn")
-                .add("url.fortinet.net")
-                .add("Squid Error pages")
-                .add("Mikrotik HttpProxy")
-                .add("logoSophosFooter")
-                .add("The proxy server received")
-                .add("Panel Komunikacyjny")
-                .add("404 - Recurso no encontrado")
-                .add("the server does not have a DNS entry")
-                .add("a padding to disable MSIE and Chrome friendly error page")
-                .add("<div id=x><div id=g>广告</div>")
-                .add("Blocked because of DoS Attack")
-                .add("<title>Сервис Интернет!</title>")
-                .add("aviso.noroestenet.com.br")
-                .add("<title>Box configuration</title>")
-                .add("错误：您所请求的网址（URL）无法获取")
-                .build();
-        String str = String.join("|", blockFeatures);
-        return Pattern.compile("(?i)" + str).matcher(body).find();
-    }
+    private static final ImmutableSet<String> blockFeatures = ImmutableSet.<String>builder()
+            .add("<title>网站防火墙</title>")
+            .add("<title>System Error</title>")
+            .add("safedog.cn")
+            .add("url.fortinet.net")
+            .add("Squid Error pages")
+            .add("Mikrotik HttpProxy")
+            .add("logoSophosFooter")
+            .add("The proxy server received")
+            .add("Panel Komunikacyjny")
+            .add("404 - Recurso no encontrado")
+            .add("the server does not have a DNS entry")
+            .add("a padding to disable MSIE and Chrome friendly error page")
+            .add("<div id=x><div id=g>广告</div>")
+            .add("Blocked because of DoS Attack")
+            .add("<title>Сервис Интернет!</title>")
+            .add("aviso.noroestenet.com.br")
+            .add("<title>Box configuration</title>")
+            .add("错误：您所请求的网址（URL）无法获取")
+            .build();
+    private static final Pattern blockedPattern = Pattern.compile("(?i)" + String.join("|", blockFeatures));
 
-    /**
-     * Initialise Trust manager that does not validate certificate chains and
-     * add it to current SSLContext.
-     * <p/>
-     * please not that this method will only perform action if sslSocketFactory is not yet
-     * instantiated.
-     *
-     * @throws IOException on SSL init errors
-     */
-//    private static synchronized void initUnSecureTSL() throws IOException {
-//        if (sslSocketFactory == null) {
-//            // Create a trust manager that does not validate certificate chains
-//            final TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-//
-//                public void checkClientTrusted(final X509Certificate[] chain, final String authType) {
-//                }
-//
-//                public void checkServerTrusted(final X509Certificate[] chain, final String authType) {
-//                }
-//
-//                public X509Certificate[] getAcceptedIssuers() {
-//                    return null;
-//                }
-//            }};
-//
-//            // Install the all-trusting trust manager
-//            final SSLContext sslContext;
-//            try {
-//                sslContext = SSLContext.getInstance("SSL");
-//                sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-//                // Create an ssl socket factory with our all-trusting manager
-//                sslSocketFactory = sslContext.getSocketFactory();
-//            } catch (NoSuchAlgorithmException | KeyManagementException e) {
-//                throw new IOException("Can't create unsecure trust manager");
-//            }
-//        }
-//    }
+    private static Boolean hasBlocked(String body) {
+        return blockedPattern.matcher(body).find();
+    }
 
     /**
      * 提供一个便捷的静态方法获取使用代理的 Jsoup Execute
@@ -155,8 +117,9 @@ public class JsoupDownloader {
                         // 有可能目标链接包含的内容确实已经发生更改，
                         // 用户提供的regex未匹配结果是正常情况
                         // 故跳出死循环
-                        if (retry-- <= 0) {
+                        if (--retry <= 0) {
                             log.error("JsoupDownloader check regex error, url: {}, regex: {}, response: {}", url, regex, body);
+                            return null;
                         }
                     }
                 }

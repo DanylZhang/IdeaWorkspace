@@ -55,7 +55,6 @@ public class DangDangCidTask {
     private void lv1Cid() {
         String startUrl = "http://category.dangdang.com/?ref=www-0-C";
         Document document = JsoupDownloader.jsoupGet(startUrl, "全部商品分类");
-
         if (document == null) {
             log.error("lv1Cid document is null!");
             return;
